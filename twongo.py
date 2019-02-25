@@ -230,12 +230,13 @@ if __name__ == "__main__":
 
     start_mongo_daemon()       ## check/start mongodb
 
-    lookup_users()
+    lookup_users()             ## convert screen names to id numbers
 
+    # need to tidy up this line later.
     users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
 
-    harvest()
+    harvest()                  ## loop through users, acquiring and archiving tweets
 
-    export()
+    export()                   ## ask MongoDB to create a CSV file
     
-report()
+    report()                   ## print up some info about the run (will become logfile)

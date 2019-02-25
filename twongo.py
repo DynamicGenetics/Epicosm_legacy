@@ -45,6 +45,7 @@ def start_mongo_daemon():
             subprocess.Popen(['/usr/bin/mongod', '--dbpath', db_path, '--logpath', log_filename])
         except subprocess.CalledProcessError as e:
             print("There is a problem opening the MonogoDB daemon... halting.\n", e.output)
+            sys.exit(1)
 
 
 def stop_mongo_daemon():

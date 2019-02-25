@@ -1,12 +1,12 @@
-import json
-import time
-from datetime import datetime
-import subprocess
-import psutil
 import tweepy
 import pymongo
+import json
+import subprocess
+import psutil
 import sys
 import os
+import time
+from datetime import datetime
 from pymongo import MongoClient
 
 ## Twitter API credentials

@@ -6,21 +6,19 @@
 
 import json
 import time
-from datetime import datetime
+import datetime
 import subprocess
 import psutil
 import tweepy
-from tweepy import OAuthHandler
 import pymongo
 import sys
 import os
-from pymongo import MongoClient
 
 ## set up run variables
 times_limited = 0
 private_accounts = 0
 empty_accounts = 0
-now = datetime.now()
+now = datetime.datetime.now()
 run_folder = "/home/at9362/python_feb"
 
 
@@ -55,7 +53,7 @@ except tweepy.error.TweepError:
 
 
 ## connect to mongodb
-client = MongoClient('localhost', 27017)
+client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
 
@@ -213,7 +211,7 @@ def get_friends(twitter_id): ## get the "following" list for this user
 def export(): # export and backup the database
     ## index mongodb for duplicate avoidance and speed
     db.tweets.create_index([("id_str", pymongo.ASCENDING)], unique=True, dropDups=True)    
-    now = datetime.now()
+    now = datetime.datetime.now()
     csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     print("\nCreating CSV output file...")
     subprocess.call(["/usr/bin/mongoexport", "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
@@ -266,3 +264,4 @@ if __name__ == "__main__":
     export()               ## create CSV ouput and backup mongodb
 
     report()               ## return some debug statistics
+    

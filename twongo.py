@@ -1,3 +1,9 @@
+####################################
+## twongo.py - Al Tanner, Feb2019 ##
+## a twitter havester using       ##
+## MongoDB for data management    ##
+####################################
+
 import json
 import time
 from datetime import datetime
@@ -10,16 +16,22 @@ import sys
 import os
 from pymongo import MongoClient
 
+## set up run variables
+times_limited = 0
+private_accounts = 0
+empty_accounts = 0
+now = datetime.now()
+run_folder = "/home/at9362/python_feb"
+
+
 
 ## Check that the userlist exists
 if not os.path.isfile("/home/at9362/python_feb/" + sys.argv[1]):
     print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
     exit(1)
-#    raise SystemExit("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")    
-#sys.exit()
 
-
-## Get Twitter API details from credentials file
+#def connect_to_twitter():
+    ## Get Twitter API details from credentials file
 cred_fields = {}
 with open("/home/at9362/python_feb/REALcreds") as credentials:
     first4lines=credentials.readlines()[0:4]
@@ -31,8 +43,6 @@ CONSUMER_KEY = cred_fields[("CONSUMER_KEY")]
 CONSUMER_SECRET = cred_fields[("CONSUMER_SECRET")]
 ACCESS_TOKEN = cred_fields[("ACCESS_TOKEN")]
 ACCESS_TOKEN_SECRET = cred_fields[("ACCESS_TOKEN_SECRET")]
-
-
 ## connect to Twitter API
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
@@ -48,14 +58,6 @@ except tweepy.error.TweepError:
 client = MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
-
-
-## set up run variables
-times_limited = 0
-private_accounts = 0
-empty_accounts = 0
-now = datetime.now()
-run_folder = "/home/at9362/python_feb"
 
 
 #####################
@@ -75,7 +77,9 @@ def start_mongo_daemon():
             # for virtual machine
             log_filename = run_folder + "/db_logs" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
             db_path = run_folder + "/db"
-            subprocess.Popen(['/usr/bin/mongod', '--dbpath', db_path, '--logpath', log_filename])
+            mongod_path = subprocess.check_output(["which", "mongod"])        
+            mongod_path = mongod_path.decode('utf-8').strip()
+            subprocess.Popen([mongod_path, '--dbpath', db_path, '--logpath', log_filename])
             # for mac
             #subprocess.Popen(['/usr/local/bin/mongod', '--dbpath', '/Users/at9362/Desktop/tweet_coding_2019/3200_history_downloader/db', '--logpath', '/Users/at9362/Desktop/tweet_coding_2019/3200_history_downloader/test.log'])
         except subprocess.CalledProcessError as e:
@@ -135,7 +139,10 @@ def lookup_users():
 
 
 def get_tweets(twitter_id):
-
+    # you need to fix this bodge
+    global times_limited
+    global private_accounts
+    global empty_accounts
     ## check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
         try:
@@ -247,6 +254,8 @@ def harvest():
 ## run it ##
 ############
 if __name__ == "__main__":
+
+#    connect_to_twitter()   ##
 
     start_mongo_daemon()   ## check/start mongodb
 

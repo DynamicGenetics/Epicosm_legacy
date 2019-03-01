@@ -19,19 +19,29 @@ times_limited = 0
 private_accounts = 0
 empty_accounts = 0
 now = datetime.datetime.now()
-run_folder = "/home/at9362/python_feb"
-
+#run_folder = "/home/at9362/python_feb"
+run_folder = subprocess.check_output(["pwd"])
+run_folder = run_folder.decode('utf-8').strip()
 
 
 ## Check that the userlist exists
-if not os.path.isfile("/home/at9362/python_feb/" + sys.argv[1]):
+if not os.path.exists(run_folder + "/" + sys.argv[1]):
     print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
     exit(1)
+
+#if not os.path.exists(run_folder + "/db"):
+ #   print("MongoDB database folder absent, creating folder...")
+  #  subprocess.Popen("mkdir", run_folder, "/db")
+
+#if not os.path.exists(run_folder + "/db_logs"):
+ #   print("Log folder seems absent, creating folder...")
+  #  subprocess.Popen("mkdir", run_folder, "/db")
+
 
 #def connect_to_twitter():
     ## Get Twitter API details from credentials file
 cred_fields = {}
-with open("/home/at9362/python_feb/REALcreds") as credentials:
+with open(run_folder + "/" "credentials") as credentials:
     first4lines=credentials.readlines()[0:4]
     for line in first4lines:
         line = line.strip()
@@ -73,7 +83,7 @@ def start_mongo_daemon():
         # this line will need specified paths.
         try:
             # for virtual machine
-            log_filename = run_folder + "/db_logs" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
+            log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
             db_path = run_folder + "/db"
             mongod_path = subprocess.check_output(["which", "mongod"])        
             mongod_path = mongod_path.decode('utf-8').strip()
@@ -214,10 +224,14 @@ def export(): # export and backup the database
     now = datetime.datetime.now()
     csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     print("\nCreating CSV output file...")
-    subprocess.call(["/usr/bin/mongoexport", "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
+    mongoexport_path = subprocess.check_output(["which", "mongoexport"])        
+    mongoexport_path = mongoexport_path.decode('utf-8').strip()
+    subprocess.call([mongoexport_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")
     database_path = run_folder + "/output"
-    subprocess.call(["/usr/bin/mongodump", "-o", database_path, "--host=127.0.0.1"])
+    mongodump_path = subprocess.check_output(["which", "mongodump"])        
+    mongodump_path = mongodump_path.decode('utf-8').strip()
+    subprocess.call([mongodump_path, "-o", database_path, "--host=127.0.0.1"])
 
 
 def report(): # do some post-process checks and report.
@@ -264,4 +278,3 @@ if __name__ == "__main__":
     export()               ## create CSV ouput and backup mongodb
 
     report()               ## return some debug statistics
-    

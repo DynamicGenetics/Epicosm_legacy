@@ -19,7 +19,6 @@ times_limited = 0
 private_accounts = 0
 empty_accounts = 0
 now = datetime.datetime.now()
-#run_folder = "/home/at9362/python_feb"
 run_folder = subprocess.check_output(["pwd"])
 run_folder = run_folder.decode('utf-8').strip()
 
@@ -38,8 +37,7 @@ if not os.path.exists(run_folder + "/" + sys.argv[1]):
   #  subprocess.Popen("mkdir", run_folder, "/db")
 
 
-#def connect_to_twitter():
-    ## Get Twitter API details from credentials file
+## Get Twitter API details from credentials file
 cred_fields = {}
 with open(run_folder + "/" "credentials") as credentials:
     first4lines=credentials.readlines()[0:4]
@@ -88,8 +86,6 @@ def start_mongo_daemon():
             mongod_path = subprocess.check_output(["which", "mongod"])        
             mongod_path = mongod_path.decode('utf-8').strip()
             subprocess.Popen([mongod_path, '--dbpath', db_path, '--logpath', log_filename])
-            # for mac
-            #subprocess.Popen(['/usr/local/bin/mongod', '--dbpath', '/Users/at9362/Desktop/tweet_coding_2019/3200_history_downloader/db', '--logpath', '/Users/at9362/Desktop/tweet_coding_2019/3200_history_downloader/test.log'])
         except subprocess.CalledProcessError as e:
             print("There is a problem opening the MonogoDB daemon... halting.\n", e.output)
 
@@ -266,8 +262,6 @@ def harvest():
 ## run it ##
 ############
 if __name__ == "__main__":
-
-#    connect_to_twitter()   ##
 
     start_mongo_daemon()   ## check/start mongodb
 

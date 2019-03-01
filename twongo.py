@@ -12,7 +12,7 @@ from pymongo import MongoClient
 
 ## Check that the userlist exists
 if not os.path.isfile("/home/at9362/python_feb/" + sys.argv[1]):
-    print("The user list " + sys.argv[1] + " doesn't seem to be here. Exiting.")
+    print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
     sys.exit()
 
 
@@ -72,21 +72,7 @@ def stop_mongo_daemon():
 
 
 def lookup_users():
-    # Request a list file, if not provided.
     print("Converting users in", sys.argv[1], "to persistent id numbers...")
-    #if len(sys.argv) < 2:
-    #    print("Please provide a list of screen names.")
-    #    print("Use example: python screen_name_2_id.py user_list.txt")
-    #    exit(1)
-    #elif len(sys.argv) > 2:
-    #    print("Please provide a single list of screen names.")
-    #    print("Use example: python screen_name_2_id.py user_list.txt")
-    #    exit(1)
-
-    # Exit if list file is not present
-    #if not os.path.isfile(sys.argv[1]):
-    #    print("Problem:", sys.argv[1], "doesn't seem to exist here.")
-    #    exit(1)
 
     # Count the number of screen names in the input file
     non_blank_count = 0
@@ -133,9 +119,6 @@ def lookup_users():
 
 
 def get_tweets(twitter_id):
-    global times_limited
-    global private_accounts
-    global empty_accounts
 
     ## check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
@@ -192,7 +175,7 @@ def get_tweets(twitter_id):
 #            duplicates += 1
 #    print(duplicates, " of these were duplicates and not inserted")
 #    print(uniques, " were new and inserted")
-
+#    users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
 
 def get_friends(twitter_id): ## get the "following" list for this user
 
@@ -217,6 +200,7 @@ def export(): # export and backup the database
 
 
 def report(): # do some post-process checks and report.
+    users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
     number_of_users_to_follow = len(users_to_follow)
     with open(sys.argv[1]) as f:
         non_blank_lines = sum(not line.isspace() for line in f)
@@ -232,6 +216,7 @@ def report(): # do some post-process checks and report.
 
 def harvest():
     ## generate user id list from user2id output file
+    users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
     print("\nStarting tweet harvest...")
     try: ## iterate through this list of ids.
         for user in users_to_follow:
@@ -247,14 +232,12 @@ def harvest():
 ############
 if __name__ == "__main__":
 
-    start_mongo_daemon()       ## check/start mongodb
+    start_mongo_daemon()   ## check/start mongodb
 
-    lookup_users()
+    lookup_users()         ## get persistent user ids from screen names
 
-    users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
+    harvest()              ## get tweets for each user and archive in mongodb
 
-    harvest()
+    export()               ## create CSV ouput and backup mongodb
 
-    export()
-    
-    report()
+    report()               ## return some debug statistics

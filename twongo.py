@@ -1,19 +1,34 @@
-import tweepy
-import pymongo
 import json
-import subprocess
-import psutil
-import sys
-import os
 import time
 from datetime import datetime
+import subprocess
+import psutil
+import tweepy
+import pymongo
+import sys
+import os
 from pymongo import MongoClient
 
-## Twitter API credentials
-CONSUMER_KEY = ''
-CONSUMER_SECRET = ''
-ACCESS_TOKEN = ''
-ACCESS_TOKEN_SECRET = ''
+
+## Check that the userlist exists
+if not os.path.isfile("/home/at9362/python_feb/" + sys.argv[1]):
+    print("The user list " + sys.argv[1] + " doesn't seem to be here. Exiting.")
+    sys.exit()
+
+
+## Get Twitter API details from credentials file
+cred_fields = {}
+with open("/home/at9362/python_feb/REALcreds") as credentials:
+    first4lines=credentials.readlines()[0:4]
+    for line in first4lines:
+        line = line.strip()
+        (key, val) = line.split(' ')
+        cred_fields[(key)] = val
+CONSUMER_KEY = cred_fields[("CONSUMER_KEY")]
+CONSUMER_SECRET = cred_fields[("CONSUMER_SECRET")]
+ACCESS_TOKEN = cred_fields[("ACCESS_TOKEN")]
+ACCESS_TOKEN_SECRET = cred_fields[("ACCESS_TOKEN_SECRET")]
+
 
 ## connect to mongodb
 client = MongoClient('localhost', 27017)
@@ -23,13 +38,13 @@ auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
+
 ## set up run variables
 times_limited = 0
 private_accounts = 0
 empty_accounts = 0
 now = datetime.now()
-# your base folder that you are running from
-run_folder = ""
+run_folder = "/home/at9362/python_feb"
 
 def start_mongo_daemon():
 
@@ -39,13 +54,16 @@ def start_mongo_daemon():
         print("\nMongoDB daemon is running... nice.\n")
     else:
         print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...\n")
+        # this line will need specified paths.
         try:
+            # for virtual machine
             log_filename = run_folder + "/db_logs" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
             db_path = run_folder + "/db"
             subprocess.Popen(['/usr/bin/mongod', '--dbpath', db_path, '--logpath', log_filename])
+            # for mac
+            #subprocess.Popen(['/usr/local/bin/mongod', '--dbpath', '/Users/at9362/Desktop/tweet_coding_2019/3200_history_downloader/db', '--logpath', '/Users/at9362/Desktop/tweet_coding_2019/3200_history_downloader/test.log'])
         except subprocess.CalledProcessError as e:
             print("There is a problem opening the MonogoDB daemon... halting.\n", e.output)
-            sys.exit(1)
 
 
 def stop_mongo_daemon():
@@ -56,19 +74,19 @@ def stop_mongo_daemon():
 def lookup_users():
     # Request a list file, if not provided.
     print("Converting users in", sys.argv[1], "to persistent id numbers...")
-    if len(sys.argv) < 2:
-        print("Please provide a list of screen names.")
-        print("Use example: python screen_name_2_id.py user_list.txt")
-        exit(1)
-    elif len(sys.argv) > 2:
-        print("Please provide a single list of screen names.")
-        print("Use example: python screen_name_2_id.py user_list.txt")
-        exit(1)
+    #if len(sys.argv) < 2:
+    #    print("Please provide a list of screen names.")
+    #    print("Use example: python screen_name_2_id.py user_list.txt")
+    #    exit(1)
+    #elif len(sys.argv) > 2:
+    #    print("Please provide a single list of screen names.")
+    #    print("Use example: python screen_name_2_id.py user_list.txt")
+    #    exit(1)
 
     # Exit if list file is not present
-    if not os.path.isfile(sys.argv[1]):
-        print("Problem:", sys.argv[1], "doesn't seem to exist here.")
-        exit(1)
+    #if not os.path.isfile(sys.argv[1]):
+    #    print("Problem:", sys.argv[1], "doesn't seem to exist here.")
+    #    exit(1)
 
     # Count the number of screen names in the input file
     non_blank_count = 0
@@ -194,8 +212,8 @@ def export(): # export and backup the database
     print("\nCreating CSV output file...")
     subprocess.call(["/usr/bin/mongoexport", "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")
-    database_location = run_folder + "/output"
-    subprocess.call(["/usr/bin/mongodump", "-o", database_location, "--host=127.0.0.1"])
+    database_path = run_folder + "/output"
+    subprocess.call(["/usr/bin/mongodump", "-o", database_path, "--host=127.0.0.1"])
 
 
 def report(): # do some post-process checks and report.
@@ -231,13 +249,12 @@ if __name__ == "__main__":
 
     start_mongo_daemon()       ## check/start mongodb
 
-    lookup_users()             ## convert screen names to id numbers
+    lookup_users()
 
-    # need to tidy up this line later.
     users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
 
-    harvest()                  ## loop through users, acquiring and archiving tweets
+    harvest()
 
-    export()                   ## ask MongoDB to create a CSV file
+    export()
     
-    report()                   ## print up some info about the run (will become logfile)
+    report()

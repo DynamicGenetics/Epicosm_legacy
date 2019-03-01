@@ -4,6 +4,7 @@ from datetime import datetime
 import subprocess
 import psutil
 import tweepy
+from tweepy import OAuthHandler
 import pymongo
 import sys
 import os
@@ -13,7 +14,9 @@ from pymongo import MongoClient
 ## Check that the userlist exists
 if not os.path.isfile("/home/at9362/python_feb/" + sys.argv[1]):
     print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
-    sys.exit()
+    exit(1)
+#    raise SystemExit("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")    
+#sys.exit()
 
 
 ## Get Twitter API details from credentials file
@@ -30,13 +33,21 @@ ACCESS_TOKEN = cred_fields[("ACCESS_TOKEN")]
 ACCESS_TOKEN_SECRET = cred_fields[("ACCESS_TOKEN_SECRET")]
 
 
+## connect to Twitter API
+auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+try:
+    api.verify_credentials()
+except tweepy.error.TweepError:
+    print("The API credentials do not seem valid: connection to Twitter refused.")
+    exit(0)
+
+
 ## connect to mongodb
 client = MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
 ## set up run variables
@@ -46,6 +57,11 @@ empty_accounts = 0
 now = datetime.now()
 run_folder = "/home/at9362/python_feb"
 
+
+#####################
+## build functions ##
+#####################
+ 
 def start_mongo_daemon():
 
     """look through running processes for the mongod deamon.

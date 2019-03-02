@@ -19,72 +19,73 @@ times_limited = 0
 private_accounts = 0
 empty_accounts = 0
 now = datetime.datetime.now()
-run_folder = subprocess.check_output(["pwd"])
-run_folder = run_folder.decode('utf-8').strip()
+run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
+client = pymongo.MongoClient('localhost', 27017)
+db = client.twitter_db
+collection = db.tweets
 
+## USAGE, if no user file provided
+if not len(sys.argv) == 2:
+    print("USAGE: please provide a list of users to follow.")
+    print("EG: python twongo.py user_list")
+    exit(1)
 
 ## Check that the userlist exists
 if not os.path.exists(run_folder + "/" + sys.argv[1]):
     print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
     exit(1)
 
-#if not os.path.exists(run_folder + "/db"):
- #   print("MongoDB database folder absent, creating folder...")
-  #  subprocess.Popen("mkdir", run_folder, "/db")
+## Check the credentials file is present
+if not os.path.exists(run_folder + "/" + "credentials"):
+    print("The credentials file doesn't seem to be here. Exiting.")
+    exit(1)
 
-#if not os.path.exists(run_folder + "/db_logs"):
- #   print("Log folder seems absent, creating folder...")
-  #  subprocess.Popen("mkdir", run_folder, "/db")
+## Check database folder exists, or create it
+if not os.path.exists(run_folder + "/db"):
+    print("MongoDB database folder seems absent, creating folder...")
+    os.makedirs(run_folder + "/db")
 
+## Check log folder exists, or create it
+if not os.path.exists(run_folder + "/db_logs"):
+    print("Log folder seems absent, creating folder...")
+    os.makedirs(run_folder + "/db_logs")
 
 ## Get Twitter API details from credentials file
 cred_fields = {}
 with open(run_folder + "/" "credentials") as credentials:
     first4lines=credentials.readlines()[0:4]
-    for line in first4lines:
+    for line in first4lines: # put credentials into a dict
         line = line.strip()
         (key, val) = line.split(' ')
         cred_fields[(key)] = val
-CONSUMER_KEY = cred_fields[("CONSUMER_KEY")]
-CONSUMER_SECRET = cred_fields[("CONSUMER_SECRET")]
-ACCESS_TOKEN = cred_fields[("ACCESS_TOKEN")]
-ACCESS_TOKEN_SECRET = cred_fields[("ACCESS_TOKEN_SECRET")]
+
 ## connect to Twitter API
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+auth = tweepy.OAuthHandler(cred_fields[("CONSUMER_KEY")], cred_fields[("CONSUMER_SECRET")])
+auth.set_access_token(cred_fields[("ACCESS_TOKEN")], cred_fields[("ACCESS_TOKEN_SECRET")])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 try:
     api.verify_credentials()
 except tweepy.error.TweepError:
     print("The API credentials do not seem valid: connection to Twitter refused.")
-    exit(0)
-
-
-## connect to mongodb
-client = pymongo.MongoClient('localhost', 27017)
-db = client.twitter_db
-collection = db.tweets
+    exit(1)
 
 
 #####################
 ## build functions ##
 #####################
+
  
 def start_mongo_daemon():
-
     """look through running processes for the mongod deamon.
        ... if it isn't there, start the daemon."""
     if "mongod" in (p.name() for p in psutil.process_iter()):
         print("\nMongoDB daemon is running... nice.\n")
     else:
         print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...\n")
-        # this line will need specified paths.
         try:
-            # for virtual machine
             log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
             db_path = run_folder + "/db"
-            mongod_path = subprocess.check_output(["which", "mongod"])        
-            mongod_path = mongod_path.decode('utf-8').strip()
+            mongod_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
             subprocess.Popen([mongod_path, '--dbpath', db_path, '--logpath', log_filename])
         except subprocess.CalledProcessError as e:
             print("There is a problem opening the MonogoDB daemon... halting.\n", e.output)
@@ -143,7 +144,7 @@ def lookup_users():
 
 
 def get_tweets(twitter_id):
-    # you need to fix this bodge
+    # fix these?
     global times_limited
     global private_accounts
     global empty_accounts
@@ -220,13 +221,13 @@ def export(): # export and backup the database
     now = datetime.datetime.now()
     csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     print("\nCreating CSV output file...")
-    mongoexport_path = subprocess.check_output(["which", "mongoexport"])        
-    mongoexport_path = mongoexport_path.decode('utf-8').strip()
+#    mongoexport_path = subprocess.check_output(["which", "mongoexport"])        
+    mongoexport_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
     subprocess.call([mongoexport_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")
     database_path = run_folder + "/output"
-    mongodump_path = subprocess.check_output(["which", "mongodump"])        
-    mongodump_path = mongodump_path.decode('utf-8').strip()
+#    mongodump_path = subprocess.check_output(["which", "mongodump"])        
+    mongodump_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
     subprocess.call([mongodump_path, "-o", database_path, "--host=127.0.0.1"])
 
 
@@ -243,7 +244,7 @@ def report(): # do some post-process checks and report.
     print(empty_accounts, "accounts were empty.")
     print(non_existent_accounts, "accounts do not seem to exist.")
     print("Twitter rate limited this process", times_limited, "times.")
-   
+
 
 def harvest():
     ## generate user id list from user2id output file
@@ -253,7 +254,6 @@ def harvest():
         for user in users_to_follow:
             get_tweets(user)   ## get all their tweets and put into mongodb
 #            get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
-
     except Exception as e:
         print(e)
 

@@ -23,6 +23,7 @@ run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
+following_collection = db.following
 
 ## USAGE, if no user file provided
 if not len(sys.argv) == 2:
@@ -35,7 +36,7 @@ if not os.path.exists(run_folder + "/" + sys.argv[1]):
     print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
     exit(1)
 
-## Check the credentials file is present
+## Check the credentials file is present and looks correct
 if not os.path.exists(run_folder + "/" + "credentials"):
     print("The credentials file doesn't seem to be here. Exiting.")
     exit(1)
@@ -56,6 +57,9 @@ with open(run_folder + "/" "credentials") as credentials:
     first4lines=credentials.readlines()[0:4]
     for line in first4lines: # put credentials into a dict
         line = line.strip()
+        if " " not in line:
+            print("The credentials file doesn't appear correct, please check and retry.")
+            exit(1)
         (key, val) = line.split(' ')
         cred_fields[(key)] = val
 
@@ -120,7 +124,6 @@ def lookup_users():
     not_found = []      # empty list for users not found
     for chunk in list(chunks(screen_names, 42)): # split list into manageable chunks of 42
         comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
-      #  output = twitter.lookup_user(screen_name=comma_separated_string) #lookup
         for user in chunk:
             try:
                 user = api.get_user(screen_name = user)
@@ -134,12 +137,12 @@ def lookup_users():
     out_file = open(output_filename, 'w')  # open outfile
     for id in id_list:
         out_file.write("%s\n" % id)        # write to outfile
-    not_found_out_file = open(not_found_filename, 'w')
-    for missing_user in not_found:
-        not_found_out_file.write("%s\n" % missing_user)
     print("OK,", len(id_list), "of", non_blank_count, "ID numbers written to -->", output_filename, "<--")
-    if not_found:
+    if len(not_found) > 0:
         print("Warning:", len(not_found), "screen names did not return ID codes.")
+        not_found_out_file = open(not_found_filename, 'w')
+        for missing_user in not_found:
+            not_found_out_file.write("%s\n" % missing_user)
         print("Missing users written to -->", not_found_filename, "<--")
 
 
@@ -199,20 +202,25 @@ def get_tweets(twitter_id):
                 pass
         except IndexError:
             print("User", user, "has no tweets to insert.")
-#            print(e)
 #            duplicates += 1
 #    print(duplicates, " of these were duplicates and not inserted")
 #    print(uniques, " were new and inserted")
-#    users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
+
 
 def get_friends(twitter_id): ## get the "following" list for this user
-
     friend_list = []
-
-    for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 200).pages():
-        friend_list.extend(friend)
-
-    print(*friend_list, sep='\n')
+    try:
+        for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 200).pages():
+            friend_list.extend(friend) # put the friends into a list
+    except tweepy.RateLimitError as rateerror:
+        print("Rate limit reached, waiting for cooldown...", rateerror)
+        times_limited += 1
+    try:
+        for person in friend_list:     # insert those into a mongodb collection called "following"
+            following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
+    except: # make this more specific?
+        print("Problem putting friends into MongoDB...")
+        #    print(*friend_list, sep='\n')
 
 
 def export(): # export and backup the database
@@ -221,12 +229,10 @@ def export(): # export and backup the database
     now = datetime.datetime.now()
     csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     print("\nCreating CSV output file...")
-#    mongoexport_path = subprocess.check_output(["which", "mongoexport"])        
     mongoexport_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
     subprocess.call([mongoexport_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")
     database_path = run_folder + "/output"
-#    mongodump_path = subprocess.check_output(["which", "mongodump"])        
     mongodump_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
     subprocess.call([mongodump_path, "-o", database_path, "--host=127.0.0.1"])
 
@@ -253,7 +259,7 @@ def harvest():
     try: ## iterate through this list of ids.
         for user in users_to_follow:
             get_tweets(user)   ## get all their tweets and put into mongodb
-#            get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
+            get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
     except Exception as e:
         print(e)
 

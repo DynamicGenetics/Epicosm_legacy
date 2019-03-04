@@ -131,19 +131,17 @@ def lookup_users():
             except tweepy.error.TweepError as e:
                 not_found.append(user) # if not found, put user in not found list
 
-    # Open output file and write user codes to file.
-    output_filename = sys.argv[1] + '.ids' # name the output file as the input file with ".ids"
-    not_found_filename = sys.argv[1] + '.notfound'
-    out_file = open(output_filename, 'w')  # open outfile
-    for id in id_list:
-        out_file.write("%s\n" % id)        # write to outfile
-    print("OK,", len(id_list), "of", non_blank_count, "ID numbers written to -->", output_filename, "<--")
-    if len(not_found) > 0:
+    # Write user codes to file.
+    with open(sys.argv[1] + ".ids", 'w') as id_file:
+        for id in id_list:
+            id_file.write("%s\n" % id)                            # write to id file
+        print("OK,", len(id_list), "of", non_blank_count, "ID numbers written to -->", sys.argv[1] + ".ids") 
+    if len(not_found) > 0: # if users are not found, put into missing user file
         print("Warning:", len(not_found), "screen names did not return ID codes.")
-        not_found_out_file = open(not_found_filename, 'w')
-        for missing_user in not_found:
-            not_found_out_file.write("%s\n" % missing_user)
-        print("Missing users written to -->", not_found_filename, "<--")
+        with open(sys.argv[1] + ".notfound", 'w') as missing_user_file:
+            for missing_user in not_found:
+                missing_user_file.write("%s\n" % missing_user)    # write to missing user file  
+        print("Missing users written to -->", sys.argv[1] + ".notfound")
 
 
 def get_tweets(twitter_id):
@@ -259,7 +257,7 @@ def harvest():
     try: ## iterate through this list of ids.
         for user in users_to_follow:
             get_tweets(user)   ## get all their tweets and put into mongodb
-            get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
+       #     get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
     except Exception as e:
         print(e)
 

@@ -144,7 +144,7 @@ def lookup_users():
 
 
 def get_tweets(twitter_id):
-    # fix these?
+    # are these globals ok?
     global times_limited
     global private_accounts
     global empty_accounts

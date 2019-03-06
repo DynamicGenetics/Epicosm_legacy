@@ -2,7 +2,7 @@
 
 === A Python3 tweet harvester integrated with MongoDB data management ===
 
-This harvester is the python code running in the docker container (URL to be confirmed).
+This repository is the python code running in the docker container (URL to be confirmed).
 It will also run independent of its docker container, with these prerequisites:
 
 1: Put all repository files into their own folder, and the script will try to work out the paths for itself.
@@ -25,3 +25,20 @@ apt install python3-pip
 pip3 install psutil  
 pip3 install tweepy  
 pip3 install pymongo  
+
+5: The script is then run as follows  
+python3 twongo.py [your list of user names]  
+for example  
+python3 twongo.py 200_users
+
+=== Output and data ===
+Full metadata of all tweets is be stored in MongoDB, in a database "twitter_db", with two collections  
+"tweets" which contains all json data and content of each tweet, and  
+"following" which contains a list of all users that each user in your list are following.  
+A refined CSV file is created, in the folder "./output/csv/", which at the moment collects the user, the  
+time of tweet, and the tweet content.  
+A backup of the entire database is stored in "./output/twitter_db/". This can be restored by MongoDB using  
+the command "mongorestore [your name given to the database [the path to the mongodump file]  
+for example:  
+mongoresotore twitter_db ./output/twitter_db/tweets  
+(However, please check MongoDB documentation as commands sometimes change)  

@@ -16,13 +16,13 @@ the required codes. Please see Twitter documentation for how to do this.
 3: MongoDB version 4 or higher will need to be installed. It does not need to be running,
 the script will ascertain MongoDB's status, and start it if it is not running.
 The working database will be stored in the folder where you place your local copy
-of this repository (not the default location of /data/db).
-For Linux and Mac, use your package manager (eg. apt, yum, yast)
-for example:
-apt install mongodb
+of this repository (not the default location of /data/db).  
+For Linux and Mac, use your package manager (eg. apt, yum, yast)  
+for example:  
+apt install mongodb  
 
-4: The following Python3 dependencies will need to be installed, and are most easily done with pip: 
-apt install python3-pip
-pip3 install psutil
-pip3 install tweepy
-pip3 install pymongo
+4: The following Python3 dependencies will need to be installed, and are most easily done with pip:  
+apt install python3-pip  
+pip3 install psutil  
+pip3 install tweepy  
+pip3 install pymongo  

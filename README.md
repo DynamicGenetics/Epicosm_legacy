@@ -32,11 +32,13 @@ for example
 python3 twongo.py 200_users
 
 === Output and data ===  
-Full metadata of all tweets is be stored in MongoDB, in a database "twitter_db", with two collections  
-"tweets" which contains all json data and content of each tweet, and  
+Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",  
+with two collections "tweets" which contains all json data and content of each tweet, and  
 "following" which contains a list of all users that each user in your list are following.  
+
 A refined CSV file is created, in the folder "./output/csv/", which at the moment collects the user, the  
 time of tweet, and the tweet content.  
+
 A backup of the entire database is stored in "./output/twitter_db/". This can be restored by MongoDB using  
 the command "mongorestore [your name given to the database] [the path to the mongodump file]  
 for example:  

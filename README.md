@@ -38,7 +38,7 @@ Full metadata of all tweets is be stored in MongoDB, in a database "twitter_db",
 A refined CSV file is created, in the folder "./output/csv/", which at the moment collects the user, the  
 time of tweet, and the tweet content.  
 A backup of the entire database is stored in "./output/twitter_db/". This can be restored by MongoDB using  
-the command "mongorestore [your name given to the database [the path to the mongodump file]  
+the command "mongorestore [your name given to the database] [the path to the mongodump file]  
 for example:  
 mongoresotore twitter_db ./output/twitter_db/tweets  
 (However, please check MongoDB documentation as commands sometimes change)  

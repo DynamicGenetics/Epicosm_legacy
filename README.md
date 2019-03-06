@@ -40,5 +40,5 @@ time of tweet, and the tweet content.
 A backup of the entire database is stored in "./output/twitter_db/". This can be restored by MongoDB using  
 the command "mongorestore [your name given to the database] [the path to the mongodump file]  
 for example:  
-mongoresotore twitter_db ./output/twitter_db/tweets  
-(However, please check MongoDB documentation as commands sometimes change)  
+mongoresotore -d twitter_db ./output/twitter_db/tweets  
+(However, please check MongoDB documentation as commands can change)  

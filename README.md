@@ -31,7 +31,7 @@ python3 twongo.py [your list of user names]
 for example  
 python3 twongo.py 200_users
 
-=== Output and data ===
+=== Output and data ===  
 Full metadata of all tweets is be stored in MongoDB, in a database "twitter_db", with two collections  
 "tweets" which contains all json data and content of each tweet, and  
 "following" which contains a list of all users that each user in your list are following.  

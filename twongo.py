@@ -31,8 +31,10 @@ if not len(sys.argv) == 2:
     print("EG: python twongo.py user_list")
     exit(1)
 
-## Check that the userlist exists
-if not os.path.exists(run_folder + "/" + sys.argv[1]):
+## Check that the userlist exists ####################### make this consistent with container!!!!!
+#print(run_folder + "/" + sys.argv[1])
+#if not os.path.exists(run_folder + "/" + sys.argv[1]):
+if not os.path.exists(sys.argv[1]):
     print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
     exit(1)
 
@@ -85,23 +87,31 @@ def start_mongo_daemon():
     if "mongod" in (p.name() for p in psutil.process_iter()):
         print("\nMongoDB daemon is running... nice.\n")
     else:
-        print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...\n")
+        print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...")
         try:
             log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
             db_path = run_folder + "/db"
             mongod_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
             subprocess.Popen([mongod_path, '--dbpath', db_path, '--logpath', log_filename])
+            time.sleep(1)
         except subprocess.CalledProcessError as e:
             print("There is a problem opening the MonogoDB daemon... halting.\n", e.output)
+            exit(1)
 
 
 def stop_mongo_daemon():
-    # do we need this?
-    pass
+    client.close()
+    subprocess.call(['pkill', '-2', 'mongod'])
+    time.sleep(1) # Better way of doing this function?
+    try: # look for mongod in processes
+        subprocess.check_output(['pgrep', 'mongod'])
+        print("\nClosing MongoDB didn't seem to work.")
+    except:
+        print("\nMongoDB now closed.")
 
 
 def lookup_users():
-    print("Converting users in", sys.argv[1], "to persistent id numbers...")
+    print("\nConverting users in", sys.argv[1], "to persistent id numbers...")
 
     # Count the number of screen names in the input file
     non_blank_count = 0
@@ -190,19 +200,19 @@ def get_tweets(twitter_id):
 
     ## update the database with the acquired tweets for this user 
 #    duplicates = 0
-#    uniques = 0
+ #   uniques = 0
     for tweet in alltweets:
         try:
             try:
                 collection.update_one(tweet._json, {'$set': tweet._json}, upsert=True)
-#                uniques += 1
+  #              uniques += 1
             except pymongo.errors.DuplicateKeyError:
                 pass
         except IndexError:
             print("User", user, "has no tweets to insert.")
-#            duplicates += 1
-#    print(duplicates, " of these were duplicates and not inserted")
-#    print(uniques, " were new and inserted")
+   #         duplicates += 1
+   # print(duplicates, " of these were duplicates and not inserted")
+   # print(uniques, " were new and inserted")
 
 
 def get_friends(twitter_id): ## get the "following" list for this user
@@ -276,3 +286,6 @@ if __name__ == "__main__":
     export()               ## create CSV ouput and backup mongodb
 
     report()               ## return some debug statistics
+
+    stop_mongo_daemon()    ## close connection and shutdown mongodb
+    

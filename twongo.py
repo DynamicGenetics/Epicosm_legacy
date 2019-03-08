@@ -4,16 +4,16 @@
 ## MongoDB for data management    ##
 ####################################
 
+import os
+import sys
+import time
 import json
+import psutil
 import tweepy
 import pymongo
-import sys
-import os
-import subprocess
-import psutil
-import time
-import datetime
 import logging
+import datetime
+import subprocess
 
 ## set up run variables
 times_limited = 0

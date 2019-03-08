@@ -5,20 +5,21 @@
 ####################################
 
 import json
-import time
-import datetime
-import subprocess
-import psutil
 import tweepy
 import pymongo
 import sys
 import os
+import subprocess
+import psutil
+import time
+import datetime
+import logging
 
 ## set up run variables
 times_limited = 0
 private_accounts = 0
 empty_accounts = 0
-now = datetime.datetime.now()
+the_date = datetime.datetime.now().date()
 run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
@@ -48,10 +49,15 @@ if not os.path.exists(run_folder + "/db"):
     print("MongoDB database folder seems absent, creating folder...")
     os.makedirs(run_folder + "/db")
 
-## Check log folder exists, or create it
+## Check log folders exists, or create them
 if not os.path.exists(run_folder + "/db_logs"):
-    print("Log folder seems absent, creating folder...")
+    print("DB log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/db_logs")
+if not os.path.exists(run_folder + "/twongo_logs"):
+    print("Twongo log folder seems absent, creating folder...")
+    os.makedirs(run_folder + "/twongo_logs")
+log = open(run_folder + '/twongo_logs/' + the_date.strftime('%d-%m-%Y') + '.log', "a")
+sys.stdout = log # all print to logfile
 
 ## Get Twitter API details from credentials file
 cred_fields = {}
@@ -84,6 +90,7 @@ except tweepy.error.TweepError:
 def start_mongo_daemon():
     """look through running processes for the mongod deamon.
        ... if it isn't there, start the daemon."""
+    now = datetime.datetime.now()
     if "mongod" in (p.name() for p in psutil.process_iter()):
         print("\nMongoDB daemon is running... nice.\n")
     else:
@@ -263,7 +270,8 @@ def report(): # do some post-process checks and report.
 def harvest():
     ## generate user id list from user2id output file
     users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
-    print("\nStarting tweet harvest...")
+    now = datetime.datetime.now()
+    print("\nStarting tweet harvest at", now.strftime('%d-%m-%Y_%H:%M:%S'), "...")
     try: ## iterate through this list of ids.
         for user in users_to_follow:
             get_tweets(user)   ## get all their tweets and put into mongodb
@@ -288,4 +296,7 @@ if __name__ == "__main__":
     report()               ## return some debug statistics
 
     stop_mongo_daemon()    ## close connection and shutdown mongodb
+
+    now = datetime.datetime.now()
+    print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S'))
     

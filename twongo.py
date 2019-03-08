@@ -27,7 +27,7 @@ collection = db.tweets
 following_collection = db.following
 
 ## USAGE, if no user file provided
-if not len(sys.argv) == 2:
+if not 2 <= len(sys.argv) <= 3:
     print("USAGE: please provide a list of users to follow.")
     print("EG: python twongo.py user_list")
     exit(1)
@@ -56,8 +56,9 @@ if not os.path.exists(run_folder + "/db_logs"):
 if not os.path.exists(run_folder + "/twongo_logs"):
     print("Twongo log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/twongo_logs")
-log = open(run_folder + '/twongo_logs/' + the_date.strftime('%d-%m-%Y') + '.log', "a")
-sys.stdout = log # all print to logfile
+if "-l" in sys.argv: # if -l given as argument, create a logfile for this run
+    log = open(run_folder + '/twongo_logs/' + the_date.strftime('%d-%m-%Y') + '.log', "a")
+    sys.stdout = log # all print debugs to logfile
 
 ## Get Twitter API details from credentials file
 cred_fields = {}
@@ -119,7 +120,7 @@ def stop_mongo_daemon():
 
 def lookup_users():
     print("\nConverting users in", sys.argv[1], "to persistent id numbers...")
-
+    # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file
     non_blank_count = 0
     with open(sys.argv[1]) as count_file:
@@ -299,4 +300,3 @@ if __name__ == "__main__":
 
     now = datetime.datetime.now()
     print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S'))
-    

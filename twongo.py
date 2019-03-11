@@ -19,12 +19,34 @@ import subprocess
 times_limited = 0
 private_accounts = 0
 empty_accounts = 0
+docker_env = 0
 the_date = datetime.datetime.now().date()
-run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
+now = datetime.datetime.now()
+credentials = ""
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
 following_collection = db.following
+run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
+mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
+mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
+mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
+
+## set up environment specific variables:
+if os.path.exists("/.dockerenv"): ## is the process running in docker container, or locally?
+    docker_env = 1                ## I'm in a docker
+if docker_env == 0: # if NOT in docker container
+    log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
+    db_path = run_folder + "/db"
+    credentials = (run_folder + "/credentials")
+    csv_filename = (run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv")
+    database_dump_path = run_folder + "/output"
+else:               # if IS in docker container
+    log_filename = "/root/host_interface/twongo/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
+    db_path = "/root/host_interface/twongo/db"
+    credentials = "/root/host_interface/twongo/credentials"
+    csv_filename = "/root/host_interface/twongo/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
+    database_dump_path = "/root/host_interface/twongo/output"
 
 ## USAGE, if no user file provided
 if not 2 <= len(sys.argv) <= 3:
@@ -32,16 +54,15 @@ if not 2 <= len(sys.argv) <= 3:
     print("EG: python twongo.py user_list")
     exit(1)
 
-## Check that the userlist exists ####################### make this consistent with container!!!!!
-#print(run_folder + "/" + sys.argv[1])
-#if not os.path.exists(run_folder + "/" + sys.argv[1]):
+## Check userlist exists
 if not os.path.exists(sys.argv[1]):
     print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
     exit(1)
 
-## Check the credentials file is present and looks correct
-if not os.path.exists(run_folder + "/" + "credentials"):
+## Check credentials file exists
+if not os.path.exists(credentials):
     print("The credentials file doesn't seem to be here. Exiting.")
+    print("If you are running this interactively, please be in your run folder.")
     exit(1)
 
 ## Check database folder exists, or create it
@@ -62,7 +83,7 @@ if "-l" in sys.argv: # if -l given as argument, create a logfile for this run
 
 ## Get Twitter API details from credentials file
 cred_fields = {}
-with open(run_folder + "/" "credentials") as credentials:
+with open(credentials) as credentials:
     first4lines=credentials.readlines()[0:4]
     for line in first4lines: # put credentials into a dict
         line = line.strip()
@@ -97,10 +118,7 @@ def start_mongo_daemon():
     else:
         print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...")
         try:
-            log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
-            db_path = run_folder + "/db"
-            mongod_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
-            subprocess.Popen([mongod_path, '--dbpath', db_path, '--logpath', log_filename])
+            subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', log_filename])
             time.sleep(1)
         except subprocess.CalledProcessError as e:
             print("There is a problem opening the MonogoDB daemon... halting.\n", e.output)
@@ -169,8 +187,8 @@ def get_tweets(twitter_id):
     global empty_accounts
     ## check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
-        try:
         ## we already have this user's timeline, just get recent tweets
+        try:
             print("User", twitter_id, "is in the database, shallow acquisition cycle...")
             alltweets = []
             new_tweets = api.user_timeline(id=twitter_id, count=200,
@@ -179,10 +197,8 @@ def get_tweets(twitter_id):
         except tweepy.TweepError as tweeperror:
             print("Not possible to acquire timeline of", twitter_id, ":", tweeperror)
             private_accounts += 1
-            
     else:
-         
-           ## this user isn't in database: get <3200 tweets if possible
+        ## this user isn't in database: get <3200 tweets if possible
         try:
             print("User", twitter_id, "is new, deep acquisition cycle...")
             alltweets = [] # IS BELOW REDUNDANT?
@@ -242,15 +258,11 @@ def get_friends(twitter_id): ## get the "following" list for this user
 def export(): # export and backup the database
     ## index mongodb for duplicate avoidance and speed
     db.tweets.create_index([("id_str", pymongo.ASCENDING)], unique=True, dropDups=True)    
-    now = datetime.datetime.now()
-    csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
+#    now = datetime.datetime.now()
     print("\nCreating CSV output file...")
-    mongoexport_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
-    subprocess.call([mongoexport_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
+    subprocess.call([mongoexport_executable_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")
-    database_path = run_folder + "/output"
-    mongodump_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
-    subprocess.call([mongodump_path, "-o", database_path, "--host=127.0.0.1"])
+    subprocess.call([mongodump_executable_path, "-o", database_dump_path, "--host=127.0.0.1"])
 
 
 def report(): # do some post-process checks and report.

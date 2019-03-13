@@ -27,7 +27,7 @@ client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
 following_collection = db.following
-run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
+#run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
 mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
 mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
 mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
@@ -36,23 +36,31 @@ mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).deco
 if os.path.exists("/.dockerenv"): ## is the process running in docker container, or locally?
     docker_env = 1                ## I'm in a docker
 if docker_env == 0: # if NOT in docker container
+    run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
     log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
     db_path = run_folder + "/db"
-    credentials = (run_folder + "/credentials")
-    csv_filename = (run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv")
+    credentials = run_folder + "/credentials"
+    csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     database_dump_path = run_folder + "/output"
 else:               # if IS in docker container
-    log_filename = "/root/host_interface/twongo/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
-    db_path = "/root/host_interface/twongo/db"
-    credentials = "/root/host_interface/twongo/credentials"
-    csv_filename = "/root/host_interface/twongo/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
-    database_dump_path = "/root/host_interface/twongo/output"
+    run_folder = "/root/host_interface"    
+    log_filename = "/root/host_interface/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
+    db_path = "/root/host_interface/db"
+    credentials = "/root/host_interface/credentials"
+    csv_filename = "/root/host_interface/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
+    database_dump_path = "/root/host_interface/output"
 
 ## USAGE, if no user file provided
 if not 2 <= len(sys.argv) <= 3:
     print("USAGE: please provide a list of users to follow.")
     print("EG: python twongo.py user_list")
     exit(1)
+
+## Check runstate or make it (if 1st run, this file needs making)
+try:
+    open("/root/host_interface/.run_state", 'r')
+except FileNotFoundError:
+    open("/root/host_interface/.run_state", 'w')
 
 ## Check userlist exists
 if not os.path.exists(sys.argv[1]):
@@ -128,7 +136,7 @@ def start_mongo_daemon():
 def stop_mongo_daemon():
     client.close()
     subprocess.call(['pkill', '-2', 'mongod'])
-    time.sleep(1) # Better way of doing this function?
+    time.sleep(5) # Better way of doing this function?
     try: # look for mongod in processes
         subprocess.check_output(['pgrep', 'mongod'])
         print("\nClosing MongoDB didn't seem to work.")

@@ -129,20 +129,12 @@ def start_mongo_daemon():
 
 def stop_mongo_daemon():
     client.close()
-#    db.shutdownServer()
- #   subprocess.call(['bash', '/twongo_files/shutdown.sh'])
-#    subprocess.call(['mongo', '127.0.0.1:27017/admin', '--eval', '"db.shutdownServer()"'])
-#    subprocess.call(["mongo", "admin", "--eval", 'use admin;', '"db.shutdownServer();"'])
-#    subprocess.call(["pkill", "-2", "mongod"])
-#    os.system("pkill -2 mongod")
     if docker_env == 0:
-        subprocess.call(["mongod", "--dbpath", db_path, "--shutdown"])
+        subprocess.call(["pkill", "-2", "mongod"])
         time.sleep(3)
-    if docker_env == 1:
+    if docker_env == 1: # if in container, kill needs to be run by bash
         subprocess.call(['bash', '/twongo_files/shutdown.sh'])
-#        time.sleep(30)    
-#time.sleep(5) # Better way of doing this function?
-    try: # look for mongod in processes
+    try: # check if mongod really closed
         subprocess.check_output(['pgrep', 'mongod'])
         print("\nClosing MongoDB didn't seem to work.")
     except:
@@ -320,12 +312,7 @@ if __name__ == "__main__":
 
     report()               ## return some debug statistics
 
-    stop_mongo_daemon()
-
-#    if docker_env == 0:
- #       stop_mongo_daemon()    ## close connection and shutdown mongodb
-  #  else:
-   #     subprocess.call(["touch", "/root/host_interface/.shutdown_permission"])
+    stop_mongo_daemon()    ## close the daemon so the db can be accessed from outside docker
 
     now = datetime.datetime.now()
     print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S'))

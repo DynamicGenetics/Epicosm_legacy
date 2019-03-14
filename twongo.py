@@ -35,7 +35,7 @@ mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).deco
 if os.path.exists("/.dockerenv"): ## is the process running in docker container, or locally?
     docker_env = 1                ## I'm in a docker
 if docker_env == 0: # if NOT in docker container
-    run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
+    run_folder = (subprocess.check_output(["pwd"]).decode('utf-8').strip() + "/")
     log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
     db_path = run_folder + "/db"
     credentials = run_folder + "/credentials"
@@ -49,9 +49,15 @@ else:               # if IS in docker container
     csv_filename = "/root/host_interface/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     database_dump_path = "/root/host_interface/output"
 
-## USAGE, if no user file provided
+## Check user list exists
 if not os.path.exists(run_folder + "user_list"):
     print('USAGE: please provide a list of users to follow, named "user_list".')
+    exit(1)
+
+## Check credentials file exists
+if not os.path.exists(credentials):
+    print("The credentials file doesn't seem to be here. Exiting.")
+    print("If you are running this manually, please be in your run folder.")
     exit(1)
 
 ## Check runstate or make it (if 1st run, this file needs making)
@@ -60,12 +66,6 @@ if docker_env == 1:
         open("/root/host_interface/.run_state", 'r')
     except FileNotFoundError:
         open("/root/host_interface/.run_state", 'w')
-
-## Check credentials file exists
-if not os.path.exists(credentials):
-    print("The credentials file doesn't seem to be here. Exiting.")
-    print("If you are running this manually, please be in your run folder.")
-    exit(1)
 
 ## Check database folder exists, or create it
 if not os.path.exists(run_folder + "/db"):
@@ -260,7 +260,6 @@ def get_friends(twitter_id): ## get the "following" list for this user
 def export(): # export and backup the database
     ## index mongodb for duplicate avoidance and speed
     db.tweets.create_index([("id_str", pymongo.ASCENDING)], unique=True, dropDups=True)    
-#    now = datetime.datetime.now()
     print("\nCreating CSV output file...")
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")

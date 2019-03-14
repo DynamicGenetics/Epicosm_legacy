@@ -61,11 +61,6 @@ if docker_env == 1:
     except FileNotFoundError:
         open("/root/host_interface/.run_state", 'w')
 
-## Check userlist exists
-#if not os.path.exists(sys.argv[1]):
- #   print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
-  #  exit(1)
-
 ## Check credentials file exists
 if not os.path.exists(credentials):
     print("The credentials file doesn't seem to be here. Exiting.")

@@ -27,7 +27,6 @@ client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
 following_collection = db.following
-#run_folder = subprocess.check_output(["pwd"]).decode('utf-8').strip()
 mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
 mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
 mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
@@ -43,7 +42,7 @@ if docker_env == 0: # if NOT in docker container
     csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     database_dump_path = run_folder + "/output"
 else:               # if IS in docker container
-    run_folder = "/root/host_interface"    
+    run_folder = "/root/host_interface/"
     log_filename = "/root/host_interface/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
     db_path = "/root/host_interface/db"
     credentials = "/root/host_interface/credentials"
@@ -51,26 +50,26 @@ else:               # if IS in docker container
     database_dump_path = "/root/host_interface/output"
 
 ## USAGE, if no user file provided
-if not 2 <= len(sys.argv) <= 3:
-    print("USAGE: please provide a list of users to follow.")
-    print("EG: python twongo.py user_list")
+if not os.path.exists(run_folder + "user_list"):
+    print('USAGE: please provide a list of users to follow, named "user_list".')
     exit(1)
 
 ## Check runstate or make it (if 1st run, this file needs making)
-try:
-    open("/root/host_interface/.run_state", 'r')
-except FileNotFoundError:
-    open("/root/host_interface/.run_state", 'w')
+if docker_env == 1:
+    try:
+        open("/root/host_interface/.run_state", 'r')
+    except FileNotFoundError:
+        open("/root/host_interface/.run_state", 'w')
 
 ## Check userlist exists
-if not os.path.exists(sys.argv[1]):
-    print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
-    exit(1)
+#if not os.path.exists(sys.argv[1]):
+ #   print("The user list", sys.argv[1], "doesn't seem to be here. Exiting.")
+  #  exit(1)
 
 ## Check credentials file exists
 if not os.path.exists(credentials):
     print("The credentials file doesn't seem to be here. Exiting.")
-    print("If you are running this interactively, please be in your run folder.")
+    print("If you are running this manually, please be in your run folder.")
     exit(1)
 
 ## Check database folder exists, or create it
@@ -145,17 +144,17 @@ def stop_mongo_daemon():
 
 
 def lookup_users():
-    print("\nConverting users in", sys.argv[1], "to persistent id numbers...")
+    print("\nConverting user screen names to persistent id numbers...")
     # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file
     non_blank_count = 0
-    with open(sys.argv[1]) as count_file:
+    with open(run_folder + "user_list") as count_file:
         for line in count_file:
             if line.strip():
                 non_blank_count += 1
 
     # Make a list from the input file of screen names
-    screen_names = [line.strip() for line in open(sys.argv[1])] # clean up any whitespace
+    screen_names = [line.strip() for line in open(run_folder + "user_list")] # clean up any whitespace
     screen_names = [_f for _f in screen_names if _f]            # clean up any empty lines
 
     # chunks splits the screen_name list into manageable blocks:
@@ -176,16 +175,16 @@ def lookup_users():
                 not_found.append(user) # if not found, put user in not found list
 
     # Write user codes to file.
-    with open(sys.argv[1] + ".ids", 'w') as id_file:
+    with open(run_folder + "user_list.ids", 'w') as id_file:
         for id in id_list:
             id_file.write("%s\n" % id)                            # write to id file
-        print("OK,", len(id_list), "of", non_blank_count, "ID numbers written to -->", sys.argv[1] + ".ids") 
+        print("OK,", len(id_list), "of", non_blank_count, "ID numbers written to --> user_list.ids") 
     if len(not_found) > 0: # if users are not found, put into missing user file
         print("Warning:", len(not_found), "screen names did not return ID codes.")
-        with open(sys.argv[1] + ".notfound", 'w') as missing_user_file:
+        with open(run_folder + "user_list.notfound", 'w') as missing_user_file:
             for missing_user in not_found:
                 missing_user_file.write("%s\n" % missing_user)    # write to missing user file  
-        print("Missing users written to -->", sys.argv[1] + ".notfound")
+        print("Missing users written to --> user_list.notfound")
 
 
 def get_tweets(twitter_id):
@@ -274,9 +273,9 @@ def export(): # export and backup the database
 
 
 def report(): # do some post-process checks and report.
-    users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
+    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
     number_of_users_to_follow = len(users_to_follow)
-    with open(sys.argv[1]) as f:
+    with open(run_folder + "user_list.ids") as f:
         non_blank_lines = sum(not line.isspace() for line in f)
     non_existent_accounts = non_blank_lines - number_of_users_to_follow
     fail_accounts = private_accounts + empty_accounts + non_existent_accounts
@@ -290,7 +289,7 @@ def report(): # do some post-process checks and report.
 
 def harvest():
     ## generate user id list from user2id output file
-    users_to_follow = [int(line.rstrip('\n')) for line in open(sys.argv[1] + '.ids')]
+    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
     now = datetime.datetime.now()
     print("\nStarting tweet harvest at", now.strftime('%d-%m-%Y_%H:%M:%S'), "...")
     try: ## iterate through this list of ids.

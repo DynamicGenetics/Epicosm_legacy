@@ -15,8 +15,8 @@ The user list must be a plain text file, with a single username (twitter screen 
 credentials by having a developer account authorised by Twitter, and generating
 the required codes. Please see Twitter documentation for how to do this.  
 
-If you want a logfile created, add "-l" as your final command argument, eg
-python twongo.py my_user_list -l
+If you want a logfile created, add "-l" as an argument, eg  
+python twongo.py -l
 
 Please also see these further requirements.  
 

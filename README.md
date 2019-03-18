@@ -36,7 +36,7 @@ For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 apt install mongodb  
 
 3: The following Python3 dependencies will need to be installed, and are most easily done with pip:  
-apt install python3-pip  
+apt install python3-pip ("apt" is a common app manager, though it may be brew, yum or others)  
 pip3 install psutil  
 pip3 install tweepy  
 pip3 install pymongo  
@@ -51,7 +51,7 @@ A refined CSV file is created, in the folder "./output/csv/", which by default c
 time of tweet, and the tweet content.  
 
 A backup of the entire database is stored in "./output/twitter_db/". This can be restored by MongoDB using  
-the command "mongorestore [your name given to the database] [the path to the mongodump file]  
+the command "mongorestore [your name given to the database] [the path to the mongodump file]"  
 for example:  
 mongoresotore -d twitter_db ./output/twitter_db/tweets  
 (However, please check MongoDB documentation as commands can change)  

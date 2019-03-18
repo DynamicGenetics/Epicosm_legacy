@@ -59,7 +59,7 @@ mongoresotore -d twitter_db ./output/twitter_db/tweets
 ==========================  
 3 == Optional arguments ==
 
--l      Create a logfile of all output from the harvest run, in /twongo_logs
+-l      Create a logfile of all output from the harvest run, in /twongo_logs  
 -r      Refresh the user list (if you want to modify the list of users to harvest  
         from, replace your file "user_list", and run with -r so that this is refreshed)  
 -f      Gather friend list. This list will go into the MongoDB collection "friends",  

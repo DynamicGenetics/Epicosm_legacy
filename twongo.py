@@ -139,7 +139,8 @@ def stop_mongo_daemon():
     print("\nClosing MongoDB...")
     client.close()
     if docker_env == 0:
-        subprocess.call(["mongod", "--dbpath", db_path, "--shutdown"])
+        subprocess.call(["pkill", "-2", "mongod"])
+#        subprocess.call(["mongod", "--dbpath", db_path, "--shutdown"])
         time.sleep(3)
     if docker_env == 1:
         subprocess.call(['bash', '/twongo_files/shutdown.sh'])

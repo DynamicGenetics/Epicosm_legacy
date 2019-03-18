@@ -22,7 +22,6 @@ empty_accounts = 0
 docker_env = 0
 refresh_user_list = 0
 get_friends_list = 0
-index_counter = 0
 the_date = datetime.datetime.now().date()
 now = datetime.datetime.now()
 credentials = ""
@@ -35,9 +34,9 @@ mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).
 mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
 
 ## set up environment specific variables:
-if "-refresh" in sys.argv:
+if "--refresh" in sys.argv:
     refresh_user_list = 1
-if "-getfriends" in sys.argv:
+if "--getfriends" in sys.argv:
     get_friends_list = 1
 if os.path.exists("/.dockerenv"): ## is the process running in docker container, or locally?
     docker_env = 1                ## I'm in a docker
@@ -86,7 +85,7 @@ if not os.path.exists(run_folder + "/db_logs"):
 if not os.path.exists(run_folder + "/twongo_logs"):
     print("Twongo log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/twongo_logs")
-if "-log" in sys.argv: # if -log given as argument, create a logfile for this run
+if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
     log = open(run_folder + '/twongo_logs/' + the_date.strftime('%d-%m-%Y') + '.log', "a")
     sys.stdout = log # all print debugs to logfile
 
@@ -123,7 +122,9 @@ def start_mongo_daemon():
        ... if it isn't there, start the daemon."""
     now = datetime.datetime.now()
     if "mongod" in (p.name() for p in psutil.process_iter()):
-        print("\nMongoDB daemon appears to be running here...")
+        print("\nMongoDB daemon appears to be running here... refreshing...")
+        stop_mongo_daemon()
+        start_mongo_daemon()
     else:
         print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...")
         try:
@@ -135,28 +136,30 @@ def start_mongo_daemon():
 
 
 def stop_mongo_daemon():
+    print("\nClosing MongoDB...")
     client.close()
-#    db.shutdownServer()
- #   subprocess.call(['bash', '/twongo_files/shutdown.sh'])
-#    subprocess.call(['mongo', '127.0.0.1:27017/admin', '--eval', '"db.shutdownServer()"'])
-#    subprocess.call(["mongo", "admin", "--eval", 'use admin;', '"db.shutdownServer();"'])
-#    subprocess.call(["pkill", "-2", "mongod"])
-#    os.system("pkill -2 mongod")
     if docker_env == 0:
         subprocess.call(["mongod", "--dbpath", db_path, "--shutdown"])
         time.sleep(3)
     if docker_env == 1:
         subprocess.call(['bash', '/twongo_files/shutdown.sh'])
-#        time.sleep(30)    
-#time.sleep(5) # Better way of doing this function?
     try: # look for mongod in processes
         subprocess.check_output(['pgrep', 'mongod'])
-        print("\nClosing MongoDB didn't seem to work.")
+        print("Closing MongoDB didn't seem to work.")
     except:
-        print("\nMongoDB now closed.")
+        print("MongoDB now closed.")
+
+
+def index_mongodb(): # tidy up the database
+    if not os.path.isfile(run_folder + "/db/WiredTiger"):
+        return
+    print("\nIndexing MongoDB...")
+    db.tweets.create_index([("id_str", pymongo.ASCENDING)], unique=True, dropDups=True)
 
 
 def lookup_users():
+    if not os.path.exists(run_folder + "user_list.ids") or refresh_user_list == 0:
+        return
     print("\nConverting user screen names to persistent id numbers...")
     # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file
@@ -300,19 +303,20 @@ def report(): # do some post-process checks and report.
 
 
 def harvest():
+    index_counter = 0
     ## generate user id list from user2id output file
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
     now = datetime.datetime.now()
     print("\nStarting tweet harvest at", now.strftime('%d-%m-%Y_%H:%M:%S'), "...")
     try: ## iterate through this list of ids.
         for user in users_to_follow:
-            if index_counter == 100: # every 100 users index the database
-                print("Indexing database...")
-                db.tweets.create_index([("id_str", pymongo.ASCENDING)], unique=True, dropDups=True)
+            if index_counter == 3: # every 100 users index the database
+                index_mongodb()
                 index_counter = 0    # reset counter
             get_tweets(user)   ## get all their tweets and put into mongodb
+            if get_friends_list == 1:
+                get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
             index_counter += 1
-       #     get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
     except Exception as e:
         print(e)
 
@@ -324,8 +328,9 @@ if __name__ == "__main__":
 
     start_mongo_daemon()   ## check/start mongodb
 
-    if not os.path.exists(run_folder + "user_list.ids") or if refresh_user_list == 1:
-        lookup_users()     ## get persistent user ids from screen names
+    index_mongodb()        ## tidy db up for faster access
+
+    lookup_users()         ## get persistent user ids from screen names
 
     harvest()              ## get tweets for each user and archive in mongodb
 
@@ -333,12 +338,7 @@ if __name__ == "__main__":
 
     report()               ## return some debug statistics
 
-    stop_mongo_daemon()
-
-#    if docker_env == 0:
- #       stop_mongo_daemon()    ## close connection and shutdown mongodb
-  #  else:
-   #     subprocess.call(["touch", "/root/host_interface/.shutdown_permission"])
+    stop_mongo_daemon()    ## shut down mongodb
 
     now = datetime.datetime.now()
     print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S'))

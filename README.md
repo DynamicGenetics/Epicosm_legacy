@@ -2,6 +2,14 @@
 
 === A Python3 tweet harvester integrated with MongoDB data management ===
 
+Contents. 
+1. Running the python script independent of docker.  
+2. Output and data.  
+3. Optional arguments.  
+
+
+=======================================================  
+1 == Running the python script independent of docker ==  
 This repository is the python code running in the docker container (URL to be confirmed).
 The python script will also run independent of its docker container:  
 
@@ -14,9 +22,6 @@ The user list must be a plain text file, with a single username (twitter screen 
 (further instructions inside file, "credentials"). You will need your own Twitter API
 credentials by having a developer account authorised by Twitter, and generating
 the required codes. Please see Twitter documentation for how to do this.  
-
-If you want a logfile created, add "-l" as an argument, eg  
-python twongo.py -l
 
 Please also see these further requirements.  
 
@@ -36,8 +41,8 @@ pip3 install psutil
 pip3 install tweepy  
 pip3 install pymongo  
 
-
-=== Output and data ===  
+=======================  
+2 == Output and data ==  
 Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",  
 with two collections "tweets" which contains all json data and content of each tweet, and  
 "following" which contains a list of all users that each user in your list are following.  
@@ -50,3 +55,15 @@ the command "mongorestore [your name given to the database] [the path to the mon
 for example:  
 mongoresotore -d twitter_db ./output/twitter_db/tweets  
 (However, please check MongoDB documentation as commands can change)  
+
+==========================  
+3 == Optional arguments ==
+
+-l      Create a logfile of all output from the harvest run, in /twongo_logs
+-r      Refresh the user list (if you want to modify the list of users to harvest  
+        from, replace your file "user_list", and run with -r so that this is refreshed)  
+-f      Gather friend list. This list will go into the MongoDB collection "friends",  
+        in the database "twitter_db". This is normally disabled because requesting the  
+        friend list can be very demanding on the API and the run will be severely  
+        rate limited.  
+        

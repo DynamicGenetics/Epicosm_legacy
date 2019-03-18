@@ -140,7 +140,6 @@ def stop_mongo_daemon():
     client.close()
     if docker_env == 0:
         subprocess.call(["pkill", "-2", "mongod"])
-#        subprocess.call(["mongod", "--dbpath", db_path, "--shutdown"])
         time.sleep(3)
     if docker_env == 1:
         subprocess.call(['bash', '/twongo_files/shutdown.sh'])
@@ -280,8 +279,6 @@ def get_friends(twitter_id): ## get the "following" list for this user
 
 
 def export(): # export and backup the database
-    ## index mongodb for duplicate avoidance and speed
-    #db.tweets.create_index([("id_str", pymongo.ASCENDING)], unique=True, dropDups=True)    
     print("\nCreating CSV output file...")
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")
@@ -311,7 +308,7 @@ def harvest():
     print("\nStarting tweet harvest at", now.strftime('%d-%m-%Y_%H:%M:%S'), "...")
     try: ## iterate through this list of ids.
         for user in users_to_follow:
-            if index_counter == 3: # every 100 users index the database
+            if index_counter == 100: # every 100 users index the database
                 index_mongodb()
                 index_counter = 0    # reset counter
             get_tweets(user)   ## get all their tweets and put into mongodb

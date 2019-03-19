@@ -121,11 +121,11 @@ def start_mongo_daemon():
     """look through running processes for the mongod deamon.
        ... if it isn't there, start the daemon."""
     now = datetime.datetime.now()
-    if "mongod" in (p.name() for p in psutil.process_iter()):
-        print("\nMongoDB daemon appears to be running here... refreshing...")
-        stop_mongo_daemon()
-        start_mongo_daemon()
-    else:
+    if not "mongod" in (p.name() for p in psutil.process_iter()):
+ #       print("\nMongoDB daemon appears to be running here... refreshing...")
+  #      stop_mongo_daemon()
+   #     start_mongo_daemon()
+    #else:
         print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...")
         try:
             subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', log_filename])
@@ -187,6 +187,7 @@ def lookup_users():
             try:
                 user = api.get_user(screen_name = user)
                 id_list.append(user.id) # get the id and put it in the id_list   
+                print('.', end='', flush=True)
             except tweepy.error.TweepError as e:
                 not_found.append(user) # if not found, put user in not found list
 
@@ -194,7 +195,7 @@ def lookup_users():
     with open(run_folder + "user_list.ids", 'w') as id_file:
         for id in id_list:
             id_file.write("%s\n" % id)                            # write to id file
-        print("OK,", len(id_list), "of", non_blank_count, "ID numbers written to --> user_list.ids") 
+        print("\nOK,", len(id_list), "of", non_blank_count, "ID numbers written to --> user_list.ids") 
     if len(not_found) > 0: # if users are not found, put into missing user file
         print("Warning:", len(not_found), "screen names did not return ID codes.")
         with open(run_folder + "user_list.notfound", 'w') as missing_user_file:

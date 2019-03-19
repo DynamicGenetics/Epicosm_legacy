@@ -56,10 +56,11 @@ else:               # if IS in docker container
     csv_filename = "/root/host_interface/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     database_dump_path = "/root/host_interface/output"
 
-## Check user list exists
+## Check user list exists and get it
 if not os.path.exists(run_folder + "user_list"):
     print('USAGE: please provide a list of users to follow, named "user_list".')
     exit(1)
+screen_names = list(dict.fromkeys(line.strip() for line in open(run_folder + "user_list")))
 
 ## Check credentials file exists
 if not os.path.exists(credentials):
@@ -159,7 +160,6 @@ def index_mongodb(): # tidy up the database
 
 
 def lookup_users():
-#    if os.path.exists(run_folder + "user_list.ids") and refresh_user_list == 0:
     if refresh_user_list == 0 and os.path.exists(run_folder + "user_list.ids"):
         return
     print("\nConverting user screen names to persistent id numbers...")
@@ -171,12 +171,6 @@ def lookup_users():
             if line.strip():
                 non_blank_count += 1
 
-    # Make a list from the input file of screen names
-#    screen_names = [line.strip() for line in open(run_folder + "user_list")] # clean up any whitespace
-#    screen_names = list(set(line.strip() for line in open(run_folder + "user_list"))) # clean up any whitespace
-    screen_names = list(dict.fromkeys(line.strip() for line in open(run_folder + "user_list"))) # clean up any whitespace
-#    screen_names = [_f for _f in screen_names if _f]            # clean up any empty lines
-
     # chunks splits the screen_name list into manageable blocks:
     def chunks(l, n):
         for i in range(0, len(l), n):     # For item i in a range that is a length of l,
@@ -184,7 +178,6 @@ def lookup_users():
     
     # Query twitter with the comma separated list
     id_list = []        # empty list for id to go into
-#    not_found = []      # empty list for users not found
     for chunk in list(chunks(screen_names, 42)): # split list into manageable chunks of 42
         comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
         for user in chunk:
@@ -291,17 +284,13 @@ def export(): # export and backup the database
 
 
 def report(): # do some post-process checks and report.
-    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
-    number_of_users_to_follow = len(users_to_follow)
-    with open(run_folder + "user_list.ids") as f:
-        non_blank_lines = sum(not line.isspace() for line in f)
-  #  non_existent_accounts = non_blank_lines - number_of_users_to_follow
+#    with open(run_folder + "user_list.ids") as f:
+ #       non_blank_lines = sum(not line.isspace() for line in f)
     fail_accounts = private_accounts + empty_accounts + len(not_found)
-    success_accounts = non_blank_lines - fail_accounts
-    print("\nOK, tweet timelines acquired from", success_accounts, "of", (success_accounts + fail_accounts), "accounts.")
+    print("\nOK, tweet timelines acquired from", (len(screen_names) - fail_accounts), "of", len(screen_names), "accounts.")
     print(private_accounts, "accounts were private.")
     print(empty_accounts, "accounts were empty.")
-    print(len(not_found), "accounts do not seem to exist.")
+    print(len(not_found), "accounts do not seem to exist, see user_list.not_found")
     print("Twitter rate limited this process", times_limited, "times.")
 
 

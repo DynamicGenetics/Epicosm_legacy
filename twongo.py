@@ -19,6 +19,7 @@ import subprocess
 times_limited = 0
 private_accounts = 0
 empty_accounts = 0
+not_found = []
 docker_env = 0
 refresh_user_list = 0
 get_friends_list = 0
@@ -158,7 +159,8 @@ def index_mongodb(): # tidy up the database
 
 
 def lookup_users():
-    if not os.path.exists(run_folder + "user_list.ids") or refresh_user_list == 0:
+#    if os.path.exists(run_folder + "user_list.ids") and refresh_user_list == 0:
+    if refresh_user_list == 0 and os.path.exists(run_folder + "user_list.ids"):
         return
     print("\nConverting user screen names to persistent id numbers...")
     # this function should be fine with both unix and dos formatted files
@@ -170,8 +172,10 @@ def lookup_users():
                 non_blank_count += 1
 
     # Make a list from the input file of screen names
-    screen_names = [line.strip() for line in open(run_folder + "user_list")] # clean up any whitespace
-    screen_names = [_f for _f in screen_names if _f]            # clean up any empty lines
+#    screen_names = [line.strip() for line in open(run_folder + "user_list")] # clean up any whitespace
+#    screen_names = list(set(line.strip() for line in open(run_folder + "user_list"))) # clean up any whitespace
+    screen_names = list(dict.fromkeys(line.strip() for line in open(run_folder + "user_list"))) # clean up any whitespace
+#    screen_names = [_f for _f in screen_names if _f]            # clean up any empty lines
 
     # chunks splits the screen_name list into manageable blocks:
     def chunks(l, n):
@@ -180,7 +184,7 @@ def lookup_users():
     
     # Query twitter with the comma separated list
     id_list = []        # empty list for id to go into
-    not_found = []      # empty list for users not found
+#    not_found = []      # empty list for users not found
     for chunk in list(chunks(screen_names, 42)): # split list into manageable chunks of 42
         comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
         for user in chunk:
@@ -195,7 +199,7 @@ def lookup_users():
     with open(run_folder + "user_list.ids", 'w') as id_file:
         for id in id_list:
             id_file.write("%s\n" % id)                            # write to id file
-        print("\nOK,", len(id_list), "of", non_blank_count, "ID numbers written to --> user_list.ids") 
+        print("\nOK,", len(id_list), "of", len(screen_names), "ID numbers written to --> user_list.ids") 
     if len(not_found) > 0: # if users are not found, put into missing user file
         print("Warning:", len(not_found), "screen names did not return ID codes.")
         with open(run_folder + "user_list.notfound", 'w') as missing_user_file:
@@ -291,13 +295,13 @@ def report(): # do some post-process checks and report.
     number_of_users_to_follow = len(users_to_follow)
     with open(run_folder + "user_list.ids") as f:
         non_blank_lines = sum(not line.isspace() for line in f)
-    non_existent_accounts = non_blank_lines - number_of_users_to_follow
-    fail_accounts = private_accounts + empty_accounts + non_existent_accounts
+  #  non_existent_accounts = non_blank_lines - number_of_users_to_follow
+    fail_accounts = private_accounts + empty_accounts + len(not_found)
     success_accounts = non_blank_lines - fail_accounts
     print("\nOK, tweet timelines acquired from", success_accounts, "of", (success_accounts + fail_accounts), "accounts.")
     print(private_accounts, "accounts were private.")
     print(empty_accounts, "accounts were empty.")
-    print(non_existent_accounts, "accounts do not seem to exist.")
+    print(len(not_found), "accounts do not seem to exist.")
     print("Twitter rate limited this process", times_limited, "times.")
 
 

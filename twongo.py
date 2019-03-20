@@ -69,19 +69,10 @@ if not os.path.exists(credentials):
     print("If you are running this manually, please be in your run folder.")
     exit(1)
 
-## Check runstate or make it (if 1st run, this file needs making)
-if docker_env == 1:
-    try:
-        open("/root/host_interface/.run_state", 'r')
-    except FileNotFoundError:
-        open("/root/host_interface/.run_state", 'w')
-
-## Check database folder exists, or create it
+## Check or make directory structure
 if not os.path.exists(run_folder + "/db"):
     print("MongoDB database folder seems absent, creating folder...")
     os.makedirs(run_folder + "/db")
-
-## Check log folders exists, or create them
 if not os.path.exists(run_folder + "/db_logs"):
     print("DB log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/db_logs")
@@ -125,10 +116,6 @@ def start_mongo_daemon():
        ... if it isn't there, start the daemon."""
     now = datetime.datetime.now()
     if not "mongod" in (p.name() for p in psutil.process_iter()):
- #       print("\nMongoDB daemon appears to be running here... refreshing...")
-  #      stop_mongo_daemon()
-   #     start_mongo_daemon()
-    #else:
         print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...")
         try:
             subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', log_filename])
@@ -284,8 +271,6 @@ def export(): # export and backup the database
 
 
 def report(): # do some post-process checks and report.
-#    with open(run_folder + "user_list.ids") as f:
- #       non_blank_lines = sum(not line.isspace() for line in f)
     fail_accounts = private_accounts + empty_accounts + len(not_found)
     print("\nOK, tweet timelines acquired from", (len(screen_names) - fail_accounts), "of", len(screen_names), "accounts.")
     print(private_accounts, "accounts were private.")
@@ -336,4 +321,3 @@ if __name__ == "__main__":
     end = time.time()
     process_time = int(round((end - start) / 60))
     print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S') + ", taking around", process_time, "minutes.")
-

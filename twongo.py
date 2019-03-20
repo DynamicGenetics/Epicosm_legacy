@@ -140,26 +140,18 @@ def start_mongo_daemon():
 def stop_mongo_daemon():
     shutdown_wait_time = 0
     client.close()
-    if docker_env == 0:
-        print("\nClosing MongoDB...")
-        subprocess.call(["pkill", "-2", "mongod"])
-        time.sleep(5)
-        try: # look for mongod in processes
-            subprocess.check_output(['pgrep', 'mongod'])
-            print("Closing MongoDB didn't seem to work.")
-        except:
-             print("MongoDB now closed.")
-    if docker_env == 1:
-        print("\nAsking MongoDB to close...")
-        subprocess.call(["pkill", "-15", "mongod"])
-        while True:
-            try:
-                subprocess.check_output(["pgrep", "mongod"])
-            except subprocess.CalledProcessError:
-                print("OK, closing the MongoDB daemon took", shutdown_wait_time, "seconds.")
-                break
-            shutdown_wait_time += 1
-            time.sleep(1)
+    print("\nAsking MongoDB to close...")
+    subprocess.call(["pkill", "-15", "mongod"])
+    while True:  
+        try:
+            subprocess.check_output(["pgrep", "mongod"])
+        except subprocess.CalledProcessError:
+            print("OK, closing the MongoDB daemon took", shutdown_wait_time, "seconds.")
+            break
+        shutdown_wait_time += 1
+        print(shutdown_wait_time)
+        time.sleep(1)    
+        
 
 def index_mongodb(): # tidy up the database
     if not os.path.isfile(run_folder + "/db/WiredTiger"):

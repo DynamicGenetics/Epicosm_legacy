@@ -16,6 +16,7 @@ import datetime
 import subprocess
 
 ## set up run variables
+start = time.time()
 times_limited = 0
 private_accounts = 0
 empty_accounts = 0
@@ -138,7 +139,6 @@ def start_mongo_daemon():
 
 
 def stop_mongo_daemon():
-    shutdown_wait_time = 0
     client.close()
     print("\nAsking MongoDB to close...")
     subprocess.call(["pkill", "-15", "mongod"])
@@ -146,10 +146,9 @@ def stop_mongo_daemon():
         try:
             subprocess.check_output(["pgrep", "mongod"])
         except subprocess.CalledProcessError:
-            print("OK, closing the MongoDB daemon took", shutdown_wait_time, "seconds.")
+            print("\nOK, MongoDB daemon closed.")
             break
-        shutdown_wait_time += 1
-        print(shutdown_wait_time)
+        print('.', end='', flush=True)        
         time.sleep(1)    
         
 
@@ -334,4 +333,7 @@ if __name__ == "__main__":
     stop_mongo_daemon()    ## shut down mongodb
 
     now = datetime.datetime.now()
-    print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S'))
+    end = time.time()
+    process_time = int(round((end - start) / 60))
+    print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S') + ", taking around", process_time, "minutes.")
+

@@ -19,7 +19,6 @@ import subprocess
 times_limited = 0
 private_accounts = 0
 empty_accounts = 0
-harvest_count = 0
 not_found = []
 docker_env = 0
 refresh_user_list = 0
@@ -125,7 +124,7 @@ def start_mongo_daemon():
        ... if it isn't there, start the daemon."""
     now = datetime.datetime.now()
     if not "mongod" in (p.name() for p in psutil.process_iter()):
- #       print("\nMongoDB daemon appears to be already running here... refreshing...")
+ #       print("\nMongoDB daemon appears to be running here... refreshing...")
   #      stop_mongo_daemon()
    #     start_mongo_daemon()
     #else:
@@ -139,19 +138,28 @@ def start_mongo_daemon():
 
 
 def stop_mongo_daemon():
-    print("\nClosing MongoDB...")
+    shutdown_wait_time = 0
     client.close()
     if docker_env == 0:
+        print("\nClosing MongoDB...")
         subprocess.call(["pkill", "-2", "mongod"])
-        time.sleep(3)
+        time.sleep(5)
+        try: # look for mongod in processes
+            subprocess.check_output(['pgrep', 'mongod'])
+            print("Closing MongoDB didn't seem to work.")
+        except:
+             print("MongoDB now closed.")
     if docker_env == 1:
-        subprocess.call(['bash', '/twongo_files/shutdown.sh'])
-    try: # look for mongod in processes
-        subprocess.check_output(['pgrep', 'mongod'])
-        print("Closing MongoDB didn't seem to work.")
-    except:
-        print("MongoDB now closed.")
-
+        print("\nAsking MongoDB to close...")
+        subprocess.call(["pkill", "-15", "mongod"])
+        while True:
+            try:
+                subprocess.check_output(["pgrep", "mongod"])
+            except subprocess.CalledProcessError:
+                print("OK, closing the MongoDB daemon took", shutdown_wait_time, "seconds.")
+                break
+            shutdown_wait_time += 1
+            time.sleep(1)
 
 def index_mongodb(): # tidy up the database
     if not os.path.isfile(run_folder + "/db/WiredTiger"):
@@ -284,32 +292,32 @@ def export(): # export and backup the database
     subprocess.call([mongodump_executable_path, "-o", database_dump_path, "--host=127.0.0.1"])
 
 
-def report(harvest_count): # do some post-process checks and report.
-    if refresh_user_list == 1:
-        total_harvest_successes = len(screen_names) - (private_accounts + empty_accounts + len(not_found))
-    else:
-        total_harvest_successes = len([int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]) - (private_accounts + empty_accounts)
-    print("\nOK, tweet timelines acquired from", total_harvest_successes, "users.")
+def report(): # do some post-process checks and report.
+#    with open(run_folder + "user_list.ids") as f:
+ #       non_blank_lines = sum(not line.isspace() for line in f)
+    fail_accounts = private_accounts + empty_accounts + len(not_found)
+    print("\nOK, tweet timelines acquired from", (len(screen_names) - fail_accounts), "of", len(screen_names), "accounts.")
     print(private_accounts, "accounts were private.")
     print(empty_accounts, "accounts were empty.")
-    if refresh_user_list == 1:
-        print(len(not_found), "accounts do not seem to exist, see user_list.not_found")
-    print("Twitter rate limited harvesting", times_limited, "times.")
+    print(len(not_found), "accounts do not seem to exist, see user_list.not_found")
+    print("Twitter rate limited this process", times_limited, "times.")
 
 
-def harvest(harvest_count):
+def harvest():
+    index_counter = 0
     ## generate user id list from user2id output file
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
     now = datetime.datetime.now()
     print("\nStarting tweet harvest at", now.strftime('%d-%m-%Y_%H:%M:%S'), "...")
     try: ## iterate through this list of ids.
         for user in users_to_follow:
-            if harvest_count % 100 == 0: # every 100 users index the database
+            if index_counter == 100: # every 100 users index the database
                 index_mongodb()
+                index_counter = 0    # reset counter
             get_tweets(user)   ## get all their tweets and put into mongodb
             if get_friends_list == 1:
                 get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
-            harvest_count += 1
+            index_counter += 1
     except Exception as e:
         print(e)
 
@@ -325,15 +333,13 @@ if __name__ == "__main__":
 
     lookup_users()         ## get persistent user ids from screen names
 
-    harvest(harvest_count)              ## get tweets for each user and archive in mongodb
+    harvest()              ## get tweets for each user and archive in mongodb
 
     export()               ## create CSV ouput and backup mongodb
 
-    report(harvest_count)  ## return some debug statistics
+    report()               ## return some debug statistics
 
     stop_mongo_daemon()    ## shut down mongodb
 
     now = datetime.datetime.now()
-
     print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S'))
-

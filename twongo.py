@@ -147,7 +147,15 @@ def index_mongodb(): # tidy up the database
 def lookup_users():
     if refresh_user_list == 0 and os.path.exists(run_folder + "user_list.ids"):
         return
-    print("\nConverting user screen names to persistent id numbers...")
+    with open(run_folder + "user_list") as file:
+        duplicate_users = []
+        lines = [x.strip() for x in file.readlines()]
+        for line in lines:
+            if lines.count(line) > 1:
+                duplicate_users.append(line)
+        if len(duplicate_users) > 0:
+            print("\nThere are duplicates users in your list:", set(duplicate_users))
+    print("Converting user screen names to persistent id numbers...")
     # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file
     non_blank_count = 0
@@ -186,11 +194,7 @@ def lookup_users():
         print("Missing users written to --> user_list.notfound")
 
 
-def get_tweets(twitter_id):
-    # are these globals ok?
-    global times_limited
-    global private_accounts
-    global empty_accounts
+def get_tweets(twitter_id, times_limited, private_accounts, empty_accounts):
     ## check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
         ## we already have this user's timeline, just get recent tweets
@@ -273,9 +277,10 @@ def report(): # do some post-process checks and report.
     print("\nOK, tweet timelines acquired from", (len(screen_names) - fail_accounts), "of", len(screen_names), "accounts.")
     print(private_accounts, "accounts were private.")
     print(empty_accounts, "accounts were empty.")
+#    if duplicate_users:
+ #        print(len(set(duplicate_users)), "were duplicate users:", set(duplicate_users))
     print(len(not_found), "accounts do not seem to exist, see user_list.not_found")
     print("Twitter rate limited this process", times_limited, "times.")
-
 
 def harvest():
     index_counter = 0
@@ -287,7 +292,8 @@ def harvest():
         for user in users_to_follow:
             if index_counter % 100 == 0: # every 100 users index the database
                 index_mongodb()
-            get_tweets(user)   ## get all their tweets and put into mongodb
+            #get_tweets(user)
+            get_tweets(user, times_limited, private_accounts, empty_accounts)   ## get all their tweets and put into mongodb
             if get_friends_list == 1:
                 get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
             index_counter += 1
@@ -318,4 +324,3 @@ if __name__ == "__main__":
     end = time.time()
     process_time = int(round((end - start) / 60))
     print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S') + ", taking around", process_time, "minutes.")
-    

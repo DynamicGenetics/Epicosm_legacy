@@ -1,8 +1,6 @@
-####################################
-## twongo.py - Al Tanner, Feb2019 ##
-## a twitter havester using       ##
-## MongoDB for data management    ##
-####################################
+###########################################################################################
+## twongo.py - Al Tanner, Feb2019 - a twitter havester using MongoDB for data management ##
+###########################################################################################
 
 import os
 import sys
@@ -287,9 +285,8 @@ def harvest():
     print("\nStarting tweet harvest at", now.strftime('%d-%m-%Y_%H:%M:%S'), "...")
     try: ## iterate through this list of ids.
         for user in users_to_follow:
-            if index_counter == 100: # every 100 users index the database
+            if index_counter % 100 == 0: # every 100 users index the database
                 index_mongodb()
-                index_counter = 0    # reset counter
             get_tweets(user)   ## get all their tweets and put into mongodb
             if get_friends_list == 1:
                 get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
@@ -321,3 +318,4 @@ if __name__ == "__main__":
     end = time.time()
     process_time = int(round((end - start) / 60))
     print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S') + ", taking around", process_time, "minutes.")
+    

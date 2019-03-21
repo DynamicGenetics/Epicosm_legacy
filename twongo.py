@@ -270,7 +270,8 @@ def export(): # export and backup the database
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print("\nBacking up the database...")
     subprocess.call([mongodump_executable_path, "-o", database_dump_path, "--host=127.0.0.1"])
-
+    subprocess.call(["chmod", "-R", "0755", database_dump_path]) # hand back access permissions to host
+#    subprocess.call(["find", database_dump_path, "-type", "f", "-exec", "chmod", "0644", "{}", "\;"])
 
 def report(): # do some post-process checks and report.
     fail_accounts = private_accounts + empty_accounts + len(not_found)

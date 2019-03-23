@@ -12,7 +12,7 @@ while true;
     
     TWONGO_STATUS="Twongo is currently harvesting.";
     sed -i "1s/.*/$TWONGO_STATUS/" /root/host_interface/STATUS;
-    do /usr/bin/python3 /twongo/twongo.py --refresh;
+    do /usr/bin/python3 /twongo/twongo.py --refresh --log;
     TWONGO_STATUS="Twongo is currently idle.";
     LATEST_HARVEST=`ls -ls /root/host_interface/output/csv | tail -1 | awk '{print $NF}' | sed 's/.csv//'`;
     sed -i "1s/.*/$TWONGO_STATUS/" /root/host_interface/STATUS;

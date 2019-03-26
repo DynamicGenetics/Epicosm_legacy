@@ -324,7 +324,4 @@ if __name__ == "__main__":
 
     stop_mongo_daemon()    ## shut down mongodb
 
-    now = datetime.datetime.now()
-    end = time.time()
-    process_time = int(round((end - start) / 60))
-    print("\nAll done, twongo finished at", now.strftime('%d-%m-%Y_%H:%M:%S') + ", taking around", process_time, "minutes.")
+    print("\nAll done, twongo finished at", datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S') + ", taking around", int(round((time.time() - start) / 60)), "minutes.")

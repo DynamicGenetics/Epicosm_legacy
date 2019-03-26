@@ -5,6 +5,7 @@
 import os
 import sys
 import time
+import glob
 import json
 import psutil
 import tweepy
@@ -22,7 +23,6 @@ not_found = []
 docker_env = 0
 refresh_user_list = 0
 get_friends_list = 0
-the_date = datetime.datetime.now().date()
 now = datetime.datetime.now()
 credentials = ""
 client = pymongo.MongoClient('localhost', 27017)
@@ -78,7 +78,7 @@ if not os.path.exists(run_folder + "/twongo_logs"):
     print("Twongo log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/twongo_logs")
 if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
-    log = open(run_folder + '/twongo_logs/' + the_date.strftime('%d-%m-%Y') + '.log', "a")
+    log = open(run_folder + '/twongo_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
     sys.stdout = log # all print debugs to logfile
 
 ## Get Twitter API details from credentials file
@@ -271,7 +271,10 @@ def export(): # export and backup the database
     print("\nBacking up the database...")
     subprocess.call([mongodump_executable_path, "-o", database_dump_path, "--host=127.0.0.1"])
     subprocess.call(["chmod", "-R", "0755", database_dump_path]) # hand back access permissions to host
-#    subprocess.call(["find", database_dump_path, "-type", "f", "-exec", "chmod", "0644", "{}", "\;"])
+    subprocess.call(['zip', '-jumq', run_folder + 'db_logs/db_logs.zip', run_folder] + glob.glob('db_logs/*.log'))
+    subprocess.call(['zip', '-jumq', run_folder + 'twongo_logs/twongo_logs.zip', run_folder] + glob.glob('twongo_logs/*.log'))
+#    subprocess.call(['zip', '-jumq', run_folder + 'output/csv/csv.zip', run_folder] + glob.glob('output/csv/*.csv'))
+
 
 def report(): # do some post-process checks and report.
     fail_accounts = private_accounts + empty_accounts + len(not_found)

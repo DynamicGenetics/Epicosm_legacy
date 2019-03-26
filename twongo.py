@@ -112,7 +112,6 @@ except tweepy.error.TweepError:
 def start_mongo_daemon():
     """look through running processes for the mongod deamon.
        ... if it isn't there, start the daemon."""
-    now = datetime.datetime.now()
     if not "mongod" in (p.name() for p in psutil.process_iter()):
         print("\nIt doesn't look like the MongoDB daemon is running: starting daemon...")
         try:
@@ -145,6 +144,7 @@ def index_mongodb(): # tidy up the database
 
 
 def lookup_users():
+    global duplicate_users
     if refresh_user_list == 0 and os.path.exists(run_folder + "user_list.ids"):
         return
     with open(run_folder + "user_list") as file:
@@ -154,7 +154,10 @@ def lookup_users():
             if lines.count(line) > 1:
                 duplicate_users.append(line)
         if len(duplicate_users) > 0:
-            print("\nThere are duplicates users in your list:", set(duplicate_users))
+            print("\nWarning: there are duplicates users in your list:", set(duplicate_users))
+        with open(run_folder + "user_list.duplicates", 'w') as duplicate_user_file:
+            for duplicate_user in set(duplicate_users):
+                duplicate_user_file.write("%s\n" % duplicate_user)
     print("Converting user screen names to persistent id numbers...")
     # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file
@@ -194,7 +197,10 @@ def lookup_users():
         print("Missing users written to --> user_list.notfound")
 
 
-def get_tweets(twitter_id, times_limited, private_accounts, empty_accounts):
+def get_tweets(twitter_id):
+    global times_limited
+    global private_accounts
+    global empty_accounts
     ## check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
         ## we already have this user's timeline, just get recent tweets
@@ -278,13 +284,17 @@ def export(): # export and backup the database
 
 def report(): # do some post-process checks and report.
     fail_accounts = private_accounts + empty_accounts + len(not_found)
-    print("\nOK, tweet timelines acquired from", (len(screen_names) - fail_accounts), "of", len(screen_names), "accounts.")
+    total_users_provided = subprocess.check_output(["grep", "-cve", "'^\s*$'", run_folder + "user_list"]).decode('utf-8').strip()
+#    duplicate_number = subprocess.check_output(["wc", "-l", run_folder + "user_list.duplicates", "|", "awk", "'{print $1}'"]).decode('utf-8').strip()
+ #   not_found_number = subprocess.check_output(["wc", "-l", run_folder + "user_list.notfound", "|", "awk", "'{print $1}'"]).decode('utf-8').strip()
+    print("\nOK, tweet timelines acquired from", (len(screen_names) - fail_accounts), "of", total_users_provided, "accounts.")
+  #  print("\nOK, tweet timelines acquired from", (len(screen_names) - fail_accounts), "of", len(screen_names), "accounts.")
     print(private_accounts, "accounts were private.")
     print(empty_accounts, "accounts were empty.")
-#    if duplicate_users:
- #        print(len(set(duplicate_users)), "were duplicate users:", set(duplicate_users))
-    print(len(not_found), "accounts do not seem to exist, see user_list.not_found")
+#    print(duplicate_number, "are duplicate accounts, see user_list.duplicates")
+ #   print(not_found_number, "accounts do not seem to exist, see user_list.not_found")
     print("Twitter rate limited this process", times_limited, "times.")
+
 
 def harvest():
     index_counter = 0
@@ -296,8 +306,8 @@ def harvest():
         for user in users_to_follow:
             if index_counter % 100 == 0: # every 100 users index the database
                 index_mongodb()
-            #get_tweets(user)
-            get_tweets(user, times_limited, private_accounts, empty_accounts)   ## get all their tweets and put into mongodb
+            get_tweets(user)
+#            get_tweets(user, times_limited, private_accounts, empty_accounts)   ## get all their tweets and put into mongodb
             if get_friends_list == 1:
                 get_friends(user) ## this tends to rate limit, but tweet harvest doesn't (?!)
             index_counter += 1
@@ -320,7 +330,7 @@ if __name__ == "__main__":
 
     export()               ## create CSV ouput and backup mongodb
 
-    report()               ## return some debug statistics
+    report()               ## give some basic stats on the run
 
     stop_mongo_daemon()    ## shut down mongodb
 

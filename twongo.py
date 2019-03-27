@@ -30,10 +30,24 @@ client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
 following_collection = db.following
-mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
-mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
-mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
 
+## check if MongoDB is present and correct
+try:
+    mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
+except:
+    print(f"You don't seem to have MongoDB installed. Stopping.")
+    sys.exit(1)
+try:
+    mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
+except:
+    print(f"Mongoexport seems missing... stopping.")
+    sys.exit(1)
+try:
+    mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
+except:
+    print(f"Mongodump seems missing... stopping.")
+    sys.exit(1)
+    
 ## set up environment specific variables:
 if "--refresh" in sys.argv:
     refresh_user_list = 1

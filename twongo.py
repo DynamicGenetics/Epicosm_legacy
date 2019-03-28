@@ -30,23 +30,6 @@ client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
 following_collection = db.following
-
-## check if MongoDB is present and correct
-try:
-    mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
-except:
-    print(f"You don't seem to have MongoDB installed. Stopping.")
-    sys.exit(1)
-try:
-    mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
-except:
-    print(f"Mongoexport seems missing... stopping.")
-    sys.exit(1)
-try:
-    mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
-except:
-    print(f"Mongodump seems missing... stopping.")
-    sys.exit(1)
     
 ## set up environment specific variables:
 if "--refresh" in sys.argv:
@@ -74,6 +57,37 @@ else:               # if IS in docker container
     csv_filename = "/root/host_interface/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     database_dump_path = "/root/host_interface/output"
 
+## Set up logging
+logging.basicConfig(
+    filename = twongo_log_filename,
+    level=logging.INFO,
+    format='',
+    datefmt='%m/%d/%Y %I:%M:%S',)
+logger = logging.getLogger()
+if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
+    print = logger.info
+#    sys.stdout = open(twongo_log_filename, "a")
+#    log = open(run_folder + '/twongo_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
+ #   sys.stdout = log # all print debugs to logfile
+  #  sys.stderr = log # all stderr to logfile
+    
+## check if MongoDB is present and correct
+try:
+    mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
+except:
+    print(f"You don't seem to have MongoDB installed. Stopping.")
+    sys.exit(1)
+try:
+    mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
+except:
+    print(f"Mongoexport seems missing... stopping.")
+    sys.exit(1)
+try:
+    mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
+except:
+    print(f"Mongodump seems missing... stopping.")
+    sys.exit(1)
+    
 ## Check user list exists and get it
 if not os.path.exists(run_folder + "user_list"):
     print(f'USAGE: please provide a list of users to follow, named "user_list".')
@@ -96,21 +110,6 @@ if not os.path.exists(run_folder + "/db_logs"):
 if not os.path.exists(run_folder + "/twongo_logs"):
     print(f"Twongo log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/twongo_logs")
-
-## Set up logging
-logging.basicConfig(
-    filename = twongo_log_filename,
-    level=logging.INFO,
-    format='',
-    datefmt='%m/%d/%Y %I:%M:%S',)
-logger = logging.getLogger()
-
-if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
-    print = logger.info
-#    sys.stdout = open(twongo_log_filename, "a")
-#    log = open(run_folder + '/twongo_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
- #   sys.stdout = log # all print debugs to logfile
-  #  sys.stderr = log # all stderr to logfile
 
 ## Get Twitter API details from credentials file
 cred_fields = {}

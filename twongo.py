@@ -57,6 +57,7 @@ if os.path.exists("/.dockerenv"): ## is the process running in docker container,
     docker_env = 1                ## I'm in a docker
 if docker_env == 0: # if NOT in docker container
     run_folder = (subprocess.check_output(["pwd"]).decode('utf-8').strip() + "/")
+    status_file = run_folder + "STATUS"
     db_log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
     db_path = run_folder + "/db"
     credentials = run_folder + "/credentials"
@@ -65,6 +66,7 @@ if docker_env == 0: # if NOT in docker container
     database_dump_path = run_folder + "/output"
 else:               # if IS in docker container
     run_folder = "/root/host_interface/"
+    status_file = "/root/host_interface/STATUS"
     db_log_filename = "/root/host_interface/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
     db_path = "/root/host_interface/db"
     credentials = "/root/host_interface/credentials"
@@ -171,6 +173,16 @@ def index_mongodb(): # tidy up the database
         return
     print(f"\nIndexing MongoDB...")
     db.tweets.create_index([("id_str", pymongo.ASCENDING)], unique=True, dropDups=True)
+
+
+def status_up():
+    with open(status_file, "w+") as status:
+        status.write("Twongo is currently running.\n")
+
+
+def status_down():
+    with open(status_file, "w+") as status:
+        status.write(f"Twongo is currently idle.\nThe most recent harvest was {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}\n")
 
 
 def lookup_users():
@@ -345,9 +357,9 @@ def harvest():
 ############
 if __name__ == "__main__":
 
-    start_mongo_daemon()   ## check/start mongodb
+    status_up()            ## modify status file
 
-    index_mongodb()        ## tidy db up for faster access
+    start_mongo_daemon()   ## check/start mongodb
 
     lookup_users()         ## get persistent user ids from screen names
 
@@ -360,3 +372,6 @@ if __name__ == "__main__":
     stop_mongo_daemon()    ## shut down mongodb
 
     print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}, taking around {int(round((time.time() - start) / 60))} minutes.")
+
+    status_down()          ## modify status file
+          

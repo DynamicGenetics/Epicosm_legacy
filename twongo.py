@@ -177,7 +177,7 @@ def index_mongodb(): # tidy up the database
 
 def status_up():
     with open(status_file, "w+") as status:
-        status.write("Twongo is currently running.\n")
+        status.write(f"Twongo is currently running.\nThis iteration started at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}\n")
 
 
 def status_down():

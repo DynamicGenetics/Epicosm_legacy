@@ -57,20 +57,6 @@ else:               # if IS in docker container
     csv_filename = "/root/host_interface/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     database_dump_path = "/root/host_interface/output"
 
-## Set up logging
-logging.basicConfig(
-    filename = twongo_log_filename,
-    level=logging.INFO,
-    format='',
-    datefmt='%m/%d/%Y %I:%M:%S',)
-logger = logging.getLogger()
-if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
-    print = logger.info
-#    sys.stdout = open(twongo_log_filename, "a")
-#    log = open(run_folder + '/twongo_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
- #   sys.stdout = log # all print debugs to logfile
-  #  sys.stderr = log # all stderr to logfile
-    
 ## check if MongoDB is present and correct
 try:
     mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
@@ -110,6 +96,20 @@ if not os.path.exists(run_folder + "/db_logs"):
 if not os.path.exists(run_folder + "/twongo_logs"):
     print(f"Twongo log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/twongo_logs")
+
+## Set up logging
+logging.basicConfig(
+    filename = twongo_log_filename,
+    level=logging.INFO,
+    format='',
+    datefmt='%m/%d/%Y %I:%M:%S',)
+logger = logging.getLogger()
+if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
+    print = logger.info
+#    sys.stdout = open(twongo_log_filename, "a")
+#    log = open(run_folder + '/twongo_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
+ #   sys.stdout = log # all print debugs to logfile
+  #  sys.stderr = log # all stderr to logfile
 
 ## Get Twitter API details from credentials file
 cred_fields = {}
@@ -373,4 +373,6 @@ if __name__ == "__main__":
     print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
     status_down()          ## modify status file
+
+          
           

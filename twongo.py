@@ -98,13 +98,13 @@ if not os.path.exists(run_folder + "/twongo_logs"):
     os.makedirs(run_folder + "/twongo_logs")
 
 ## Set up logging
-logging.basicConfig(
-    filename = twongo_log_filename,
-    level=logging.INFO,
-    format='',
-    datefmt='%m/%d/%Y %I:%M:%S',)
-logger = logging.getLogger()
 if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
+    logging.basicConfig(
+        filename = twongo_log_filename,
+        level=logging.INFO,
+        format='',
+        datefmt='%m/%d/%Y %I:%M:%S',)
+    logger = logging.getLogger()
     print = logger.info
 #    sys.stdout = open(twongo_log_filename, "a")
 #    log = open(run_folder + '/twongo_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
@@ -141,16 +141,22 @@ except tweepy.error.TweepError:
  
 def start_mongo_daemon():
     """look through running processes for the mongod deamon.
-       ... if it isn't there, start the daemon."""
-    if not "mongod" in (p.name() for p in psutil.process_iter()):
-        print(f"\nIt doesn't look like the MongoDB daemon is running: starting daemon...")
+    ... if it isn't there, start the daemon."""
+    def mongo_go():
         try:
             subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', db_log_filename])
             time.sleep(1)
         except subprocess.CalledProcessError as e:
             print(f"There is a problem opening the MonogoDB daemon... halting.\n", e.output)
             exit(1)
-
+    try:
+        if "mongod" in (p.name() for p in psutil.process_iter()):
+            print(f"\nMongoDB daemon appears to be already running. This could cause conflicts. Please stop the daemon and retry.\n")
+            exit(1)
+        else:
+            mongo_go()
+    except psutil.ZombieProcess:
+        mongo_go()        
 
 def stop_mongo_daemon():
     client.close()
@@ -279,20 +285,14 @@ def get_tweets(twitter_id):
             times_limited += 1
 
     ## update the database with the acquired tweets for this user 
-#    duplicates = 0
- #   uniques = 0
     for tweet in alltweets:
         try:
             try:
                 collection.update_one(tweet._json, {'$set': tweet._json}, upsert=True)
-  #              uniques += 1
             except pymongo.errors.DuplicateKeyError:
                 pass
         except IndexError:
             print(f"User {user} has no tweets to insert.")
-   #         duplicates += 1
-   # print(duplicates, " of these were duplicates and not inserted")
-   # print(uniques, " were new and inserted")
 
 
 def get_friends(twitter_id): ## get the "following" list for this user
@@ -319,7 +319,7 @@ def export(): # export and backup the database
     subprocess.call(["chmod", "-R", "0755", database_dump_path]) # hand back access permissions to host
     subprocess.call(['zip', '-jumq', run_folder + 'db_logs/db_logs.zip', run_folder] + glob.glob('db_logs/*.log'))
     subprocess.call(['zip', '-jumq', run_folder + 'twongo_logs/twongo_logs.zip', run_folder] + glob.glob('twongo_logs/*.log'))
-#    subprocess.call(['zip', '-jumq', run_folder + 'output/csv/csv.zip', run_folder] + glob.glob('output/csv/*.csv'))
+    subprocess.call(['zip', '-jumq', run_folder + 'output/csv/csv.zip', run_folder] + glob.glob('output/csv/*.csv'))
 
 
 def report(): # do some post-process checks and report.
@@ -330,7 +330,6 @@ def report(): # do some post-process checks and report.
     if not_found: print(f"{len(not_found)} accounts were not found (see user_list.notfound).")
     if private_accounts: print(f"{private_accounts} accounts were private.")
     if empty_accounts: print(f"{empty_accounts} accounts were empty.")
-#    print(f"Twitter rate limited this process {times_limited} times.")
 
 
 def harvest():
@@ -373,4 +372,4 @@ if __name__ == "__main__":
     print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
     status_down()          ## modify status file
-      
+     

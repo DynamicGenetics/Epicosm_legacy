@@ -176,7 +176,7 @@ def index_mongodb(): # tidy up the database
 
 def status_up():
     with open(status_file, "w+") as status:
-        status.write(f"Twongo is currently running.\nThis iteration started at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}\n")
+        status.write(f"Twongo is currently running.\nThis process started at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}\n")
 
 
 def status_down():
@@ -330,7 +330,7 @@ def report(): # do some post-process checks and report.
     if not_found: print(f"{len(not_found)} accounts were not found (see user_list.notfound).")
     if private_accounts: print(f"{private_accounts} accounts were private.")
     if empty_accounts: print(f"{empty_accounts} accounts were empty.")
-    print(f"Twitter rate limited this process {times_limited} times.")
+#    print(f"Twitter rate limited this process {times_limited} times.")
 
 
 def harvest():
@@ -373,6 +373,4 @@ if __name__ == "__main__":
     print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
     status_down()          ## modify status file
-
-          
-          
+      

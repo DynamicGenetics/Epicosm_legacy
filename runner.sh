@@ -2,7 +2,9 @@
 ## Docker container starter for twongo.py, Al Tanner, April 2019
 ## For full details see https://github.com/DynamicGenetics/twongo
 
-echo "_.~^~._.~^~._.~  twongo docker container runner  ~._.~^~._.~^~._.~^";
+echo "_.~^~._.~^~._.~  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~";
+echo "_.~^~._.~^~._.~  github.com/DynamicGenetics/twongo  ._.~^~._.~^~._.~^~";
+echo "_.~^~._.~^~._.~  Twongo Docker Container Runner  ~^~._.~^~._.~^~._.~^~._.~^~";
 if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then
     echo "Please have your credentials file and user_list in this run folder.";
     exit 1;
@@ -61,7 +63,7 @@ docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c 
 fi
 
 ## I guess I could send this to devnull, but there might be important output here on error...
-echo "(That's a hash from Docker, you can ignore it...) just a moment";
+echo "(That's a hash from Docker, you can ignore it...) ... just a moment";
 
 ## Draw a doodle to give docker a moment to set things up.
 waiting=11

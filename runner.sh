@@ -2,9 +2,9 @@
 ## Docker container starter for twongo.py, Al Tanner, April 2019
 ## For full details see https://github.com/DynamicGenetics/twongo
 
-echo "_.~^~._.~^~._.~  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~";
-echo "_.~^~._.~^~._.~  github.com/DynamicGenetics/twongo  ._.~^~._.~^~._.~^~";
-echo "_.~^~._.~^~._.~  Twongo Docker Container Runner  ~^~._.~^~._.~^~._.~^~._.~^~";
+echo "_.~^~._.~  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~";
+echo "_.~^~._.~  github.com/DynamicGenetics/twongo  ._.~^~._.~^~._.~^~";
+echo "_.~^~._.~  Twongo Docker Container Runner  ~^~._.~^~._.~^~._.~^~._.~^~";
 if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then
     echo "Please have your credentials file and user_list in this run folder.";
     exit 1;

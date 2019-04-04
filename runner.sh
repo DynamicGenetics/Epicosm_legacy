@@ -59,15 +59,15 @@ fi
 ## I guess I could send this to devnull, but there might be important output here on error...
 echo "(That's a hash from Docker, you can ignore it...) just a moment";
 
-## Give docker a moment to set things up.
-waiting=6
+## Draw a doodle to give docker a moment to set things up.
+waiting=11
 while [ $waiting -gt 0 ]; do
-    echo -ne "_";sleep 0.05;echo -ne ".";sleep 0.2;echo -ne "~";sleep 0.2;
-    echo -ne "^";sleep 0.03;echo -ne "~";sleep 0.1;echo -ne ".";sleep 0.05;
+    echo -ne "_";sleep 0.01;echo -ne ".";sleep 0.01;echo -ne "~";sleep 0.2;
+    echo -ne "^";sleep 0.03;echo -ne "~";sleep 0.01;echo -ne ".";sleep 0.05;
     : $((waiting--))
 done
 
 ## Report that things are up. Docker should error above if things went wrong.
 container_name=`docker ps | sed -n 2p | awk 'END {print $NF}'`;
-printf "\nOK, container launched, Docker assigned your container the name \"$container_name\"\n";
-echo "To end this process, run this command: docker stop $container_name";
+printf "\nOK, container launched, Docker assigned your container the name \"$container_name\"";
+printf "\nTo end this process, run this command: docker stop $container_name\n\n";

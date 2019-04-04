@@ -1,7 +1,9 @@
 #!/bin/bash
-# Docker starter
+# Docker container starter for twongo.py, Al Tanner, April 2019
+# for full details see https://github.com/DynamicGenetics/twongo
 
 echo "[o_o] twongo container runner _.~\"~._.~\"~._.~\"~._.~\"~.__.~\"~._.~\"~";
+
 echo "Please have your credentials file and user_list in this run folder."
 
 read -p "How often would you like to harvest (in hours)? " frequency;
@@ -43,5 +45,5 @@ docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c 
 
 sleep 3;
 container_name=`docker ps | sed -n 2p | awk 'END {print $NF}'`
-echo "Your container has been assigned the name $container_name"
+echo "OK, container launched, Docker assigned your container the name \"$container_name\""
 echo "To end this process, run this command: docker stop $container_name"

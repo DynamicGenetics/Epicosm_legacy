@@ -3,7 +3,10 @@
 ## For full details see https://github.com/DynamicGenetics/twongo
 
 echo "_.~^~._.~^~._.~  twongo docker container runner  ~._.~^~._.~^~._.~^";
-echo "Please have your credentials file and user_list in this run folder.";
+if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then
+    echo "Please have your credentials file and user_list in this run folder.";
+    exit 1;
+fi
 
 ## Ask user how often to harvest.
 read -p "How often would you like to harvest (in hours)? " frequency;
@@ -36,11 +39,12 @@ fi
 
 ## How long between harvest in seconds.
 frequency_in_seconds=$(($frequency*3600))
-
-echo "OK, twongo starting, harvesting once every $frequency hours.";
-secs=5
+## How many users does it look like?
+number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//')
+echo "OK, twongo starting, harvesting from $number_of_users users, once every $frequency hours.";
 
 ## Give users a chance to cancel...
+secs=5
 while [ $secs -gt 0 ]; do
    echo -ne "Starting in $secs\033[0K\r"
    sleep 1
@@ -68,6 +72,6 @@ while [ $waiting -gt 0 ]; do
 done
 
 ## Report that things are up. Docker should error above if things went wrong.
-container_name=`docker ps | sed -n 2p | awk 'END {print $NF}'`;
+container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
 printf "\nOK, container launched, Docker assigned your container the name \"$container_name\"";
-printf "\nTo end this process, run this command: docker stop $container_name\n\n";
+printf "\nTo end the process, run this command: docker stop $container_name\n\n";

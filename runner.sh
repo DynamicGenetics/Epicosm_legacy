@@ -58,7 +58,7 @@ if [[ $refresh_reply = "y" ]]; then
     docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "/usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /twongo/twongo.py $log; sleep $frequency_in_seconds; done";
 else
 
-## If not refreshing, just harvest and wait.
+## If not refreshing, just harvest, wait and loop.
 docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "while true; do /usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; done";
 fi
 

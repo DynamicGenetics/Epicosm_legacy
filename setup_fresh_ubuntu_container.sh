@@ -19,6 +19,7 @@ pip3 install psutil;
 pip3 install tweepy;
 pip3 install pymongo;
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4;
+# this key will probably need updating some day
 echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.0.list;
 apt update -y;
 # this command wants interaction :(

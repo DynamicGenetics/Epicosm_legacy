@@ -36,25 +36,25 @@ if "--refresh" in sys.argv:
     refresh_user_list = 1
 if "--getfriends" in sys.argv:
     get_friends_list = 1
-if os.path.exists("/.dockerenv"): ## is the process running in docker container, or locally?
-    docker_env = 1                ## I'm in a docker
-if docker_env == 0: # if NOT in docker container
+if os.path.exists("/.dockerenv"):   ## is the process running in docker container, or locally?
+    docker_env = 1                  ## I'm in a docker
+if docker_env == 0:                 ## if NOT in docker container
     run_folder = (subprocess.check_output(["pwd"]).decode('utf-8').strip() + "/")
     status_file = run_folder + "STATUS"
-    db_log_filename = run_folder + "/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
+    db_log_filename = run_folder + "/db_logs/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".log"
     db_path = run_folder + "/db"
     credentials = run_folder + "/credentials"
-    csv_filename = run_folder + "/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
-    twongo_log_filename = run_folder + "/twongo_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
+    csv_filename = run_folder + "/output/csv/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".csv"
+    twongo_log_filename = run_folder + "/twongo_logs/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".log"
     database_dump_path = run_folder + "/output"
-else:               # if IS in docker container
+else:                               ## if IS in docker container
     run_folder = "/root/host_interface/"
     status_file = "/root/host_interface/STATUS"
-    db_log_filename = "/root/host_interface/db_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
+    db_log_filename = "/root/host_interface/db_logs/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".log"
     db_path = "/root/host_interface/db"
     credentials = "/root/host_interface/credentials"
-    twongo_log_filename = "/root/host_interface/twongo_logs/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".log"
-    csv_filename = "/root/host_interface/output/csv/" + now.strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
+    twongo_log_filename = "/root/host_interface/twongo_logs/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".log"
+    csv_filename = "/root/host_interface/output/csv/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".csv"
     database_dump_path = "/root/host_interface/output"
 
 ## check if MongoDB is present and correct
@@ -78,7 +78,8 @@ except:
 if not os.path.exists(run_folder + "user_list"):
     print(f'USAGE: please provide a list of users to follow, named "user_list".')
     exit(1)
-screen_names = list(dict.fromkeys(line.strip() for line in open(run_folder + "user_list")))
+screen_names = list(dict.fromkeys(line.strip() for line in open(run_folder + "user_list"))) # remove duplicates
+screen_names = [name for name in screen_names if name] # remove empty lines
 
 ## Check credentials file exists
 if not os.path.exists(credentials):
@@ -151,7 +152,8 @@ def start_mongo_daemon():
             exit(1)
     try:
         if "mongod" in (p.name() for p in psutil.process_iter()):
-            print(f"\nMongoDB daemon appears to be already running. This could cause conflicts. Please stop the daemon and retry.\n")
+            print(f"\nMongoDB daemon appears to be already running. This could cause conflicts. Please stop the daemon and retry.")
+            print(f"(You can do this with the command: pkill -15 mongod)\n")
             exit(1)
         else:
             mongo_go()
@@ -182,12 +184,12 @@ def index_mongodb(): # tidy up the database
 
 def status_up():
     with open(status_file, "w+") as status:
-        status.write(f"Twongo is currently running.\nThis process started at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}\n")
+        status.write(f"Twongo is currently running.\nThis process started at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
 
 
 def status_down():
     with open(status_file, "w+") as status:
-        status.write(f"Twongo is currently idle.\nThe most recent harvest was {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}\n")
+        status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
 
 
 def lookup_users():
@@ -196,6 +198,7 @@ def lookup_users():
         return
     with open(run_folder + "user_list") as file:
         lines = [x.strip() for x in file.readlines()]
+        lines = [x for x in lines if x]
         for line in lines:
             if lines.count(line) > 1:
                 duplicate_users.append(line)
@@ -324,8 +327,7 @@ def export(): # export and backup the database
 
 def report(): # do some post-process checks and report.
     fail_accounts = private_accounts + empty_accounts + len(not_found)
-    total_users_provided = subprocess.check_output(["grep", "-cve", "'^\s*$'", run_folder + "user_list"]).decode('utf-8').strip()
-    print(f"\nOK, tweet timelines acquired from {(len(screen_names) - fail_accounts)} of {total_users_provided} accounts.")
+    print(f"\nOK, tweet timelines acquired from {(len(screen_names) - fail_accounts)} of {len(screen_names)} accounts.")
     if duplicate_users: print(f"{len(set(duplicate_users))} accounts were duplicates (see user_list.duplicates).")
     if not_found: print(f"{len(not_found)} accounts were not found (see user_list.notfound).")
     if private_accounts: print(f"{private_accounts} accounts were private.")
@@ -337,7 +339,7 @@ def harvest():
     ## generate user id list from user2id output file
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
     now = datetime.datetime.now()
-    print(f"\nStarting tweet harvest at {now.strftime('%d-%m-%Y_%H:%M:%S')} ...")
+    print(f"\nStarting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
     try: ## iterate through this list of ids.
         for twitter_id in users_to_follow:
             if index_counter % 100 == 0: # every 100 users index the database
@@ -369,7 +371,7 @@ if __name__ == "__main__":
 
     stop_mongo_daemon()    ## shut down mongodb
 
-    print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S')}, taking around {int(round((time.time() - start) / 60))} minutes.")
+    print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
-    status_down()          ## modify status file
-     
+    status_down() ## modify status file
+

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# THIS FILE WILL LIKELY GO OUT OF DATE QUITE RAPIDLY!!
+# THIS FILE WILL POSSIBLY GO OUT OF DATE!!
 # works on 28-03-19
 #
 # sets up a fresh container pulled from ubuntu:latest to run twongo.

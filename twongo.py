@@ -58,6 +58,8 @@ else:                               ## if IS in docker container
     database_dump_path = "/root/host_interface/output"
 if not os.path.exists(run_folder + "user_list.ids"):
     first_run = 1
+else:
+    first_run = 0
 
 ## check if MongoDB is present and correct
 try:
@@ -147,6 +149,7 @@ def start_mongo_daemon():
     """look through running processes for the mongod deamon.
     ... if it isn't there, start the daemon."""
     def mongo_go():
+        print(f"\nStarting the MongoDB daemon...\n")
         try:
             subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', db_log_filename])
             time.sleep(1)

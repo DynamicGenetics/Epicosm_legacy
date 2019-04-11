@@ -1,8 +1,8 @@
 # twongo
 
-under construction
 
 === A Python3 tweet harvester integrated with MongoDB data management ===
+=== By Alastair Tanner, February 2019 ===  
 
 Contents. 
 1.1 Running with docker.

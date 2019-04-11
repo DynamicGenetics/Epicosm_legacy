@@ -5,13 +5,51 @@ under construction
 === A Python3 tweet harvester integrated with MongoDB data management ===
 
 Contents. 
-1. Running the python script independent of docker.  
-2. Output and data.  
-3. Optional arguments.  
+1.1 Running with docker.
+1.2 Output and other data.
+
+2.1 Running the python script independent of docker.  
+2.2 Output and data.  
+2.3 Optional arguments.  
+
+=============================  
+1.1 == Running with docker == 
+
+To run within a docker container, save the file "runner.sh" and place it in a folder.
+
+You must provide 2 further files:  
+1. a list of user screen names in a file called "user_list".  
+The user list must be a plain text file, with a single username (twitter screen name) per line.  
+2. Twitter API credentials will need to be supplied, by editing the file supplied in this repository  
+called "credentials" (there are further instructions inside the file).  
+You will need your own Twitter API credentials by having a developer account authorised by Twitter,  
+and generating the required codes. Please see Twitter documentation for how to do this.  
+Once these three files are ready, execute runner.sh with the command:  
+/bin/bash runner.sh  
+and you will be guided through the process. Once complete, a docker container will be 
+permanently running, and the status of this can be seen using the command. 
+docker ps  
+Your container will stop if docker is ended, the computer is shutdown or rebooted.
+To restart your container, go to the folder with your files in, and execute runner.sh  
+again, which will recognise that it is in a folder in which it has previously run.
+
+1.2 == Output and data ==  
+Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",  
+with two collections "tweets" which contains all json data and content of each tweet, and  
+"following" which contains a list of all users that each user in your list are following.  
+
+A refined CSV file is created, in the folder "./output/csv/", which by default collects the user, the  
+time of tweet, and the tweet content.  
+
+A backup of the entire database is stored in "./output/twitter_db/". This can be restored by MongoDB using  
+the command "mongorestore [your name given to the database] [the path to the mongodump file]"  
+for example:  
+mongoresotore -d twitter_db ./output/twitter_db/tweets  
+(However, please check MongoDB documentation as commands can change) 
 
 
-=======================================================  
-1 == Running the python script independent of docker ==  
+=========================================================
+2.1 == Running the python script independent of docker ==  
 This repository is the python code running in the docker container (URL to be confirmed).
 The python script will also run independent of its docker container:  
 
@@ -44,7 +82,7 @@ pip3 install tweepy
 pip3 install pymongo  
 
 =======================  
-2 == Output and data ==  
+2.2 == Output and data ==  
 Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",  
 with two collections "tweets" which contains all json data and content of each tweet, and  
 "following" which contains a list of all users that each user in your list are following.  
@@ -59,7 +97,7 @@ mongoresotore -d twitter_db ./output/twitter_db/tweets
 (However, please check MongoDB documentation as commands can change)  
 
 ==========================  
-3 == Optional arguments ==
+2.3 == Optional arguments ==
 
 --log           Create a logfile of all output from the harvest run, in /twongo_logs  
 --refresh       Refresh the user list (if you want to modify the list of users to harvest  

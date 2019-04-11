@@ -48,7 +48,7 @@ mongoresotore -d twitter_db ./output/twitter_db/tweets
 (However, please check MongoDB documentation as commands can change) 
 
 
-=========================================================
+=========================================================  
 2.1 == Running the python script independent of docker ==  
 This repository is the python code running in the docker container (URL to be confirmed).
 The python script will also run independent of its docker container:  

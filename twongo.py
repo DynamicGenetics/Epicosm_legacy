@@ -56,6 +56,8 @@ else:                               ## if IS in docker container
     twongo_log_filename = "/root/host_interface/twongo_logs/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".log"
     csv_filename = "/root/host_interface/output/csv/" + now.strftime('%H:%M:%S_%d-%m-%Y') + ".csv"
     database_dump_path = "/root/host_interface/output"
+if not os.path.exists(run_folder + "user_list.ids"):
+    first_run = 1
 
 ## check if MongoDB is present and correct
 try:
@@ -78,6 +80,7 @@ except:
 if not os.path.exists(run_folder + "user_list"):
     print(f'USAGE: please provide a list of users to follow, named "user_list".')
     exit(1)
+number_of_users_provided = sum(1 for line_exists in open(run_folder + "user_list") if line_exists)
 screen_names = list(dict.fromkeys(line.strip() for line in open(run_folder + "user_list"))) # remove duplicates
 screen_names = [name for name in screen_names if name] # remove empty lines
 
@@ -327,7 +330,11 @@ def export(): # export and backup the database
 
 def report(): # do some post-process checks and report.
     fail_accounts = private_accounts + empty_accounts + len(not_found)
-    print(f"\nOK, tweet timelines acquired from {(len(screen_names) - fail_accounts)} of {len(screen_names)} accounts.")
+    if refresh_user_list == 1 or first_run == 1:
+        print(f"\nOK, tweet timelines acquired from {(len(screen_names) - fail_accounts)} of {number_of_users_provided} accounts.")
+    else:
+        users_with_accounts_no_duplicates = sum(1 for line in open(run_folder + "user_list.ids"))
+        print(f"\nOK, tweet timelines acquired from {(users_with_accounts_no_duplicates - fail_accounts)} of {users_with_accounts_no_duplicates} accounts.")
     if duplicate_users: print(f"{len(set(duplicate_users))} accounts were duplicates (see user_list.duplicates).")
     if not_found: print(f"{len(not_found)} accounts were not found (see user_list.notfound).")
     if private_accounts: print(f"{private_accounts} accounts were private.")

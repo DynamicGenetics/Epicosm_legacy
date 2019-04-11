@@ -4,10 +4,10 @@
 === A Python3 tweet harvester integrated with MongoDB data management ===  
 === By Alastair Tanner, February 2019 ===  
   
-Contents. 
-1.1 Running with docker.
-1.2 Output and other data.
-
+Contents.   
+1.1 Running with docker.  
+1.2 Output and other data.  
+  
 2.1 Running the python script independent of docker.  
 2.2 Output and data.  
 2.3 Optional arguments.  

@@ -63,7 +63,7 @@ docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c 
 fi
 
 ## I guess I could send this to devnull, but there might be important output here on error...
-echo "(That's a hash from Docker, you can ignore it...) ... just a moment";
+echo "That's a Docker hash identifying the container that is spinning up ... just a moment please";
 
 ## Draw a doodle to give docker a moment to set things up.
 waiting=11

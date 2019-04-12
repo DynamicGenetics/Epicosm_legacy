@@ -4,19 +4,13 @@
 **=== Alastair Tanner, February 2019 ===**  
 **=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
 
-
-
-Contents.   
+**Contents.   
 1.1 Running with docker.  
 1.2 Output and other data.  
-  
 2.1 Running the python script independent of docker.  
 2.2 Output and data.  
 2.3 Optional arguments.  
 
-
-
-=============================  
 **1.1 == Running with docker ==**
 
 To run within a docker container, save the file "runner.sh" and place it in a folder.
@@ -55,7 +49,7 @@ mongoresotore -d twitter_db ./output/twitter_db/tweets
 (However, please check MongoDB documentation as commands can change) 
 
 
-=========================================================  
+
 **2.1 == Running the python script independent of docker ==**  
 This repository is the python code running in the docker container (URL to be confirmed).
 The python script will also run independent of its docker container:  
@@ -88,8 +82,7 @@ pip3 install psutil
 pip3 install tweepy  
 pip3 install pymongo  
 
-=======================  
-2.2 == Output and data ==  
+**2.2 == Output and data ==**  
 Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",  
 with two collections "tweets" which contains all json data and content of each tweet, and  
 "following" which contains a list of all users that each user in your list are following.  
@@ -102,10 +95,8 @@ the command "mongorestore [your name given to the database] [the path to the mon
 for example:  
 mongoresotore -d twitter_db ./output/twitter_db/tweets  
 (However, please check MongoDB documentation as commands can change)  
-
-==========================  
+  
 **2.3 == Optional arguments ==**  
-
 --log           Create a logfile of all output from the harvest run, in /twongo_logs  
 --refresh       Refresh the user list (if you want to modify the list of users to harvest  
                 from, replace your file "user_list", and run with -r so that this is refreshed)  

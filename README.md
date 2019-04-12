@@ -13,23 +13,24 @@ Contents.
 2.3 Optional arguments.  
 
 =============================  
-1.1 == Running with docker == 
+**1.1 == Running with docker ==**
 
 To run within a docker container, save the file "runner.sh" and place it in a folder.
 
-You must provide 2 further files:  
+You must provide 2 further files in the folder with runner.sh:  
 1. a list of user screen names in a file called "user_list".  
 The user list must be a plain text file, with a single username (twitter screen name) per line.  
 2. Twitter API credentials will need to be supplied, by editing the file supplied in this repository  
 called "credentials" (there are further instructions inside the file).  
 You will need your own Twitter API credentials by having a developer account authorised by Twitter,  
 and generating the required codes. Please see Twitter documentation for how to do this.  
+
 Once these three files are ready, execute runner.sh with the command:  
 /bin/bash runner.sh  
 and you will be guided through the process. Once complete, a docker container will be 
 permanently running, and the status of this can be seen using the command. 
 docker ps  
-Your container will stop if docker is ended, the computer is shutdown or rebooted.
+Your container will stop if docker is ended, or the computer is shutdown or rebooted.
 To restart your container, go to the folder with your files in, and execute runner.sh  
 again, which will recognise that it is in a folder in which it has previously run.
 
@@ -37,6 +38,8 @@ again, which will recognise that it is in a folder in which it has previously ru
 Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",  
 with two collections "tweets" which contains all json data and content of each tweet, and  
 "following" which contains a list of all users that each user in your list are following.  
+The following collection will only be made if you ask for following lists to be gathered.  
+**Currently, gathering following list causes the process to be heavily rate limited by Twitter!**  
 
 A refined CSV file is created, in the folder "./output/csv/", which by default collects the user, the  
 time of tweet, and the tweet content.  

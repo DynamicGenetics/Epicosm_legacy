@@ -1,9 +1,11 @@
 # twongo
 
+**=== A Python3 tweet harvester integrated with MongoDB data management ===**  
+**=== Alastair Tanner, February 2019 ===**  
+**=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
 
-=== A Python3 tweet harvester integrated with MongoDB data management ===  
-=== By Alastair Tanner, February 2019 ===  
-  
+
+
 Contents.   
 1.1 Running with docker.  
 1.2 Output and other data.  
@@ -11,6 +13,8 @@ Contents.
 2.1 Running the python script independent of docker.  
 2.2 Output and data.  
 2.3 Optional arguments.  
+
+
 
 =============================  
 **1.1 == Running with docker ==**
@@ -34,7 +38,7 @@ Your container will stop if docker is ended, or the computer is shutdown or rebo
 To restart your container, go to the folder with your files in, and execute runner.sh  
 again, which will recognise that it is in a folder in which it has previously run.
 
-1.2 == Output and data ==  
+**1.2 == Output and data ==**  
 Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",  
 with two collections "tweets" which contains all json data and content of each tweet, and  
 "following" which contains a list of all users that each user in your list are following.  
@@ -52,7 +56,7 @@ mongoresotore -d twitter_db ./output/twitter_db/tweets
 
 
 =========================================================  
-2.1 == Running the python script independent of docker ==  
+**2.1 == Running the python script independent of docker ==**  
 This repository is the python code running in the docker container (URL to be confirmed).
 The python script will also run independent of its docker container:  
 
@@ -100,7 +104,7 @@ mongoresotore -d twitter_db ./output/twitter_db/tweets
 (However, please check MongoDB documentation as commands can change)  
 
 ==========================  
-2.3 == Optional arguments ==
+**2.3 == Optional arguments ==**  
 
 --log           Create a logfile of all output from the harvest run, in /twongo_logs  
 --refresh       Refresh the user list (if you want to modify the list of users to harvest  

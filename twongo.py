@@ -66,22 +66,22 @@ try:
     mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode('utf-8').strip()
 except:
     print(f"You don't seem to have MongoDB installed. Stopping.")
-    sys.exit(1)
+    sys.exit()
 try:
     mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode('utf-8').strip()
 except:
     print(f"Mongoexport seems missing... stopping.")
-    sys.exit(1)
+    sys.exit()
 try:
     mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode('utf-8').strip()
 except:
     print(f"Mongodump seems missing... stopping.")
-    sys.exit(1)
+    sys.exit()
     
 ## Check user list exists and get it
 if not os.path.exists(run_folder + "user_list"):
     print(f'USAGE: please provide a list of users to follow, named "user_list".')
-    exit(1)
+    sys.exit()
 number_of_users_provided = sum(1 for line_exists in open(run_folder + "user_list") if line_exists)
 screen_names = list(dict.fromkeys(line.strip() for line in open(run_folder + "user_list"))) # remove duplicates
 screen_names = [name for name in screen_names if name] # remove empty lines
@@ -90,7 +90,7 @@ screen_names = [name for name in screen_names if name] # remove empty lines
 if not os.path.exists(credentials):
     print(f"The credentials file doesn't seem to be here. Exiting.")
     print(f"If you are running this manually, please be in your run folder.")
-    exit(1)
+    sys.exit()
 
 ## Check or make directory structure
 if not os.path.exists(run_folder + "/db"):
@@ -125,7 +125,7 @@ with open(credentials) as credentials:
         line = line.strip()
         if " " not in line:
             print(f"The credentials file doesn't appear correct, please check and retry.")
-            exit(1)
+            sys.exit()
         (key, val) = line.split(' ')
         cred_fields[(key)] = val
 
@@ -137,7 +137,7 @@ try:
     api.verify_credentials()
 except tweepy.error.TweepError:
     print(f"The API credentials do not seem valid: connection to Twitter refused.")
-    exit(1)
+    sys.exit()
 
 
 #####################
@@ -155,22 +155,23 @@ def start_mongo_daemon():
             time.sleep(1)
         except subprocess.CalledProcessError as e:
             print(f"There is a problem opening the MonogoDB daemon... halting.\n", e.output)
-            exit(1)
+            sys.exit()
     try:
         if "mongod" in (p.name() for p in psutil.process_iter()):
             print(f"\nMongoDB daemon appears to be already running. This could cause conflicts. Please stop the daemon and retry.")
             print(f"(You can do this with the command: pkill -15 mongod)\n")
-            exit(1)
+            sys.exit()
         else:
             mongo_go()
     except psutil.ZombieProcess:
         mongo_go()        
 
 def stop_mongo_daemon():
-    client.close()
     print(f"\nAsking MongoDB to close...")
+    client.close()
     subprocess.call(["pkill", "-15", "mongod"])
-    while True:  
+    timeout = 60
+    while timeout > 0:
         try:
             subprocess.check_output(["pgrep", "mongod"])
         except subprocess.CalledProcessError:
@@ -178,8 +179,10 @@ def stop_mongo_daemon():
             break
         if "--log" not in sys.argv:
             print(".", end='', flush=True)        
-        time.sleep(1)    
-        
+        time.sleep(1)
+        timeout -= 1
+    if timeout == 0:
+        print(f"MongoDB daemon timed out... ummm I'll just continue for now.")
 
 def index_mongodb(): # tidy up the database
     if not os.path.isfile(run_folder + "/db/WiredTiger"):
@@ -239,7 +242,8 @@ def lookup_users():
                     print('.', end='', flush=True)
             except tweepy.error.TweepError as e:
                 not_found.append(user) # if not found, put user in not found list
-        print(f"")
+        if "--log" not in sys.argv:
+            print(f"")
 
     # Write user codes to file.
     with open(run_folder + "user_list.ids", 'w') as id_file:
@@ -367,21 +371,27 @@ def harvest():
 ############
 if __name__ == "__main__":
 
-    status_up()            ## modify status file
+    try:
+        status_up()            ## modify status file
 
-    start_mongo_daemon()   ## check/start mongodb
+        start_mongo_daemon()   ## check/start mongodb
 
-    lookup_users()         ## get persistent user ids from screen names
+        lookup_users()         ## get persistent user ids from screen names
 
-    harvest()              ## get tweets for each user and archive in mongodb
+        harvest()              ## get tweets for each user and archive in mongodb
 
-    export()               ## create CSV ouput and backup mongodb
+        export()               ## create CSV ouput and backup mongodb
 
-    report()               ## give some basic stats on the run
+        report()               ## give some basic stats on the run
 
-    stop_mongo_daemon()    ## shut down mongodb
+        stop_mongo_daemon()    ## shut down mongodb
 
-    print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
+        print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
-    status_down() ## modify status file
+        status_down() ## modify status file
+ 
+    except KeyboardInterrupt:
+        print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
+        stop_mongo_daemon()
+        sys.exit()
 

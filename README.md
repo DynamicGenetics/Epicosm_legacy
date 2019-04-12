@@ -4,7 +4,7 @@
 **=== Alastair Tanner, February 2019 ===**  
 **=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
 
-**Contents.   
+**Contents.**  
 1.1 Running with docker.  
 1.2 Output and other data.  
 2.1 Running the python script independent of docker.  

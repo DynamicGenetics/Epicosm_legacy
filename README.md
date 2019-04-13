@@ -30,7 +30,7 @@ and you will be guided through the process. Once complete, a docker container wi
 permanently running, and the status of this can be seen using the command. 
 docker ps  
 Your container will stop if docker is ended, or the computer is shutdown or rebooted.
-To restart your container, go to the folder with your files in, and execute runner.sh  
+To restart your container, go to the folder with your files in, and execute Twongo Docker Launcher  
 again, which will recognise that it is in a folder in which it has previously run.
 
 **1.2 == Output and data ==**  

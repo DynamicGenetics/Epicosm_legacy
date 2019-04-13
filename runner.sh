@@ -4,13 +4,14 @@
 
 cd -- "$(dirname -- "$BASH_SOURCE")"
 
-echo "_.~^~._.~  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~";
-echo "_.~^~._.~  github.com/DynamicGenetics/twongo  ._.~^~._.~^~._.~^~";
-echo "_.~^~._.~  Twongo Docker Container Runner  ~^~._.~^~._.~^~._.~^~._.~^~";
 if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then
     echo "Please have your credentials file and user_list in this run folder.";
     exit 1;
 fi
+
+echo "_.~^~._.~^~._.~^  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~.";
+echo "_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.";
+echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## Ask user how often to harvest.
 read -p "How often would you like to harvest (in hours)? " frequency;
@@ -82,4 +83,4 @@ printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: docker stop $container_name\n\n";
 
-read -p "Press enter to exit(!)"
+read -p "Press enter to exit(!) - (your container will continue running)"

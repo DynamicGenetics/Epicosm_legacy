@@ -15,7 +15,7 @@
 
 To run within a docker container, save the file "Twongo Docker Launcher" and place it in a folder.
 
-You must provide 2 further files in the folder with runner.sh:  
+You must provide 2 further files in the folder with Twongo Docker Launcher:  
 1. a list of user screen names in a file called "user_list".  
 The user list must be a plain text file, with a single username (twitter screen name) per line.  
 2. Twitter API credentials will need to be supplied, by editing the file supplied in this repository  

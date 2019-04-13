@@ -9,7 +9,7 @@
 1.2 Output and other data.  
 2.1 Running the python script independent of docker.  
 2.2 Output and data.  
-2.3 Optional arguments.  
+2.3 Optional parameters.  
 
 **1.1 == Running with docker ==**
 
@@ -96,7 +96,8 @@ for example:
 mongoresotore -d twitter_db ./output/twitter_db/tweets  
 (However, please check MongoDB documentation as commands can change)  
   
-**2.3 == Optional arguments ==**  
+**2.3 == Optional parameters ==**  
+The following can be added to your command:  
 --log           Create a logfile of all output from the harvest run, in /twongo_logs  
 --refresh       Refresh the user list (if you want to modify the list of users to harvest  
                 from, replace your file "user_list", and run with -r so that this is refreshed)  

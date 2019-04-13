@@ -23,8 +23,9 @@ called "credentials" (there are further instructions inside the file).
 You will need your own Twitter API credentials by having a developer account authorised by Twitter,  
 and generating the required codes. Please see Twitter documentation for how to do this.  
 
-Once these three files are ready, execute runner.sh with the command:  
-/bin/bash runner.sh  
+Once these three files are ready, run Twongo Docker Launcher by double clicking it,  
+(you might need to provide permission), or it can be run on the command line:  
+./Twongo\ Docker\ Launcher  
 and you will be guided through the process. Once complete, a docker container will be 
 permanently running, and the status of this can be seen using the command. 
 docker ps  

@@ -4,8 +4,8 @@
 **=== Alastair Tanner, February 2019 ===**  
 **=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
 
-tl;dr: put Twongo_Docker_Launcher, your Twitter credentials file, and your user_list into a folder  
-and run Twongo_Docker_Launcher by double clicking it or running it on the command line.  
+**tl;dr:** put [1] Twongo_Docker_Launcher, [2] Twitter credentials file, and [3] user_list into a folder  
+and run Twongo_Docker_Launcher by double clicking it, or running it on the command line.  
 
 **Contents.**  
 1.1 Running with docker.  

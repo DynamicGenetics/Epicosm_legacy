@@ -77,7 +77,7 @@ done
 
 ## Report that things are up. Docker should error above if things went wrong.
 container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
-printf "\nOK, container launched, Docker assigned your container the name \"$container_name\"";
+printf "\nOK, container launched, \nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: docker stop $container_name\n\n";
 
 read -p "Press any key to exit."

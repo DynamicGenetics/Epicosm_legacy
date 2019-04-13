@@ -2,6 +2,8 @@
 ## Docker container starter for twongo.py, Al Tanner, April 2019
 ## For full details see https://github.com/DynamicGenetics/twongo
 
+cd -- "$(dirname -- "$BASH_SOURCE")"
+
 echo "_.~^~._.~  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~";
 echo "_.~^~._.~  github.com/DynamicGenetics/twongo  ._.~^~._.~^~._.~^~";
 echo "_.~^~._.~  Twongo Docker Container Runner  ~^~._.~^~._.~^~._.~^~._.~^~";
@@ -77,3 +79,5 @@ done
 container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
 printf "\nOK, container launched, Docker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: docker stop $container_name\n\n";
+
+read -p "Press any key to exit."

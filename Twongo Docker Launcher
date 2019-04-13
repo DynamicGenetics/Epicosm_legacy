@@ -7,12 +7,14 @@ cd -- "$(dirname -- "$BASH_SOURCE")"
 ## Check if docker is running on system.
 if ! [ "$(pgrep docker*)" ]; then
     echo "Docker doesn't seem to be running here. Exiting."
+    read -p "(Press enter to close this window.)";
     exit 1;
 fi
 
 ## Check if required files are in the working directory.
 if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then
     echo "Please have your credentials file and user_list in this run folder.";
+    read -p "(Press enter to close this window.)";
     exit 1;
 fi
 

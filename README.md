@@ -5,7 +5,7 @@
 **=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
 
 **tl;dr:** put [1] Twongo_Docker_Launcher, [2] Twitter credentials file, and [3] user_list into a folder  
-and run Twongo_Docker_Launcher by double clicking it, or running it on the command line.  
+and run Twongo_Docker_Launcher by double clicking it, or run it on the command line.  
 
 **Contents.**  
 1.1 Running with docker.  

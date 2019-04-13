@@ -65,7 +65,8 @@ docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c 
 fi
 
 ## I guess I could send this to devnull, but there might be important output here on error...
-echo "That's a Docker hash identifying the container that is spinning up ... just a moment please";
+echo "That's a Docker hash identifying the container that is spinning up";
+echo "_.~^~._.~^~._.~^~.  just a moment please  ~.~^~._.~^~._.~^~._.~^~.";
 
 ## Draw a doodle to give docker a moment to set things up.
 waiting=11
@@ -77,7 +78,8 @@ done
 
 ## Report that things are up. Docker should error above if things went wrong.
 container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
-printf "\nOK, container launched, \nDocker assigned your container the name \"$container_name\"";
+printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
+printf "\nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: docker stop $container_name\n\n";
 
 read -p "Press enter to exit(!)"

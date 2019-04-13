@@ -4,6 +4,13 @@
 
 cd -- "$(dirname -- "$BASH_SOURCE")"
 
+## Check if docker is running on system.
+if ! [ "$(pgrep docker*)" ]; then
+    echo "Docker doesn't seem to be running here. Exiting."
+    exit 1;
+fi
+
+## Check if required files are in the working directory.
 if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then
     echo "Please have your credentials file and user_list in this run folder.";
     exit 1;
@@ -83,4 +90,6 @@ printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: docker stop $container_name\n\n";
 
+## If double-clicking icon, leave window open so users can see what happened.
 read -p "Press enter to exit(!) - (your container will continue running)"
+

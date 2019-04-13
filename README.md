@@ -13,7 +13,7 @@
 
 **1.1 == Running with docker ==**
 
-To run within a docker container, save the file "runner.sh" and place it in a folder.
+To run within a docker container, save the file "Twongo Docker Launcher" and place it in a folder.
 
 You must provide 2 further files in the folder with runner.sh:  
 1. a list of user screen names in a file called "user_list".  

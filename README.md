@@ -16,9 +16,9 @@ and run Twongo_Docker_Launcher by double clicking it, or run it on the command l
 
 **1.1 == Running with docker ==**
 
-To run within a docker container, save the file "Twongo Docker Launcher" and place it in a folder.
+To run within a docker container, save the file "Twongo_Docker_Launcher" and place it in a folder.
 
-You must provide 2 further files in the folder with Twongo Docker Launcher:  
+You must provide 2 further files in the folder with Twongo_Docker_Launcher:  
 1. a list of user screen names in a file called "user_list".  
 The user list must be a plain text file, with a single username (twitter screen name) per line.  
 2. Twitter API credentials. Please see the file in this repository for a template of this file.  
@@ -27,14 +27,14 @@ a developer account authorised by Twitter.
 Please see Twitter documentation for how to do this.  
 Be aware that file names are case sensitive.  
 
-Once these three files are ready, Twongo Docker Launcher can be run by double clicking it,  
+Once these three files are ready, Twongo_Docker_Launcher can be run by double clicking it,  
 (you might need to provide permission), or it can be run on the command line:  
 ./Twongo\ Docker\ Launcher  
 and you will be guided through the process. Once complete, a docker container will be 
 permanently running, and the status of this can be seen using the command. 
 docker ps  
 Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.
-If stopped, to restart your container, go to the folder with your files in, and execute Twongo Docker Launcher  
+If stopped, to restart your container, go to the folder with your files in, and execute Twongo_Docker_Launcher  
 again, which will recognise that it is in a folder in which it has previously run.
 
 **1.2 == Output and data ==**  

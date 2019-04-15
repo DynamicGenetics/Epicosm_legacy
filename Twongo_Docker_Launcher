@@ -6,7 +6,8 @@ cd -- "$(dirname -- "$BASH_SOURCE")"
 
 ## Check if docker is running on system.
 if ! [ "$(pgrep docker*)" ]; then
-    echo "Docker doesn't seem to be running here. Exiting."
+    echo "Docker doesn't appear to be currently running here.";
+    echo "Please start Docker and try again. Exiting.";
     read -p "(Press enter to close this window.)";
     exit 1;
 fi

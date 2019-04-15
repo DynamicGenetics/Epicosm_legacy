@@ -166,6 +166,7 @@ def start_mongo_daemon():
     except psutil.ZombieProcess:
         mongo_go()        
 
+
 def stop_mongo_daemon():
     print(f"\nAsking MongoDB to close...")
     client.close()
@@ -184,6 +185,7 @@ def stop_mongo_daemon():
     if timeout == 0:
         print(f"MongoDB daemon timed out... ummm I'll just continue for now.")
 
+        
 def index_mongodb(): # tidy up the database
     if not os.path.isfile(run_folder + "/db/WiredTiger"):
         return
@@ -192,13 +194,15 @@ def index_mongodb(): # tidy up the database
 
 
 def status_up():
+    tweet_count = collection.count_documents({}) 
     with open(status_file, "w+") as status:
-        status.write(f"Twongo is currently running.\nThis process started at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
+        status.write(f"Twongo is currently running.\nThis process started at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nThe database currently contains {tweet_count} tweets.\n")
 
 
 def status_down():
+    tweet_count = collection.count_documents({}) 
     with open(status_file, "w+") as status:
-        status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
+        status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nThe database currently contains {tweet_count} tweets.\n")
 
 
 def lookup_users():
@@ -372,9 +376,9 @@ def harvest():
 if __name__ == "__main__":
 
     try:
-        status_up()            ## modify status file
-
         start_mongo_daemon()   ## check/start mongodb
+
+        status_up()            ## modify status file
 
         lookup_users()         ## get persistent user ids from screen names
 
@@ -384,14 +388,16 @@ if __name__ == "__main__":
 
         report()               ## give some basic stats on the run
 
+        status_down()          ## modify status file
+
         stop_mongo_daemon()    ## shut down mongodb
 
         print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
-        status_down() ## modify status file
- 
     except KeyboardInterrupt:
         print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
+        with open(status_file, "w+") as status:
+            status.write(f"Twongo is currently idle, but was interruped by user on last run.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
         stop_mongo_daemon()
         sys.exit()
 

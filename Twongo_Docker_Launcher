@@ -56,22 +56,15 @@ frequency_in_seconds=$(($frequency*3600))
 ## How many users does it look like?
 number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//')
 echo "OK, twongo starting, harvesting from $number_of_users users, once every $frequency hours.";
-
-## Give users a chance to cancel...
-secs=5
-while [ $secs -gt 0 ]; do
-   echo -ne "Starting in $secs\033[0K\r"
-   sleep 1
-   : $((secs--))
-done
+echo "Please enter your password for this system to confirm Docker launch:";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then
-    docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "/usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /twongo/twongo.py $log; sleep $frequency_in_seconds; done";
+    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "/usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /twongo/twongo.py $log; sleep $frequency_in_seconds; done";
 else
 
 ## If not refreshing, just harvest, wait and loop.
-docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "while true; do /usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; done";
+    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "while true; do /usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; done";
 fi
 
 ## I guess I could send this to devnull, but there might be important output here on error...
@@ -87,7 +80,7 @@ while [ $waiting -gt 0 ]; do
 done
 
 ## Report that things are up. Docker should error above if things went wrong.
-container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
+container_name=$(sudo docker ps | sed -n 2p | awk 'END {print $NF}');
 printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: docker stop $container_name\n\n";

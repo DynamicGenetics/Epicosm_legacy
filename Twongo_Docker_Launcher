@@ -86,7 +86,7 @@ done
 container_name=$(sudo docker ps | sed -n 2p | awk 'END {print $NF}');
 printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
-printf "\nTo end the process, run this command: docker stop $container_name";
+printf "\nTo end the process, run this command: sudo docker stop $container_name";
 printf "\nTo check progress of your container, see the files in /twongo_logs\n\n";
 
 ## If double-clicking icon, leave window open so users can see what happened.

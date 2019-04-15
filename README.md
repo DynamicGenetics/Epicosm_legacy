@@ -5,14 +5,14 @@
 **=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
 
 
-**INSTRUCTIONS IN A NUTSHELL**  
+**=============================== (: INSTRUCTIONS IN A NUTSHELL :) ==============================**  
 [1] Install Docker.  
-Put into a folder the following:  
-[a] Twongo_Docker_Launcher,  
-[b] Twitter credentials file (completed with your own Twitter access keys),  
-[c] and your user_list (one screen name per line plain text file).  
-Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.  
-
+[2] Put these three files into a folder:  
+-> [a] Twongo_Docker_Launcher (provided here),  
+-> [b] Twitter credentials file (provided here, but completed with your own Twitter access keys),  
+-> [c] and your user_list (supplied by you: one screen name per line, plain text file).  
+[3] Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.  
+**===============================================================================================**
 
 **Contents.**  
 1.1 Running with docker.  

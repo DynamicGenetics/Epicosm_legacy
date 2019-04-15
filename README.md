@@ -6,7 +6,11 @@
 
 
 **INSTRUCTIONS IN A NUTSHELL**  
-Put [1] Twongo_Docker_Launcher, [2] Twitter credentials file, and [3] user_list into a folder.  
+[1] Install Docker.  
+Put into a folder the following:  
+[a] Twongo_Docker_Launcher,  
+[b] Twitter credentials file (completed with your own Twitter access keys),  
+[c] and your user_list (one screen name per line plain text file).  
 Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.  
 
 

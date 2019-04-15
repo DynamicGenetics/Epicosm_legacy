@@ -7,7 +7,7 @@
 
 **INSTRUCTIONS IN A NUTSHELL**  
 Put [1] Twongo_Docker_Launcher, [2] Twitter credentials file, and [3] user_list into a folder.  
-Run Twongo_Docker_Launcher by double clicking it, or run it on the command line.  
+Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.  
 
 
 **Contents.**  
@@ -80,7 +80,8 @@ to work out the paths for itself. The python script must be run from the folder 
 2: MongoDB version 4 or higher will need to be installed. It does not need to be running,
 the script will check MongoDB's status, and start it if it is not running.
 The working database will be stored in the folder where you place your local copy
-of this repository (not the default location of /data/db).  
+of this repository (not the default location of /data/db). When running with Docker,  
+MongoDB is not required because it is included inside the container.  
 For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:  
 apt install mongodb  
 

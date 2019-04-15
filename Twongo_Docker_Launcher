@@ -59,7 +59,7 @@ frequency_in_seconds=$(($frequency*3600))
 ## How many users does it look like?
 number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//')
 echo "OK, twongo starting, harvesting from $number_of_users users, once every $frequency hours.";
-echo "Please enter your password for this system to confirm Docker launch ->";
+echo "Please enter your password for this system to confirm Docker launch";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then
@@ -86,7 +86,8 @@ done
 container_name=$(sudo docker ps | sed -n 2p | awk 'END {print $NF}');
 printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
-printf "\nTo end the process, run this command: docker stop $container_name\n\n";
+printf "\nTo end the process, run this command: docker stop $container_name";
+printf "\nTo check progress of your container, see the files in /twongo_logs\n\n";
 
 ## If double-clicking icon, leave window open so users can see what happened.
 read -p "Press enter to exit(!) - (your container will continue running)"

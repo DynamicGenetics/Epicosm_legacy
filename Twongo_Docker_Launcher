@@ -2,20 +2,22 @@
 ## Docker container starter for twongo.py, Al Tanner, April 2019
 ## For full details see https://github.com/DynamicGenetics/twongo
 
+## Move to the working directory (needed if run from GUI)
 cd -- "$(dirname -- "$BASH_SOURCE")"
 
 ## Check if docker is running on system.
 if ! [ "$(pgrep docker*)" ]; then
     echo "Docker doesn't appear to be currently running here.";
     echo "Please start Docker and try again. Exiting.";
-    read -p "(Press enter to close this window.)";
+    read -p "(Press enter to close.)";
     exit 1;
 fi
 
 ## Check if required files are in the working directory.
 if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then
+    echo "Your credentials file and/or user_list don't appear to be here.";
     echo "Please have your credentials file and user_list in this run folder.";
-    read -p "(Press enter to close this window.)";
+    read -p "(Press enter to close.)";
     exit 1;
 fi
 
@@ -57,7 +59,7 @@ frequency_in_seconds=$(($frequency*3600))
 ## How many users does it look like?
 number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//')
 echo "OK, twongo starting, harvesting from $number_of_users users, once every $frequency hours.";
-echo "Please enter your password for this system to confirm Docker launch:";
+echo "Please enter your password for this system to confirm Docker launch ->";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then

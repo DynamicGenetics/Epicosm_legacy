@@ -202,7 +202,16 @@ def status_up():
 def status_down():
     tweet_count = collection.count_documents({}) 
     with open(status_file, "w+") as status:
-        status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nThe database currently contains {tweet_count} tweets.\n")
+        if os.path.isfile(run_folder + ".frequency"):
+            frequency = open(run_folder + ".frequency", 'r').read()
+            now = datetime.datetime.now()
+            next_harvest = now + datetime.timedelta(hours = int(frequency))
+            next_harvest_formatted = next_harvest.strftime('%H:%M:%S_%d-%m-%Y') 
+            status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nNext harvest is scheduled for {next_harvest_formatted}\nThe database currently contains {tweet_count} tweets.\n")
+        else:
+            status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nThe database currently contains {tweet_count} tweets.\n")
+        
+        
 
 
 def lookup_users():

@@ -208,8 +208,6 @@ def status_down():
             status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nNext harvest is scheduled for {next_harvest_formatted}\nThe database currently contains {tweet_count} tweets.\n")
         else:
             status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nThe database currently contains {tweet_count} tweets.\n")
-        
-        
 
 
 def lookup_users():

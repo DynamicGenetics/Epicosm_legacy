@@ -16,13 +16,33 @@
 **========================================**  
 
 **Contents.**  
-1.1 Running with docker.  
+0.1 What does it do?
+1.1 Running with Docker.  
 1.2 Output and other data.  
 2.1 Running the python script independent of docker.  
 2.2 Output and data.  
 2.3 Optional parameters.  
 
-**1.1 == Running with docker ==**
+**0.1 == What does it do? ==**  
+Twongo is a Twitter harvester. You provide it with a list of users, and it will harvest all of  
+those users' tweets (going back a maximum of 3240 tweets), which is all metadata, with images,  
+videos and other attachments being stored as URLs. This data is stored by MongoDB. Harvesting  
+can be iterated, for example once a week it can gather the new tweets and add them to the database.  
+As well as the full database, output includes a comma-separated-values (.csv) file, with the default  
+fields being the user id number, the tweet id number, time and date, and the tweet content.  
+
+Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer simulates  
+another computer, usually with a different operating system, within itself. Data is sent back onto  
+the main "host" computer for the user to access. This approach means users do not need to install  
+anything other than Docker, running the program is consistent for all users, use of the program is  
+simplified, requiring little command-line experience.  
+
+
+**1.1 == Running with Docker ==**
+
+Twongo's software requirement is Docker (docker.com). Please look up the most up-to-date  
+way of installing for your operating system. At time of writing, running Docker in Windows 10+  
+requires emulation of a Linux OS, so please follow guides for that.
 
 To run within a docker container, save the file "Twongo_Docker_Launcher" and place it in a folder.
 
@@ -32,7 +52,7 @@ The user list must be a plain text file, with a single username (twitter screen 
 2. Twitter API credentials. Please see the file in this repository for a template of this file.  
 This file must be called "credentials". You will need your own Twitter API credentials by having  
 a developer account authorised by Twitter.  
-Please see Twitter documentation for how to do this.  
+Please see Twitter documentation for how to do this, (developer.twitter.com/en/apply-for-access.html).  
 Be aware that file names are case sensitive.  
 
 Once these three files are ready, Twongo_Docker_Launcher can be run by double clicking it,  
@@ -55,12 +75,15 @@ The following collection will only be made if you ask for following lists to be 
 A refined CSV file is created, in the folder "./output/csv/", which by default collects the user, the  
 time of tweet, and the tweet content.  
 
-A backup of the entire database is stored in "./output/twitter_db/". This can be restored by MongoDB using  
-the command "mongorestore [your name given to the database] [the path to the mongodump file]"  
+A backup of the entire database is stored in "./output/twitter_db/". If you have MongoDB installed,  
+this can be restored with the command  
+"mongorestore [your name given to the database] [the path to the mongodump file]"  
 for example:  
 mongoresotore -d twitter_db ./output/twitter_db/tweets  
 (However, please check MongoDB documentation as commands can change) 
-
+To view and interact with the database using a GUI, you will need MongoDB installed, and  
+a 3rd-party piece of software. Of free options, we find that Robo 3T works well (robomongo.org),  
+although there are other options which you might want to investigate.  
 
 
 **2.1 == Running the python script independent of docker ==**  

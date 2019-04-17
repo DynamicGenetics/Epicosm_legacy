@@ -1,6 +1,6 @@
 # twongo
 
-**=== A Python3 tweet harvester integrated with MongoDB data management ===**  
+**=== A Python Tweet Harvester Integrated with MongoDB for Data Management ===**  
 **=== github.com/DynamicGenetics/twongo ===**  
 **=== Alastair Tanner, February 2019 ===**  
 **=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
@@ -16,7 +16,7 @@
 **========================================**  
 
 **Contents.**  
-0.1 What does it do?
+0.1 What does it do?  
 1.1 Running with Docker.  
 1.2 Output and other data.  
 2.1 Running the python script independent of docker.  
@@ -24,18 +24,18 @@
 2.3 Optional parameters.  
 
 **0.1 == What does it do? ==**  
-Twongo is a Twitter harvester. You provide it with a list of users, and it will harvest all of  
-those users' tweets (going back a maximum of 3240 tweets), which is all metadata, with images,  
-videos and other attachments being stored as URLs. This data is stored by MongoDB. Harvesting  
-can be iterated, for example once a week it can gather the new tweets and add them to the database.  
+Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store  
+all tweets and metadata (going back a maximum of 3240 tweets) for that user. Images, videos and  
+other attachments are stored as URLs. All information is stored by MongoDB. Harvesting  
+can be iterated, for example once a week it can gather new tweets and add them to the database.  
 As well as the full database, output includes a comma-separated-values (.csv) file, with the default  
 fields being the user id number, the tweet id number, time and date, and the tweet content.  
 
 Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer simulates  
 another computer, usually with a different operating system, within itself. Data is sent back onto  
 the main "host" computer for the user to access. This approach means users do not need to install  
-anything other than Docker, running the program is consistent for all users, use of the program is  
-simplified, requiring little command-line experience.  
+anything other than Docker, running the program is consistent for all users, and use of the program is  
+simplified, requiring little or no command-line experience.  
 
 
 **1.1 == Running with Docker ==**

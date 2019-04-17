@@ -25,7 +25,7 @@
 
 **0.1 == What does it do? ==**  
 Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store  
-all tweets and metadata (going back a maximum of 3240 tweets) for that user. Images, videos and  
+all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and  
 other attachments are stored as URLs. All information is stored by MongoDB. Harvesting  
 can be iterated, for example once a week it can gather new tweets and add them to the database.  
 As well as the full database, output includes a comma-separated-values (.csv) file, with the default  

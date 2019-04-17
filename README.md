@@ -57,7 +57,7 @@ Be aware that file names are case sensitive.
 
 Once these three files are ready, Twongo_Docker_Launcher can be run by double clicking it,  
 (you might need to provide permission), or it can be run on the command line:  
-./Twongo\ Docker\ Launcher  
+./Twongo_Docker_Launcher  
 and you will be guided through the process. Once complete, a docker container will be 
 permanently running, and the status of this can be seen using the command. 
 docker ps  

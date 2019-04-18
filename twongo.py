@@ -205,7 +205,7 @@ def status_down():
         if os.path.isfile(run_folder + ".frequency"):
             frequency = open(run_folder + ".frequency", 'r').read()
             next_harvest = (datetime.datetime.now() + datetime.timedelta(hours = int(frequency))).strftime('%H:%M:%S_%d-%m-%Y')
-            status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nNext harvest is scheduled for {next_harvest_formatted}\nThe database currently contains {tweet_count} tweets.\n")
+            status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nNext harvest is scheduled for {next_harvest}\nThe database currently contains {tweet_count} tweets.\n")
         else:
             status.write(f"Twongo is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nThe database currently contains {tweet_count} tweets.\n")
 
@@ -222,9 +222,9 @@ def lookup_users():
                 duplicate_users.append(line)
         if len(duplicate_users) > 0:
             print(f"\nWarning: there are {len(set(duplicate_users))} duplicate users in your list.")
-        with open(run_folder + "user_list.duplicates", 'w') as duplicate_user_file:
-            for duplicate_user in set(duplicate_users):
-                duplicate_user_file.write("%s\n" % duplicate_user)
+            with open(run_folder + "user_list.duplicates", 'w') as duplicate_user_file:
+                for duplicate_user in set(duplicate_users):
+                    duplicate_user_file.write("%s\n" % duplicate_user)
     print(f"Converting user screen names to persistent id numbers...")
     # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file

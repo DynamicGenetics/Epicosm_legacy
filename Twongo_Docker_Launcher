@@ -109,8 +109,3 @@ echo $frequency > $PWD/.frequency
 ## If double-clicking icon, leave window open so users can see what happened.
 read -p "Press enter to exit(!) - (your container will continue running)"
 
-it017567:19apr at9362$ ./Twongo_Docker_Launcher
-_.~^~._.~^~._.~^  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~.
-_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.
-_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.
-

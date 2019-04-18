@@ -2,6 +2,8 @@
 ## Docker container starter for twongo.py, Al Tanner, April 2019
 ## For full details see https://github.com/DynamicGenetics/twongo
 
+set -e
+
 ## Move to the working directory (needed if run from GUI)
 cd -- "$(dirname -- "$BASH_SOURCE")"
 
@@ -26,7 +28,6 @@ echo "_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.";
 echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## If first run, get Docker image from dockerhub.
-echo "I'll just check for updates...";
 if ! docker images | grep -q altanner/twongo; then
     echo "It looks like your first run on this system,";
     echo "download may take a couple of minutes, depending on connection speed.";

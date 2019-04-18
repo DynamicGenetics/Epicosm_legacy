@@ -28,7 +28,7 @@ echo "_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.";
 echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## If first run, get Docker image from dockerhub.
-echo "Checking for updates..."
+printf "\nChecking for updates..."
 if ! docker images | grep -q altanner/twongo; then
     echo "It looks like your first run on this system,";
     echo "download may take a couple of minutes, depending on connection speed.";
@@ -105,10 +105,11 @@ done
 
 ## Report that things are up. Docker should error above if things went wrong.
 container_name=$(sudo docker ps | sed -n 2p | awk 'END {print $NF}');
-printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.";
+printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: sudo docker stop $container_name";
-printf "\nTo check progress of your container, see the files in /twongo_logs\n\n";
+printf "\nTo see your active containers: sudo docker ps";
+printf "\nFor more information, see log files in ./twongo_logs\n\n";
 echo $frequency > $PWD/.frequency
 
 

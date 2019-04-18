@@ -25,6 +25,22 @@ echo "_.~^~._.~^~._.~^  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~.";
 echo "_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.";
 echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
 
+## If first run, get Docker image from dockerhub.
+echo "I'll just check for updates...";
+if ! docker images | grep -q altanner/twongo; then
+    echo "It looks like your first run on this system,";
+    echo "download may take a couple of minutes, depending on connection speed.";
+    read -p "Should I continue? (y/n): " download_reply;
+    while ! [[ "$download_reply" =~ ^[yn]$ ]]; do
+        read -p "(y/n): " download_reply;
+    done;  
+    if [[ $download_reply = "n" ]]; then
+        read -p "OK, stopping. Press enter to close.";
+        exit 0;
+    fi
+fi
+docker pull altanner/twongo:latest;
+
 ## Ask user how often to harvest.
 read -p "How often would you like to harvest (in hours)? " frequency;
 while ! [[ "$frequency" =~ ^[0-9]+$ ]]; do
@@ -41,15 +57,15 @@ if [ -f $PWD/STATUS ]; then
 fi
 
 ## Ask user if they want to log things to a file.
-read -p "Do you want to create a log file (y/n): " log_reply;
-while ! [[ "$log_reply" =~ ^[yn]$ ]]; do
-    read -p "(y/n): " log_reply;
-done;    
+#read -p "Do you want to create a log file (y/n): " log_reply;
+#while ! [[ "$log_reply" =~ ^[yn]$ ]]; do
+#    read -p "(y/n): " log_reply;
+#done;    
 
 ## Set up variables based on user responses.
-if [[ $log_reply = "y" ]]; then
-    log=--log;
-fi
+#if [[ $log_reply = "y" ]]; then
+#    log=--log;
+#fi
 if [[ $refresh_reply = "y" ]]; then
     refresh=--refresh;
 fi
@@ -59,15 +75,15 @@ frequency_in_seconds=$(($frequency*3600))
 ## How many users does it look like?
 number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//')
 echo "OK, twongo starting, harvesting from $number_of_users users, once every $frequency hours.";
-echo "Please enter your password for this system to confirm Docker launch";
+echo "If prompted, enter your password for this system to confirm Docker launch";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then
-    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "/usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /twongo/twongo.py $log; sleep $frequency_in_seconds; done";
+    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "/usr/bin/python3 /twongo/twongo.py $refresh --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /twongo/twongo.py --log; sleep $frequency_in_seconds; done";
 else
 
 ## If not refreshing, just harvest, wait and loop.
-    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "while true; do /usr/bin/python3 /twongo/twongo.py $refresh $log; sleep $frequency_in_seconds; done";
+    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "while true; do /usr/bin/python3 /twongo/twongo.py $refresh --log; sleep $frequency_in_seconds; done";
 fi
 
 ## I guess I could send this to devnull, but there might be important output here on error...

@@ -28,6 +28,7 @@ echo "_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.";
 echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## If first run, get Docker image from dockerhub.
+echo "Checking for updates..."
 if ! docker images | grep -q altanner/twongo; then
     echo "It looks like your first run on this system,";
     echo "download may take a couple of minutes, depending on connection speed.";
@@ -41,6 +42,9 @@ if ! docker images | grep -q altanner/twongo; then
     fi
 fi
 docker pull altanner/twongo:latest;
+
+
+
 
 ## Ask user how often to harvest.
 read -p "How often would you like to harvest (in hours)? " frequency;

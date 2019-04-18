@@ -2,17 +2,24 @@
 ## Docker container starter for twongo.py, Al Tanner, April 2019
 ## For full details see https://github.com/DynamicGenetics/twongo
 
-set -e
-
 ## Move to the working directory (needed if run from GUI)
 cd -- "$(dirname -- "$BASH_SOURCE")"
 
+## Deal with control-c interrupt
+trap ctrl_c INT
+function ctrl_c() {
+        echo;
+        exit 0;
+}
+
 ## Check if docker is running on system.
-if ! [ "$(pgrep docker*)" ]; then
-    echo "Docker doesn't appear to be currently running here.";
+docker images >/dev/null 2>&1;
+docker_exit_code=$?;
+if [[ $docker_exit_code != 0 ]]; then 
+    echo "Docker doesn't appear to be running here.";
     echo "Please start Docker and try again. Exiting.";
     read -p "(Press enter to close.)";
-    exit 1;
+    exit 1; 
 fi
 
 ## Check if required files are in the working directory.
@@ -28,10 +35,10 @@ echo "_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.";
 echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## If first run, get Docker image from dockerhub.
-printf "\nChecking for updates..."
+printf "\nChecking for updates... "
 if ! docker images | grep -q altanner/twongo; then
-    echo "It looks like your first run on this system,";
-    echo "download may take a couple of minutes, depending on connection speed.";
+    echo "It looks like your first run on this system.";
+    echo "Download may take a few minutes, depending on connection speed.";
     read -p "Should I continue? (y/n): " download_reply;
     while ! [[ "$download_reply" =~ ^[yn]$ ]]; do
         read -p "(y/n): " download_reply;
@@ -42,9 +49,6 @@ if ! docker images | grep -q altanner/twongo; then
     fi
 fi
 docker pull altanner/twongo:latest;
-
-
-
 
 ## Ask user how often to harvest.
 read -p "How often would you like to harvest (in hours)? " frequency;
@@ -60,17 +64,6 @@ if [ -f $PWD/STATUS ]; then
         read -p "(y/n): " refresh_reply;
     done;    
 fi
-
-## Ask user if they want to log things to a file.
-#read -p "Do you want to create a log file (y/n): " log_reply;
-#while ! [[ "$log_reply" =~ ^[yn]$ ]]; do
-#    read -p "(y/n): " log_reply;
-#done;    
-
-## Set up variables based on user responses.
-#if [[ $log_reply = "y" ]]; then
-#    log=--log;
-#fi
 if [[ $refresh_reply = "y" ]]; then
     refresh=--refresh;
 fi
@@ -85,9 +78,7 @@ echo "If prompted, enter your password for this system to confirm Docker launch"
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then
     sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "/usr/bin/python3 /twongo/twongo.py $refresh --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /twongo/twongo.py --log; sleep $frequency_in_seconds; done";
-else
-
-## If not refreshing, just harvest, wait and loop.
+else  ## If not refreshing, just harvest, wait and loop.
     sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "while true; do /usr/bin/python3 /twongo/twongo.py $refresh --log; sleep $frequency_in_seconds; done";
 fi
 
@@ -111,7 +102,6 @@ printf "\nTo end the process, run this command: sudo docker stop $container_name
 printf "\nTo see your active containers: sudo docker ps";
 printf "\nFor more information, see log files in ./twongo_logs\n\n";
 echo $frequency > $PWD/.frequency
-
 
 ## If double-clicking icon, leave window open so users can see what happened.
 read -p "Press enter to exit(!) - (your container will continue running)"

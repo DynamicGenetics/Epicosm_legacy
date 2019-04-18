@@ -13,9 +13,12 @@ function ctrl_c() {
 }
 
 ## Check if docker is running on system.
-docker images >/dev/null 2>&1;
-docker_exit_code=$?;
-if [[ $docker_exit_code != 0 ]]; then 
+#docker images >/dev/null 2>&1;  # this method doesn't work on centos.
+#docker_exit_code=$?;
+#echo $docker_exit_code;
+#if [[ $docker_exit_code != 0 ]]; then 
+docker_processes="$(ps aux | grep docker | wc -l)"; # this works everywhere, but might be more dangerous
+if [ $docker_processes -lt 2 ]; then
     echo "Docker doesn't appear to be running here.";
     echo "Please start Docker and try again. Exiting.";
     read -p "(Press enter to close.)";
@@ -36,7 +39,7 @@ echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## If first run, get Docker image from dockerhub.
 printf "\nChecking for updates... "
-if ! docker images | grep -q altanner/twongo; then
+if ! docker images | grep -q altanner/twongo; then # this breaks on centos unless the whole script is sudo. adding sudo here doesn't help. why? no idea.
     echo "It looks like your first run on this system.";
     echo "Download may take a few minutes, depending on connection speed.";
     read -p "Should I continue? (y/n): " download_reply;
@@ -105,4 +108,9 @@ echo $frequency > $PWD/.frequency
 
 ## If double-clicking icon, leave window open so users can see what happened.
 read -p "Press enter to exit(!) - (your container will continue running)"
+
+it017567:19apr at9362$ ./Twongo_Docker_Launcher
+_.~^~._.~^~._.~^  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~.
+_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.
+_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.
 

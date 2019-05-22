@@ -13,17 +13,18 @@ function ctrl_c() {
 }
 
 ## Check if docker is running on system.
-#docker images >/dev/null 2>&1;  # this method doesn't work on centos.
-#docker_exit_code=$?;
-#echo $docker_exit_code;
-#if [[ $docker_exit_code != 0 ]]; then 
-docker_processes="$(ps aux | grep docker | wc -l)"; # this works everywhere, but might be more dangerous
-if [ $docker_processes -lt 2 ]; then
-    echo "Docker doesn't appear to be running here.";
-    echo "Please start Docker and try again. Exiting.";
-    read -p "(Press enter to close.)";
-    exit 1; 
-fi
+docker images >/dev/null 2>&1;
+docker_exit_code=$?;
+if [[ $docker_exit_code != 0 ]]; then 
+    if ! pgrep -x "docker" > /dev/null; then
+        if ! pgrep -x "dockerd" > /dev/null; then
+            echo "2Docker doesn't appear to be running here.";
+            echo "Please start Docker and try again. Exiting.";
+            read -p "(Press enter to close.)";
+            exit 1;
+        fi
+    fi
+fi 
 
 ## Check if required files are in the working directory.
 if [ ! -f $PWD/credentials ] || [ ! -f $PWD/user_list ]; then

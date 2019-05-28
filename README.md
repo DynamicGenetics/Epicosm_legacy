@@ -1,11 +1,11 @@
-# twongo\
+# twongo
 \
-##=== A Python Tweet Harvester Integrated with MongoDB for Data Management ===\
-##=== github.com/DynamicGenetics/twongo ===\
-**=== Alastair Tanner, February 2019 ===**  
-**=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**
-
-
+## === A Python Tweet Harvester Integrated with MongoDB for Data Management ===\
+## === github.com/DynamicGenetics/twongo ===\
+## === Alastair Tanner, February 2019 ===\
+## === MRC Integrative Epidemiology Unit, University of Bristol, UK ===\
+\
+\
 **=== (: INSTRUCTIONS IN A NUTSHELL :) ===**  
 [1] Install Docker.  
 [2] Put these three files into a folder:  

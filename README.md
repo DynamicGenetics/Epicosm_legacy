@@ -6,30 +6,30 @@
 ### === MRC Integrative Epidemiology Unit, University of Bristol, UK ===
 
 
-## === (: INSTRUCTIONS IN A NUTSHELL :) ===
+### === (: INSTRUCTIONS IN A NUTSHELL :) ===
 1. Install Docker.
 2. Put these three files into a folder:
   * Twongo_Docker_Launcher (provided here),  
   * Twitter credentials file (provided here, but complete with your own Twitter access keys),  
   * and your user_list (supplied by you: one screen name per line, plain text file).  
 3. Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.  
-## ========================================
+### ========================================
 
-**Contents.**  
-0.1 What does it do?  
-1.1 Running with Docker.  
-1.2 Output and other data.  
-2.1 Running the python script independent of docker.  
-2.2 Output and data.  
-2.3 Optional parameters.  
+## Contents.
+#### 0.1 What does it do?  
+#### 1.1 Running with Docker.  
+#### 1.2 Output and other data.  
+#### 2.1 Running the python script independent of docker.  
+#### 2.2 Output and data.  
+#### 2.3 Optional parameters.  
 
-**0.1 == What does it do? ==**  
-Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store  
-all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and  
-other attachments are stored as URLs. All information is stored by MongoDB. Harvesting  
-can be iterated, for example once a week it can gather new tweets and add them to the database.  
-As well as the full database, output includes a comma-separated-values (.csv) file, with the default  
-fields being the user id number, the tweet id number, time and date, and the tweet content.  
+### 0.1 == What does it do? ==
+Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store\
+all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and\
+other attachments are stored as URLs. All information is stored by MongoDB. Harvesting\
+can be iterated, for example once a week it can gather new tweets and add them to the database.\
+As well as the full database, output includes a comma-separated-values (.csv) file, with the default\
+fields being the user id number, the tweet id number, time and date, and the tweet content.\
 
 Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer simulates  
 another computer, usually with a different operating system, within itself. Data is sent back onto  

@@ -1,6 +1,6 @@
 # twongo
 
-**=== A Python Tweet Harvester Integrated with MongoDB for Data Management ===**  
+##=== A Python Tweet Harvester Integrated with MongoDB for Data Management ===
 **=== github.com/DynamicGenetics/twongo ===**  
 **=== Alastair Tanner, February 2019 ===**  
 **=== MRC Integrative Epidemiology Unit, University of Bristol, UK ===**

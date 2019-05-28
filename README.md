@@ -1,17 +1,17 @@
 # twongo
 \
-## === A Python Tweet Harvester Integrated with MongoDB for Data Management ===\
-## === github.com/DynamicGenetics/twongo ===\
-## === Alastair Tanner, February 2019 ===\
-## === MRC Integrative Epidemiology Unit, University of Bristol, UK ===\
+### === A Python Tweet Harvester Integrated with MongoDB for Data Management ===
+### === github.com/DynamicGenetics/twongo ===
+### === Alastair Tanner, February 2019 ===
+### === MRC Integrative Epidemiology Unit, University of Bristol, UK ===
 \
 \
-**=== (: INSTRUCTIONS IN A NUTSHELL :) ===**  
-[1] Install Docker.  
-[2] Put these three files into a folder:  
--> [a] Twongo_Docker_Launcher (provided here),  
--> [b] Twitter credentials file (provided here, but complete with your own Twitter access keys),  
--> [c] and your user_list (supplied by you: one screen name per line, plain text file).  
+## === (: INSTRUCTIONS IN A NUTSHELL :) ===
+1. Install Docker.\
+2. Put these three files into a folder:  
+  1. Twongo_Docker_Launcher (provided here),  
+  1. Twitter credentials file (provided here, but complete with your own Twitter access keys),  
+  1. and your user_list (supplied by you: one screen name per line, plain text file).  
 [3] Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.  
 **========================================**  
 

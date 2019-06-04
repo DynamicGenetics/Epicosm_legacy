@@ -97,7 +97,7 @@ The python script will also run independent of its docker container:\
 
 You must provide 2 files:
 1. a list of user screen names in a file called "user_list".\
-The user list must be a plain text file, with a single username (twitter screen name) per line.\
+The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials will need to be supplied, by editing the file "credentials"\
 (further instructions inside file, "credentials"). You will need your own Twitter API\
 credentials by having a developer account authorised by Twitter, and generating\

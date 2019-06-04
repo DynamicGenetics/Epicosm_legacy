@@ -24,7 +24,7 @@
 #### 2.3 Optional parameters.  
 \
 \
-\
+
 ### 0.1 What does it do?
 Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store\
 all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and\
@@ -51,7 +51,7 @@ Docker must be running: if it is not, it can be started with\
 **systemctl start docker** (on Linux distributions), or\
 **open /Applications/Docker.app** (on MacOS, although it can be started by clicking the app icon).
 
-You must provide 2 further files in the folder with Twongo_Docker_Launcher:\
+You must provide 2 further files in the folder with Twongo_Docker_Launcher:
 1. a list of user screen names in a file called "user_list".\
 The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials. Please see the file in this repository for a template of this file.\

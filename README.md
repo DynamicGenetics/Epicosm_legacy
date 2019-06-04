@@ -22,9 +22,9 @@
 #### 2.1 Running the python script independent of docker.  
 #### 2.2 Output and data.  
 #### 2.3 Optional parameters.  
-
-
-
+\
+\
+\
 ### 0.1 What does it do?
 Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store\
 all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and\
@@ -53,7 +53,7 @@ Docker must be running: if it is not, it can be started with\
 
 You must provide 2 further files in the folder with Twongo_Docker_Launcher:\
 1. a list of user screen names in a file called "user_list".\
-The user list must be a plain text file, with a single username (twitter screen name) per line.\
+The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials. Please see the file in this repository for a template of this file.\
 This file must be called "credentials". You will need your own Twitter API credentials by having\
 a developer account authorised by Twitter.\
@@ -95,7 +95,7 @@ This repository is the python code running in the docker container (URL to be co
 The python script will also run independent of its docker container:\
 **python twongo.py**
 
-You must provide 2 files:\
+You must provide 2 files:
 1. a list of user screen names in a file called "user_list".\
 The user list must be a plain text file, with a single username (twitter screen name) per line.\
 2. Twitter API credentials will need to be supplied, by editing the file "credentials"\

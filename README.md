@@ -1,6 +1,6 @@
 # twongo
 
-### A Python Tweet Harvester Integrated with MongoDB for Data Management
+## A Python Tweet Harvester Integrated with MongoDB for Data Management
 ### github.com/DynamicGenetics/twongo
 ### Alastair Tanner, 2019
 ### MRC Integrative Epidemiology Unit, University of Bristol, UK
@@ -23,7 +23,7 @@
 #### 2.2 Output and data.  
 #### 2.3 Optional parameters.  
 \
-\
+
 
 ### 0.1 What does it do?
 Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store\
@@ -121,7 +121,7 @@ For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 **pip3 install tweepy**\
 **pip3 install pymongo**
 
-### 2.2 Output and other data**  
+### 2.2 Output and other data
 Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",\
 with two collections "tweets" which contains all json data and content of each tweet, and\
 "following" which contains a list of all users that each user in your list are following.

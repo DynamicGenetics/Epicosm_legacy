@@ -20,11 +20,10 @@ from twitter_ops import lookup_users, harvest
 
 ## set up run variables
 start = time.time()
-times_limited = 0
-private_accounts = 0
-empty_accounts = 0
 not_found = []
 duplicate_users = []
+empty_users = []
+private_users = []
 now = datetime.datetime.now()
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
@@ -113,12 +112,6 @@ except tweepy.error.TweepError:
     print(f"The API credentials do not seem valid: connection to Twitter refused.")
     sys.exit()
 
-
-#####################
-## build functions ##
-#####################
-
-
 def export(): # export and backup the database
     print(f"\nCreating CSV output file...")
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
@@ -128,20 +121,6 @@ def export(): # export and backup the database
     subprocess.call(['zip', '-jumq', run_folder + 'db_logs/db_logs.zip', run_folder] + glob.glob('db_logs/*.log'))
     subprocess.call(['zip', '-jumq', run_folder + 'twongo_logs/twongo_logs.zip', run_folder] + glob.glob('twongo_logs/*.log'))
     subprocess.call(['zip', '-jumq', run_folder + 'output/csv/csv.zip', run_folder] + glob.glob('output/csv/*.csv'))
-
-
-def report(): # do some post-process checks and report.
-    fail_accounts = private_accounts + empty_accounts + len(not_found)
-    if '--refresh' in sys.argv or first_run == 1:
-        print(f"\nOK, tweet timelines acquired from {(len(screen_names) - fail_accounts)} of {number_of_users_provided} accounts.")
-    else:
-        users_with_accounts_no_duplicates = sum(1 for line in open(run_folder + "user_list.ids"))
-        print(f"\nOK, tweet timelines acquired from {(users_with_accounts_no_duplicates - fail_accounts)} of {users_with_accounts_no_duplicates} accounts.")
-    if duplicate_users: print(f"{len(set(duplicate_users))} accounts were duplicates (see user_list.duplicates).")
-    if not_found: print(f"{len(not_found)} accounts were not found (see user_list.notfound).")
-    if private_accounts: print(f"{private_accounts} accounts were private.")
-    if empty_accounts: print(f"{empty_accounts} accounts were empty.")
-
 
 ############
 ## run it ##
@@ -156,12 +135,9 @@ if __name__ == "__main__":
         ## get persistent user ids from screen names
         lookup_users(run_folder, screen_names, api, duplicate_users, not_found)
         ## get tweets for each user and archive in mongodb
-        #print(f"\nStarting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
-        harvest(run_folder, db, api, collection, empty_accounts, private_accounts)
+        harvest(run_folder, db, api, collection, empty_users, private_users, duplicate_users, not_found)
         ## create CSV ouput and backup mongodb
         export()
-        ## give some basic stats on the run
-        report()
         ## modify status file
         status_down(collection, status_file, run_folder)
         ## shut down mongodb

@@ -17,11 +17,6 @@ def lookup_users(run_folder, screen_names, api, duplicate_users, not_found):
         for line in lines:
             if lines.count(line) > 1:
                 duplicate_users.append(line)
-        if len(duplicate_users) > 0:
-            print(f"\nWarning: there are {len(set(duplicate_users))} duplicate users in your list.")
-            with open(run_folder + "user_list.duplicates", 'w') as duplicate_user_file:
-                for duplicate_user in set(duplicate_users):
-                    duplicate_user_file.write("%s\n" % duplicate_user)
     print(f"Converting user screen names to persistent id numbers...")
     # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file
@@ -55,18 +50,13 @@ def lookup_users(run_folder, screen_names, api, duplicate_users, not_found):
     with open(run_folder + "user_list.ids", 'w') as id_file:
         for id in id_list:
             id_file.write("%s\n" % id)                            # write to id file
-    if len(not_found) > 0: # if users are not found, put into missing user file
-        print(f"\nWarning: {len(not_found)} users were not found as having an account.")
-        with open(run_folder + "user_list.notfound", 'w') as missing_user_file:
-            for missing_user in not_found:
-                missing_user_file.write("%s\n" % missing_user)    # write to missing user file
+   
 
-
-def get_tweets(twitter_id, db, api, collection, empty_accounts, private_accounts):
+#def get_tweets(twitter_id, db, api, collection, empty_accounts, private_accounts, empty_users, private_users):
+def get_tweets(twitter_id, db, api, collection, empty_users, private_users):
 
     """acquire tweets from each user id number and store them in MongoDB"""
 
-    global times_limited
     ## check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
         ## we already have this user's timeline, just get recent tweets
@@ -78,7 +68,8 @@ def get_tweets(twitter_id, db, api, collection, empty_accounts, private_accounts
             alltweets.extend(new_tweets)
         except tweepy.TweepError as tweeperror:
             print(f"Not possible to acquire timeline of {twitter_id} : {tweeperror}")
-            private_accounts += 1
+            #private_accounts += 1
+            private_users.append(twitter_id)
     else:
         ## this user isn't in database: get <3200 tweets if possible
         try:
@@ -96,13 +87,12 @@ def get_tweets(twitter_id, db, api, collection, empty_accounts, private_accounts
                     oldest = alltweets[-1].id - 1
             except IndexError:
                 print(f"Empty timeline for user {twitter_id} : skipping.")
-                empty_accounts += 1
+                empty_users.append(twitter_id)
         except tweepy.TweepError as tweeperror:
             print(f"Not possible to acquire timeline of {twitter_id} : {tweeperror}")
-            private_accounts += 1
+            private_users.append(twitter_id)
         except tweepy.RateLimitError as rateerror:
             print(f"Rate limit reached, waiting for cooldown...")
-            times_limited += 1
 
     ## update the database with the acquired tweets for this user
     for tweet in alltweets:
@@ -112,8 +102,7 @@ def get_tweets(twitter_id, db, api, collection, empty_accounts, private_accounts
             except pymongo.errors.DuplicateKeyError:
                 pass
         except IndexError:
-            print(f"User {user} has no tweets to insert.")
-
+            print(f"User {twitter_id} has no tweets to insert.")
 
 def get_friends(twitter_id): ## get the "following" list for this user
     friend_list = []
@@ -122,7 +111,6 @@ def get_friends(twitter_id): ## get the "following" list for this user
             friend_list.extend(friend) # put the friends into a list
     except tweepy.RateLimitError as rateerror:
         print(f"Rate limit reached, waiting for cooldown... {rateerror}")
-        times_limited += 1
     try:
         for person in friend_list:     # insert those into a mongodb collection called "following"
             following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
@@ -131,7 +119,7 @@ def get_friends(twitter_id): ## get the "following" list for this user
         #    print(*friend_list, sep='\n')
 
 
-def harvest(run_folder, db, api, collection, empty_accounts, private_accounts):
+def harvest(run_folder, db, api, collection, empty_users, private_users, not_found, duplicate_users):
     index_counter = 0
     ## generate user id list from user2id output file
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
@@ -141,9 +129,31 @@ def harvest(run_folder, db, api, collection, empty_accounts, private_accounts):
         for twitter_id in users_to_follow:
             if index_counter % 100 == 0: # every 100 users index the database
                 index_mongo(run_folder, db)
-            get_tweets(twitter_id, db, api, collection, empty_accounts, private_accounts)  ## get all their tweets and put into mongodb
+            get_tweets(twitter_id, db, api, collection, empty_users, private_users)  ## get all their tweets and put into mongodb
             if '--getfriends' in sys.argv:
                 get_friends(twitter_id) ## this tends to rate limit, but tweet harvest doesn't (?!)
             index_counter += 1
+        print()
+        if len(duplicate_users) > 0: # if users are not found, put into missing user file
+            print(f"Info: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
+            with open(run_folder + "user_list.duplicates", 'w') as duplicate_user_file:
+                for duplicate_user in set(duplicate_users):
+                    duplicate_user_file.write("%s\n" % duplicate_user)    # write to missing user file
+        if len(not_found) > 0: # if users are not found, put into missing user file
+            print(f"Info: {len(not_found)} user names do not have accounts (see user_list.notfound)")
+            with open(run_folder + "user_list.notfound", 'w') as missing_user_file:
+                for missing_user in not_found:
+                    missing_user_file.write("%s\n" % missing_user)    # write to missing user file
+        if len(empty_users) > 0: # if users are empty, put into empty users file
+            print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")
+            with open(run_folder + "user_list.empty", 'w') as empty_user_file:
+                for empty_user in empty_users:
+                    empty_user_file.write("%s\n" % empty_user)    # write to empty user file  
+        if len(private_users) > 0: # if users are private found, put into private user file
+            print(f"Info: {len(private_users)} users have private accounts (see user_list.private)")
+            with open(run_folder + "user_list.private", 'w') as private_user_file:
+                for private_user in private_users:
+                    private_user_file.write("%s\n" % private_user)    # write to private user file  
+
     except Exception as e:
         print(f"{e}")

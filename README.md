@@ -1,7 +1,8 @@
 # twongo
 
-![alt text](https://github.com/DynamicGenetics/twongo/blob/master/circle.jpg)
-
+<p align="center">
+    ![alt text](https://github.com/DynamicGenetics/twongo/blob/master/circle.jpg)
+<\p>
 ##### A social media harvester integrated with MongoDB for data management.
 
 ## Instructions in a nutshell

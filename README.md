@@ -21,32 +21,22 @@
 ### 0.1 What does it do?
 Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
 
-Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer simulates\
-another computer, usually with a different operating system, within itself. Data is sent back onto\
-the main "host" computer for the user to access. This approach means users do not need to install\
-anything other than Docker, running the program is consistent for all users, and use of the program is\
-simplified, requiring little or no command-line experience.
+Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer simulates another computer, usually with a different operating system, within itself. Data is sent back onto the main "host" computer for the user to access. This approach means users do not need to install anything other than Docker, running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience.
 
 
 ### 1.1 Running with Docker
 
-Twongo's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date\
-way of installing for your operating system. At time of writing, running Docker in Windows 10+\
-requires emulation of a Linux OS, so please follow guides for that.
+Twongo's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
 
-To run within a docker container, save the file `Twongo_Docker_Launcher` and place it in a folder.\
-Docker must be running: if it is not, it can be started with\
-`systemctl start docker` (on Linux distributions), or\
-`open /Applications/Docker.app` (on MacOS, although it can be started by clicking the app icon).
+To run within a docker container, save the file `Twongo_Docker_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with\
+`systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (on MacOS, although it can be started by clicking the app icon).
 
 You must provide 2 further files in the folder with `Twongo_Docker_Launcher`:
 1. a list of user screen names in a file called `user_list`.\
 The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials. Please see the file in this repository for a template of this file.\
-This file must be called `credentials.py`. You will need your own Twitter API credentials by having\
-a developer account authorised by Twitter.\
-Please see [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.\
-Be aware that file names are case sensitive.
+This file must be called `credentials.py`. You will need your own Twitter API credentials by having a developer account authorised by Twitter.\
+Please see [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this. Be aware that file names are case sensitive.
 
 Once these three files are ready, `Twongo_Docker_Launcher` can be run by double clicking it,\
 (you might need to provide permission), or it can be run on the command line:\

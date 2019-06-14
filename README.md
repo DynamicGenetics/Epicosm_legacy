@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://github.com/DynamicGenetics/twongo/blob/master/circle.jpg">
+  <img src="dynamic_genetics_banner.png">
 </p>
 
 # twongo

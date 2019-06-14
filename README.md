@@ -1,10 +1,10 @@
 
 <p align="center">
-  <img src="img/dynamic_genetics_banner.jpg">
+   <a href="https://dynamicgenetics.org/"><img src="img/dynamic_genetics_banner.jpg"></a> 
 </p>
 <p align="right">
-  <img src="img/mongo_logo.png" width="144" height="112" />
-  <img src="img/docker_logo.png" width="144" height="112" />
+  <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="144" height="112" /></a> 
+  <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="144" height="112" /></a> 
 </p>
 
 # twongo

@@ -1,5 +1,7 @@
 # twongo
 
+![alt text](https://github.com/DynamicGenetics/twongo/edit/master/circle.jpg)
+
 ##### A social media harvester integrated with MongoDB for data management.
 
 ## Instructions in a nutshell

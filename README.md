@@ -28,33 +28,20 @@ Twongo runs in a Docker "container" - this is similar to a virtual machine, wher
 
 Twongo's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
 
-To run within a docker container, save the file `Twongo_Docker_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with\
-`systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (on MacOS, although it can be started by clicking the app icon).
+To run within a docker container, save the file `Twongo_Docker_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (on MacOS, although it can be started by clicking the app icon).
 
 You must provide 2 further files in the folder with `Twongo_Docker_Launcher`:
 1. a list of user screen names in a file called `user_list`.\
 The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials. Please see the file in this repository for a template of this file.\
-This file must be called `credentials.py`. You will need your own Twitter API credentials by having a developer account authorised by Twitter.\
-Please see [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this. Be aware that file names are case sensitive.
+This file must be called `credentials.py`. You will need your own Twitter API credentials by having a developer account authorised by Twitter. Please see [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this. Be aware that file names are case sensitive.
 
-Once these three files are ready, `Twongo_Docker_Launcher` can be run by double clicking it,\
-(you might need to provide permission), or it can be run on the command line:\
-`./Twongo_Docker_Launcher`\
-and you will be guided through the process. Once complete, a docker container will be.\
-permanently running, and the status of this can be seen using the command.\
-`docker ps`\
-Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
-If stopped, to restart your container, go to the folder with your files in, and run\
-`./Twongo_Docker_Launcher`\
-again, which will recognise that it is in a folder in which it has previously run.
+Once these three files are ready, `Twongo_Docker_Launcher` can be run by double clicking it, (you might need to provide permission), or it can be run on the command line: `./Twongo_Docker_Launcher` and you will be guided through the process. Once complete, a docker container will be permanently running, and the status of this can be seen using the command.`docker ps`. Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
+If stopped, to restart your container, go to the folder with your files in, and run `./Twongo_Docker_Launcher` again, which will recognise that it is in a folder in which it has previously run.
 
 ### 1.2 Output and data
-Full content and metadata of all tweets is be stored in MongoDB, in a database `twitter_db`,\
-with two collections `tweets` which contains all json data and content of each tweet, and\
-"following" which contains a list of all users that each user in your list are following.\
-The following collection will only be made if you ask for following lists to be gathered.\
-**Currently, gathering following list causes the process to be heavily rate limited by Twitter!**  
+Full content and metadata of all tweets is stored in MongoDB, in a database `twitter_db`, with two collections `tweets` which contains all json data and content of each tweet, and "following" which contains a list of all users that each user in your list are following. *MongoDB does not need to be installed on your computer*, all database activity happens in the container.
+The following collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter!*
 
 A refined CSV file is created, in the folder `./output/csv/`, which by default collects the user, the\
 time of tweet, and the tweet content.

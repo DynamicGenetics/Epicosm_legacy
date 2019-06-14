@@ -1,14 +1,14 @@
 # twongo
-bob
+
 ##### A social media harvester integrated with MongoDB for data management.
 
 ## Instructions in a nutshell
-####1. Install Docker.
-####2. Put these three files into a folder:
+#### 1. Install Docker.
+#### 2. Put these three files into a folder:
   * Twongo_Docker_Launcher (provided here),
   * Twitter credentials file (provided here, but complete with your own Twitter access keys),  
   * and your user_list (supplied by you: one screen name per line, plain text file).
-####3. Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.
+#### 3. Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.
 
 ## Contents
 #### 0.1 What does it do?  

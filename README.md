@@ -1,6 +1,10 @@
 
 <p align="center">
-  <img src="dynamic_genetics_banner.jpg">
+  <img src="img/dynamic_genetics_banner.jpg">
+</p>
+<p align="right">
+  <img src="img/mongo_logo.png" width="101" height="112" />
+  <img src="img/docker_logo.png" width="144" height="112" />
 </p>
 
 # twongo

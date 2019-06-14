@@ -6,10 +6,10 @@
   <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="144" height="112" /></a> 
   <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="144" height="112" /></a> 
 </p>
-
 # twongo
 
-##### A social media harvester integrated with MongoDB for data management.
+
+#### A social media harvester integrated with MongoDB for data management.
 
 ## Instructions in a nutshell
 #### 1. Install Docker.

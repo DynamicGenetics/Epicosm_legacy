@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="dynamic_genetics_banner.png">
+  <img src="dynamic_genetics_banner.jpg">
 </p>
 
 # twongo

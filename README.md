@@ -121,4 +121,4 @@ The following can be added to your command:\
 
 ### License
 DynamicGenetics/twongo is licensed under the GNU General Public License v3.0\
-For full details, please see our [license](https://github.com/DynamicGenetics/twongo/license) file.
+For full details, please see our [license](https://github.com/DynamicGenetics/twongo/LICENSE) file.

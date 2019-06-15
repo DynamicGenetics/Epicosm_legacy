@@ -25,6 +25,7 @@
 #### 2.1 Running the python script independent of docker
 #### 2.2 Output and data
 #### 2.3 Optional parameters
+#### 3.0 License
 
 ### 0.1 What does it do?
 Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
@@ -117,3 +118,5 @@ The following can be added to your command:\
 `--getfriends`    Gather friend list. This list will go into the MongoDB collection "friends",\
                     in the database "twitter_db". This is normally disabled because requesting the\
                     friend list can be very demanding on the API and the run will be severely rate limited.
+
+### License

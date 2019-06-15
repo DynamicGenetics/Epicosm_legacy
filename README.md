@@ -30,7 +30,7 @@
 ### 0.1 What does it do?
 Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
 
-Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer simulates another computer, usually with a different operating system, within itself. Data is sent back onto the main "host" computer for the user to access. This approach means users do not need to install anything other than Docker, running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience.
+Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer emulates another operating system within itself. Data is sent back onto the main "host" computer for the user to access. This approach means users do not need to install anything other than Docker, running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience.
 
 
 ### 1.1 Running with Docker
@@ -96,14 +96,14 @@ For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 `pip3 install pymongo`
 
 ### 2.2 Output and other data**  
-Full content and metadata of all tweets is be stored in MongoDB, in a database "twitter_db",\
-with two collections "tweets" which contains all json data and content of each tweet, and\
-"following" which contains a list of all users that each user in your list are following.
+Full content and metadata of all tweets is be stored in MongoDB, in a database `twitter_db`,\
+with two collections `tweets` which contains all json data and content of each tweet, and\
+`following` which contains a list of all users that each user in your list are following.
 
-A refined CSV file is created, in the folder "./output/csv/", which by default collects the user, the\
+A refined CSV file is created, in the folder `/output/csv/`, which by default collects the user, the\
 time of tweet, and the tweet content.
 
-A backup of the entire database is stored in "./output/twitter_db/".\
+A backup of the entire database is stored in `/output/twitter_db/`.\
 This can be restored by MongoDB using the command\
 `mongorestore [your name given to the database] [the path to the mongodump file]`\
 for example:\
@@ -120,3 +120,5 @@ The following can be added to your command:\
                     friend list can be very demanding on the API and the run will be severely rate limited.
 
 ### License
+DynamicGenetics/twongo is licensed under the GNU General Public License v3.0\
+For full details, please see our [license](/license) file.\

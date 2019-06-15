@@ -95,7 +95,7 @@ For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 `pip3 install tweepy`\
 `pip3 install pymongo`
 
-### 2.2 Output and other data**  
+### 2.2 Output and other data
 Full content and metadata of all tweets is be stored in MongoDB, in a database `twitter_db`,\
 with two collections `tweets` which contains all json data and content of each tweet, and\
 `following` which contains a list of all users that each user in your list are following.
@@ -121,4 +121,4 @@ The following can be added to your command:\
 
 ### License
 DynamicGenetics/twongo is licensed under the GNU General Public License v3.0\
-For full details, please see our [license](/license) file.\
+For full details, please see our [license](https://github.com/DynamicGenetics/twongo/license) file.

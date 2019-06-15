@@ -18,7 +18,6 @@ def lookup_users(run_folder, screen_names, api, duplicate_users, not_found):
             if lines.count(line) > 1:
                 duplicate_users.append(line)
     print(f"Converting user screen names to persistent id numbers...")
-    # this function should be fine with both unix and dos formatted files
     # Count the number of screen names in the input file
     non_blank_count = 0
     with open(run_folder + "user_list") as count_file:
@@ -52,7 +51,6 @@ def lookup_users(run_folder, screen_names, api, duplicate_users, not_found):
             id_file.write("%s\n" % id)                            # write to id file
    
 
-#def get_tweets(twitter_id, db, api, collection, empty_accounts, private_accounts, empty_users, private_users):
 def get_tweets(twitter_id, db, api, collection, empty_users, private_users):
 
     """acquire tweets from each user id number and store them in MongoDB"""
@@ -68,7 +66,6 @@ def get_tweets(twitter_id, db, api, collection, empty_users, private_users):
             alltweets.extend(new_tweets)
         except tweepy.TweepError as tweeperror:
             print(f"Not possible to acquire timeline of {twitter_id} : {tweeperror}")
-            #private_accounts += 1
             private_users.append(twitter_id)
     else:
         ## this user isn't in database: get <3200 tweets if possible
@@ -104,6 +101,7 @@ def get_tweets(twitter_id, db, api, collection, empty_users, private_users):
         except IndexError:
             print(f"User {twitter_id} has no tweets to insert.")
 
+
 def get_friends(twitter_id): ## get the "following" list for this user
     friend_list = []
     try:
@@ -116,7 +114,6 @@ def get_friends(twitter_id): ## get the "following" list for this user
             following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
     except: # make this more specific?
         print(f"Problem putting friends into MongoDB...")
-        #    print(*friend_list, sep='\n')
 
 
 def harvest(run_folder, db, api, collection, empty_users, private_users, not_found, duplicate_users):

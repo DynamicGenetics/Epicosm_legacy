@@ -7,7 +7,6 @@
   <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="144" height="112" /></a> 
   <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="144" height="112" /></a> 
 </p>
-# twongo
 
 #### A social media harvester integrated with MongoDB for data management.
 
@@ -50,13 +49,13 @@ Once these three files are ready, `Twongo_Docker_Launcher` can be run by double 
 If stopped, to restart your container, go to the folder with your files in, and run `./Twongo_Docker_Launcher` again, which will recognise that it is in a folder in which it has previously run.
 
 ### 1.2 Output and data
-Full content and metadata of all tweets is stored in MongoDB, in a database `twitter_db`, with two collections `tweets` which contains all json data and content of each tweet, and "following" which contains a list of all users that each user in your list are following. *MongoDB does not need to be installed on your computer*, all database activity happens in the container.
+Full content and metadata of all tweets is stored in MongoDB, in a database `twitter_db`, with two collections `tweets` which contains all json data and content of each tweet, and `following` which contains a list of all users that each user in your list are following. *MongoDB does not need to be installed on your computer*, all database activity happens in the container.
 The following collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter!*
 
-A refined CSV file is created, in the folder `./output/csv/`, which by default collects the user, the\
+A refined CSV file is created, in the folder `/output/csv/`, which by default collects the user, the\
 time of tweet, and the tweet content.
 
-A backup of the entire database is stored in `./output/twitter_db/`. If you have MongoDB installed,\
+A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed,\
 this can be restored with the command\
 `mongorestore [your name given to the database] [the path to the mongodump file]`\
 for example:\
@@ -73,14 +72,14 @@ The python3 script will also run independent of its docker container:\
 You must provide 2 files:
 1. a list of user screen names in a file called `user_list`.\
 The user list must be a plain text file, with a single username (twitter screen name) per line.
-2. Twitter API credentials will need to be supplied, by editing the file "credentials"\
-(further instructions inside file, `credentials.py`). You will need your own Twitter API\
+2. Twitter API credentials will need to be supplied, by editing the file `credentials.py`\
+(further instructions inside file). You will need your own Twitter API\
 credentials by having a developer account authorised by Twitter, and generating\
 the required codes. Please see Twitter documentation for how to do this.
 
 Please also see these further requirements.\
-1: Put all repository files and your user list into their own folder, and the script will try\
-to work out the paths for itself. The python script must be run from the folder it is in.
+1: Put all repository files and your user list into their own folder, and the script will\
+work out the paths for itself. The python script must be run from the folder it is in.
 
 2: MongoDB version 4 or higher will need to be installed. It does not need to be running,\
 the script will check MongoDB's status, and start it if it is not running.\

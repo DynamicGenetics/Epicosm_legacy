@@ -119,6 +119,6 @@ The following can be added to your command:\
                     in the database "twitter_db". This is normally disabled because requesting the\
                     friend list can be very demanding on the API and the run will be severely rate limited.
 
-### License
+### 3.0 License
 DynamicGenetics/twongo is licensed under the GNU General Public License v3.0\
-For full details, please see our [license](https://github.com/DynamicGenetics/twongo/LICENSE) file.
+For full details, please see our [license](https://github.com/DynamicGenetics/twongo/blob/master/LICENSE) file.

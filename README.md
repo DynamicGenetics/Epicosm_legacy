@@ -1,6 +1,6 @@
 
 <p align="center">
-   <a href="https://dynamicgenetics.org/"><img src="img/dynamic_genetics_banner.jpg"></a> 
+   <a href="https://dynamicgenetics.org/"><img src="img/dynamic_genetics.png"></a> 
 </p>
 <p align="right"> 
   <a href="https://www.python.org/"><img src="img/python_logo.png" width="144" height="112" /></a> 

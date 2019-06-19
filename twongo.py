@@ -11,6 +11,7 @@ import pymongo
 import logging
 import datetime
 import subprocess
+from zipfile import ZipFile
 
 import credentials
 from mongo_ops import start_mongo, stop_mongo, index_mongo
@@ -114,6 +115,9 @@ def export():
     print(f"\nBacking up the database...")
     subprocess.call([mongodump_executable_path, "-o", database_dump_path, "--host=127.0.0.1"])
     subprocess.call(["chmod", "-R", "0755", database_dump_path]) # hand back access permissions to host
+    # neither of these zip methods work inside docker and I have no idea why. both work outside.
+    #with ZipFile('db_logs.zip', 'w') as zip:
+     #   zip.write(run_folder + 'db_logs/')
     subprocess.call(['zip', '-jumq', run_folder + 'db_logs/db_logs.zip', run_folder] + glob.glob('db_logs/*.log'))
     subprocess.call(['zip', '-jumq', run_folder + 'twongo_logs/twongo_logs.zip', run_folder] + glob.glob('twongo_logs/*.log'))
     subprocess.call(['zip', '-jumq', run_folder + 'output/csv/csv.zip', run_folder] + glob.glob('output/csv/*.csv'))

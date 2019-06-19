@@ -13,17 +13,13 @@ import datetime
 import subprocess
 
 import credentials
-from mongo_ops import start_mongo, stop_mongo
+from mongo_ops import start_mongo, stop_mongo, index_mongo
 from twongo_status import status_up, status_down
 from twitter_ops import lookup_users, harvest
 
 
-## set up run variables
+## set up a few run variables
 start = time.time()
-not_found = []
-duplicate_users = []
-empty_users = []
-private_users = []
 now = datetime.datetime.now()
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
@@ -47,10 +43,6 @@ else:                               ## if IS in docker container
     twongo_log_filename = '/root/host_interface/twongo_logs/' + now.strftime('%H:%M:%S_%d-%m-%Y') + '.log'
     csv_filename = '/root/host_interface/output/csv/' + now.strftime('%H:%M:%S_%d-%m-%Y') + '.csv'
     database_dump_path = '/root/host_interface/output'
-if not os.path.exists(run_folder + "user_list.ids"):
-    first_run = 1
-else:
-    first_run = 0
 
 ## check if MongoDB is present and correct
 try:
@@ -105,14 +97,18 @@ if "--log" in sys.argv: # if --log given as argument, create a logfile for this 
 ## connect to Twitter API
 auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
 auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=5, retry_delay=5, timeout=15)
 try:
     api.verify_credentials()
 except tweepy.error.TweepError:
     print(f"The API credentials do not seem valid: connection to Twitter refused.")
     sys.exit()
 
-def export(): # export and backup the database
+def export():
+
+    """Export some fields from the tweets in MongoDB into a CSV file
+    , backup and compress the database"""
+
     print(f"\nCreating CSV output file...")
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print(f"\nBacking up the database...")
@@ -125,6 +121,7 @@ def export(): # export and backup the database
 ############
 ## run it ##
 ############
+
 if __name__ == "__main__":
 
     try:
@@ -132,10 +129,12 @@ if __name__ == "__main__":
         start_mongo(mongod_executable_path, db_path, db_log_filename)
         ## modify status file
         status_up(collection, status_file)
+        ## tidy up the database for better efficiency
+        index_mongo(run_folder, db)
         ## get persistent user ids from screen names
-        lookup_users(run_folder, screen_names, api, duplicate_users, not_found)
+        lookup_users(run_folder, screen_names, api)
         ## get tweets for each user and archive in mongodb
-        harvest(run_folder, db, api, collection, empty_users, private_users, duplicate_users, not_found)
+        harvest(run_folder, db, api, collection)
         ## create CSV ouput and backup mongodb
         export()
         ## modify status file
@@ -149,6 +148,6 @@ if __name__ == "__main__":
         print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
         with open(status_file, "w+") as status:
             status.write(f"Twongo is currently idle, but was interruped by user on last run.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
-        stop_mongo_daemon()
+        stop_mongo(client)
         sys.exit()
 

@@ -5,7 +5,6 @@
 import os
 import sys
 import time
-import glob
 import tweepy
 import pymongo
 import logging
@@ -108,19 +107,20 @@ except tweepy.error.TweepError:
 def export():
 
     """Export some fields from the tweets in MongoDB into a CSV file
-    , backup and compress the database"""
+    then backup and compress the database"""
 
     print(f"\nCreating CSV output file...")
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1", "--db", "twitter_db", "--collection", "tweets", "--type=csv", "--out", csv_filename, "--fields", "user.id_str,id_str,created_at,full_text"])
     print(f"\nBacking up the database...")
     subprocess.call([mongodump_executable_path, "-o", database_dump_path, "--host=127.0.0.1"])
     subprocess.call(["chmod", "-R", "0755", database_dump_path]) # hand back access permissions to host
-    # neither of these zip methods work inside docker and I have no idea why. both work outside.
-    #with ZipFile('db_logs.zip', 'w') as zip:
-     #   zip.write(run_folder + 'db_logs/')
-    subprocess.call(['zip', '-jumq', run_folder + 'db_logs/db_logs.zip', run_folder] + glob.glob('db_logs/*.log'))
-    subprocess.call(['zip', '-jumq', run_folder + 'twongo_logs/twongo_logs.zip', run_folder] + glob.glob('twongo_logs/*.log'))
-    subprocess.call(['zip', '-jumq', run_folder + 'output/csv/csv.zip', run_folder] + glob.glob('output/csv/*.csv'))
+    # zip everything up
+    with ZipFile(run_folder + 'db_logs.zip', 'w') as zip:
+        zip.write(run_folder + 'db_logs/') # should these three be combined into one? and should originals be removed?
+    with ZipFile(run_folder + 'twongo_logs.zip', 'w') as zip:
+        zip.write(run_folder + 'twongo_logs/')
+    with ZipFile(run_folder + 'output.zip', 'w') as zip:
+        zip.write(run_folder + 'output/')
 
 ############
 ## run it ##

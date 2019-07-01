@@ -3,11 +3,10 @@
    <a href="https://dynamicgenetics.org/"><img src="img/dynamic_genetics.png"></a> 
 </p>
 
-[![Build Status](https://travis-ci.com/altanner/twongo.svg?token=9HPZTDQLbUBqyFNBytob&branch=master)](https://travis-ci.com/altanner/twongo)
-![license](https://img.shields.io/badge/licence-GPL_3-green.svg)
-![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
-
 <p align="right"> 
+  [![Build Status](https://travis-ci.com/altanner/twongo.svg?token=9HPZTDQLbUBqyFNBytob&branch=master)](https://travis-ci.com/altanner/twongo)
+  ![license](https://img.shields.io/badge/licence-GPL_3-green.svg)
+  ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
   <a href="https://www.python.org/"><img src="img/python_logo.png" width="100" height="80" /></a> 
   <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="100" height="80" /></a> 
   <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 

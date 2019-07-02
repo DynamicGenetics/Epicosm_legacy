@@ -50,7 +50,12 @@ def lookup_users(run_folder, screen_names, api):
     # Write user codes to file.
     with open(run_folder + "user_list.ids", 'w') as id_file:
         for id in id_list:
-            id_file.write("%s\n" % id)                            # write to id file
+            id_file.write("%s\n" % id)
+
+    # Write non-found users to file.
+    with open(run_folder + "user_list.not_found", 'w') as not_found_file:
+        for not_found_user in not_found:
+            not_found_file.write("%s\n" % not_found_user)
    
 
 def get_tweets(run_folder, twitter_id, db, api, collection, empty_users, private_users):

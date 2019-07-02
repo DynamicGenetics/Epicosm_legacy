@@ -3,9 +3,8 @@ CONSUMER_SECRET = ''
 ACCESS_TOKEN = ''
 ACCESS_TOKEN_SECRET = ''
 
-# Please complete the four lines above with your API credentials,
-# with a space separating the description from the code.
-# For an example, see the lines below. (These are not functioning details.)
+# Please complete the four lines above with your API credentials between the quotes,
+# For an example, see the lines below. (These are not functioning credentials.)
 
 # CONSUMER_KEY = 'TRedt9JxtrTRRja32SssrhQpA'
 # CONSUMER_SECRET = '42YjficnUHDi3viaj77Jdheniw29utCCfrheojsnhDjBwjO129'

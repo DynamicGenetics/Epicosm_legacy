@@ -19,6 +19,14 @@ def lookup_users(run_folder, screen_names, api):
         for line in lines:
             if lines.count(line) > 1:
                 duplicate_users.append(line)
+    
+    # Write duplicate users to file.
+    if len(duplicate_users) > 0:
+        print(f"Info: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
+        with open(run_folder + "user_list.duplicates", 'w') as duplicate_file:
+            for duplicate in duplicate_users:
+                duplicate_file.write("%s\n" % duplicate)
+    
     print(f"Converting user screen names to persistent id numbers...")
     # Count the number of screen names in the input file
     non_blank_count = 0
@@ -53,9 +61,11 @@ def lookup_users(run_folder, screen_names, api):
             id_file.write("%s\n" % id)
 
     # Write non-found users to file.
-    with open(run_folder + "user_list.not_found", 'w') as not_found_file:
-        for not_found_user in not_found:
-            not_found_file.write("%s\n" % not_found_user)
+    if len(not_found) > 0:
+        print(f"Info: {len(set(not_found))} users were not found (see user_list.not_found)")
+        with open(run_folder + "user_list.not_found", 'w') as not_found_file:
+            for not_found_user in not_found:
+                not_found_file.write("%s\n" % not_found_user)
    
 
 def get_tweets(run_folder, twitter_id, db, api, collection, empty_users, private_users):
@@ -134,8 +144,6 @@ def harvest(run_folder, db, api, collection):
 
     empty_users = []
     private_users = []
-    not_found = []
-    duplicate_users = []
     ## generate user id list from user2id output file
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
     now = datetime.datetime.now()
@@ -146,18 +154,6 @@ def harvest(run_folder, db, api, collection):
 
             if '--getfriends' in sys.argv:
                 get_friends(twitter_id) ## this tends to rate limit, but tweet harvest doesn't (?!)
-
-        if len(duplicate_users) > 0: # if users are not found, put into missing user file
-            print(f"Info: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
-            with open(run_folder + "user_list.duplicates", 'w') as duplicate_user_file:
-                for duplicate_user in set(duplicate_users):
-                    duplicate_user_file.write("%s\n" % duplicate_user)    # write to missing user file
-
-        if len(not_found) > 0: # if users are not found, put into missing user file
-            print(f"Info: {len(not_found)} user names do not have accounts (see user_list.notfound)")
-            with open(run_folder + "user_list.notfound", 'w') as missing_user_file:
-                for missing_user in not_found:
-                    missing_user_file.write("%s\n" % missing_user)    # write to missing user file
 
         if len(empty_users) > 0: # if users are empty, put into empty users file
             print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")

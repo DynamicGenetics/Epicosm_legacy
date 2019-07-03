@@ -4,13 +4,13 @@
 </p>
 
   [![Build Status](https://travis-ci.com/altanner/twongo.svg?token=9HPZTDQLbUBqyFNBytob&branch=master)](https://travis-ci.com/altanner/twongo)
-  ![license](https://img.shields.io/badge/licence-GPL_3-green.svg)
+  [![GPLv3 license](https://img.shields.io/badge/licence-GPL_v3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 
-<p align="right"> 
-  <a href="https://www.python.org/"><img src="img/python_logo.png" width="100" height="80" /></a> 
-  <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="100" height="80" /></a> 
-  <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 
+<p align="left">
+<a href="https://www.python.org/"><img src="img/python_logo.png" width="100" height="80" /></a> 
+<a href="https://www.docker.com/"><img src="img/docker_logo.png" width="100" height="80" /></a> 
+<a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 
 </p>
 
 #### A social media harvester integrated with MongoDB for data management.

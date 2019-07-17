@@ -9,7 +9,7 @@
 <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 
 </p>
 
-  [![Build Status](https://travis-ci.com/altanner/twongo.svg?token=9HPZTDQLbUBqyFNBytob&branch=master)](https://travis-ci.com/altanner/twongo)
+  [![Build Status](https://travis-ci.com/altanner/Epicosm.svg?token=9HPZTDQLbUBqyFNBytob&branch=master)](https://travis-ci.com/altanner/Epicosm)
   [![GPLv3 license](https://img.shields.io/badge/licence-GPL_v3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 
@@ -18,10 +18,10 @@
 ## Instructions in a nutshell
 #### 1. Install Docker.
 #### 2. Put these three files into a folder:
-  * Twongo_Docker_Launcher (provided here),
+  * Epicosm_Launcher (provided here),
   * Twitter credentials file (provided here, but complete with your own Twitter access keys),  
   * and your user_list (supplied by you: one screen name per line, plain text file).
-#### 3. Run Twongo_Docker_Launcher by double clicking it, or run it in your terminal/command line.
+#### 3. Run Epicosm_Launcher by double clicking it, or run it in your terminal/command line.
 
 ## Contents
 #### 0.1 What does it do?  
@@ -33,25 +33,25 @@
 #### 3.0 License
 
 ### 0.1 What does it do?
-Twongo is a Twitter harvester. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
+Epicosm is a Twitter harvester. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
 
-Twongo runs in a Docker "container" - this is similar to a virtual machine, where a computer emulates another operating system within itself. Data is sent back onto the main "host" computer for the user to access. This approach means users do not need to install anything other than Docker, running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience.
+Epicosm runs in a Docker "container" - this is similar to a virtual machine, where a computer emulates another operating system within itself. Data is sent back onto the main "host" computer for the user to access. This approach means users do not need to install anything other than Docker, running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience.
 
 
 ### 1.1 Running with Docker
 
-This is the usual way of running. Twongo's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
+This is the usual way of running. Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
 
-To run within a docker container, save the file `Twongo_Docker_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon).
+To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon).
 
-You must provide 2 further files in the folder with `Twongo_Docker_Launcher`:
+You must provide 2 further files in the folder with `Epicosm_Launcher`:
 1. a list of user screen names in a file called `user_list`.\
 The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials. Please see the file in this repository for a template of this file.\
 This file must be called `credentials.py`. You will need your own Twitter API credentials by having a developer account authorised by Twitter. Please see [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this. Be aware that file names are case sensitive.
 
-Once these three files are ready, `Twongo_Docker_Launcher` can be run by double clicking it, (you might need to provide permission), or it can be run on the command line: `./Twongo_Docker_Launcher` and you will be guided through the process. Once complete, a docker container will be permanently running, and the status of this can be seen using the command.`docker ps`. Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
-If stopped, to restart your container, go to the folder with your files in, and run `./Twongo_Docker_Launcher` again, which will recognise that it is in a folder in which it has previously run.
+Once these three files are ready, `Epicosm_Launcher` can be run by double clicking it, (you might need to provide permission), or it can be run on the command line: `./Epicosm_Launcher` and you will be guided through the process. Once complete, a docker container will be permanently running, and the status of this can be seen using the command.`docker ps`. Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
+If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run.
 
 ### 1.2 Output and data
 Full content and metadata of all tweets is stored in MongoDB, in a database `twitter_db`, with two collections `tweets` which contains all json data and content of each tweet, and `following` which contains a list of all users that each user in your list are following. *MongoDB does not need to be installed on your computer*, all database activity happens in the container.
@@ -72,7 +72,7 @@ a 3rd-party piece of software. Of free options, we find that [Robo 3T](https://r
 ### 2.1 Running the python script independent of Docker
 This repository is the python code running in the docker container (URL to be confirmed).\
 The python3 script will also run independent of its docker container:\
-`python3 twongo.py`
+`python3 epicosm.py`
 
 You must provide 2 files:
 1. a list of user screen names in a file called `user_list`.\
@@ -117,7 +117,7 @@ for example:\
 
 ### 2.3 Optional parameters  
 The following can be added to your command:\
-`--log`           Create a logfile of all output from the harvest run, in /twongo_logs\
+`--log`           Create a logfile of all output from the harvest run, in /epicosm_logs\
 `--refresh`       Refresh the user list (if you want to modify the list of users to harvest\
                     from, replace your file "user_list", and run with -r so that this is refreshed)\
 `--getfriends`    Gather friend list. This list will go into the MongoDB collection "friends",\
@@ -125,5 +125,5 @@ The following can be added to your command:\
                     friend list can be very demanding on the API and the run will be severely rate limited.
 
 ### 3.0 License
-DynamicGenetics/twongo is licensed under the GNU General Public License v3.0\
-For full details, please see our [license](https://github.com/DynamicGenetics/twongo/blob/master/LICENSE) file.
+DynamicGenetics/Epicosm is licensed under the GNU General Public License v3.0\
+For full details, please see our [license](https://github.com/DynamicGenetics/Epicosm/blob/master/LICENSE) file.

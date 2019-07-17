@@ -1,6 +1,6 @@
-###########################################################################################
-## twongo.py - Al Tanner, Feb2019 - a twitter havester using MongoDB for data management ##
-###########################################################################################
+#########################################################################################
+## epicosm.py - Al Tanner, 2019 - a twitter havester using MongoDB for data management ##
+#########################################################################################
 
 import os
 import sys
@@ -14,7 +14,7 @@ from zipfile import ZipFile
 
 import credentials
 from mongo_ops import start_mongo, stop_mongo, index_mongo
-from twongo_status import status_up, status_down
+from epicosm_status import status_up, status_down
 from twitter_ops import lookup_users, harvest
 
 
@@ -33,14 +33,14 @@ if not os.path.exists('/.dockerenv'):   ## if not in docker container
     db_log_filename = '/'.join([run_folder, 'db_logs', now.strftime('%H:%M:%S_%d-%m-%Y') + '.log'])
     db_path = run_folder + '/db'
     csv_filename = run_folder + '/output/csv/' + now.strftime('%H:%M:%S_%d-%m-%Y') + ".csv"
-    twongo_log_filename = '/'.join([run_folder, 'twongo_logs', now.strftime('%H:%M:%S_%d-%m-%Y') + '.log'])
+    epicosm_log_filename = '/'.join([run_folder, 'epicosm_logs', now.strftime('%H:%M:%S_%d-%m-%Y') + '.log'])
     database_dump_path = run_folder + '/output'
 else:                               ## if IS in docker container
     run_folder = '/root/host_interface/'
     status_file = '/root/host_interface/STATUS'
     db_log_filename = '/root/host_interface/db_logs/' + now.strftime('%H:%M:%S_%d-%m-%Y') + '.log'
     db_path = '/root/host_interface/db'
-    twongo_log_filename = '/root/host_interface/twongo_logs/' + now.strftime('%H:%M:%S_%d-%m-%Y') + '.log'
+    epicosm_log_filename = '/root/host_interface/epicosm_logs/' + now.strftime('%H:%M:%S_%d-%m-%Y') + '.log'
     csv_filename = '/root/host_interface/output/csv/' + now.strftime('%H:%M:%S_%d-%m-%Y') + '.csv'
     database_dump_path = '/root/host_interface/output'
 
@@ -76,21 +76,21 @@ if not os.path.exists(run_folder + "/db"):
 if not os.path.exists(run_folder + "/db_logs"):
     print(f"DB log folder seems absent, creating folder...")
     os.makedirs(run_folder + "/db_logs")
-if not os.path.exists(run_folder + "/twongo_logs"):
-    print(f"Twongo log folder seems absent, creating folder...")
-    os.makedirs(run_folder + "/twongo_logs")
+if not os.path.exists(run_folder + "/epicosm_logs"):
+    print(f"Epicosm log folder seems absent, creating folder...")
+    os.makedirs(run_folder + "/epicosm_logs")
 
 ## Set up logging
 if "--log" in sys.argv: # if --log given as argument, create a logfile for this run
     logging.basicConfig(
-        filename = twongo_log_filename,
+        filename = epicosm_log_filename,
         level=logging.INFO,
         format='',
         datefmt='%m/%d/%Y %I:%M:%S',)
     logger = logging.getLogger()
     print = logger.info
-#    sys.stdout = open(twongo_log_filename, "a")
-#    log = open(run_folder + '/twongo_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
+#    sys.stdout = open(epicosm_log_filename, "a")
+#    log = open(run_folder + '/epicosm_logs/' + now.strftime('%Y-%m-%d_%H:%M:%S') + '.log', "a")
  #   sys.stdout = log # all print debugs to logfile
   #  sys.stderr = log # all stderr to logfile
 
@@ -117,8 +117,8 @@ def export():
     # zip everything up
     with ZipFile(run_folder + 'db_logs.zip', 'w') as zip:
         zip.write(run_folder + 'db_logs/') # should these three be combined into one? and should originals be removed?
-    with ZipFile(run_folder + 'twongo_logs.zip', 'w') as zip:
-        zip.write(run_folder + 'twongo_logs/')
+    with ZipFile(run_folder + 'epicosm_logs.zip', 'w') as zip:
+        zip.write(run_folder + 'epicosm_logs/')
     with ZipFile(run_folder + 'output.zip', 'w') as zip:
         zip.write(run_folder + 'output/')
 
@@ -146,12 +146,12 @@ if __name__ == "__main__":
         ## shut down mongodb
         stop_mongo(client)
 
-        print(f"\nAll done, twongo finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
+        print(f"\nAll done, Epicosm finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
     except KeyboardInterrupt:
         print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
         with open(status_file, "w+") as status:
-            status.write(f"Twongo is currently idle, but was interruped by user on last run.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
+            status.write(f"Epicosm is currently idle, but was interruped by user on last run.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
         stop_mongo(client)
         sys.exit()
 

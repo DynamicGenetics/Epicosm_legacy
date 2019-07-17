@@ -40,7 +40,7 @@ echo "_.~^~._.~^~._.~^  Epicosm Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## If first run, get Docker image from dockerhub.
 printf "\nChecking for updates... "
-if ! docker images | grep -q altanner/twongo; then # this breaks on centos unless the whole script is sudo. adding sudo here doesn't help. why? no idea.
+if ! docker images | grep -q altanner/epicosm; then # this breaks on centos unless the whole script is sudo. adding sudo here doesn't help. why? no idea.
     echo "It looks like your first run on this system.";
     echo "Download may take a few minutes, depending on connection speed.";
     read -p "Should I continue? (y/n): " download_reply;
@@ -52,7 +52,7 @@ if ! docker images | grep -q altanner/twongo; then # this breaks on centos unles
         exit 0;
     fi
 fi
-docker pull altanner/twongo:latest;
+docker pull altanner/epicosm:latest;
 
 ## Ask user how often to harvest.
 read -p "How often would you like to harvest (in hours)? " frequency;
@@ -81,9 +81,9 @@ echo "If prompted, enter your password for this system to confirm Docker launch"
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then
-    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "cp /root/host_interface/credentials.py /twongo; /usr/bin/python3 /twongo/twongo.py $refresh --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /twongo/twongo.py --log; sleep $frequency_in_seconds; done";
+    sudo docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /epicosm/epicosm.py --log; sleep $frequency_in_seconds; done";
 else  ## If not refreshing, just harvest, wait and loop.
-    sudo docker run -d -v $PWD:/root/host_interface/ altanner/twongo:latest /bin/bash -c "cp /root/host_interface/credentials.py /twongo; while true; do /usr/bin/python3 /twongo/twongo.py $refresh --log; sleep $frequency_in_seconds; done";
+    sudo docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; while true; do /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; done";
 fi
 
 ## I guess I could send this to devnull, but there might be important output here on error...
@@ -104,7 +104,7 @@ printf "\n_.~^~._.~^~._.~^~  ok, container launched  .~^~._.~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: sudo docker stop $container_name";
 printf "\nTo see your active containers: sudo docker ps";
-printf "\nFor more information, see log files in ./twongo_logs\n\n";
+printf "\nFor more information, see log files in ./epicosm_logs\n\n";
 echo $frequency > $PWD/.frequency
 
 ## If double-clicking icon, leave window open so users can see what happened.

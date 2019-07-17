@@ -1,6 +1,6 @@
 #!/bin/bash
-## Docker container starter for twongo.py, Al Tanner, April 2019
-## For full details see https://github.com/DynamicGenetics/twongo
+## Docker container starter for Epicosm
+## For full details see https://github.com/DynamicGenetics/Epicosm
 
 ## Move to the working directory (needed if run from GUI)
 cd -- "$(dirname -- "$BASH_SOURCE")"
@@ -34,9 +34,9 @@ if [ ! -f $PWD/credentials.py ] || [ ! -f $PWD/user_list ]; then
     exit 1;
 fi
 
-echo "_.~^~._.~^~._.~^  dockerhub.com/altanner/twongo  .~^~._.~^~._.~^~.";
-echo "_.~^~._.~^~._.  github.com/DynamicGenetics/twongo  ^~._.~^~._.~^~.";
-echo "_.~^~._.~^~._.~^  Twongo Docker Container Runner  ~^~._.~^~._.~^~.";
+echo "_.~^~._.~^~._.~^  dockerhub.com/altanner/Epicosm  .~^~._.~^~._.~^~.";
+echo "_.~^~._.~^~._.  github.com/DynamicGenetics/Epicosm  ^~._.~^~._.~^~.";
+echo "_.~^~._.~^~._.~^  Epicosm Docker Container Runner  ~^~._.~^~._.~^~.";
 
 ## If first run, get Docker image from dockerhub.
 printf "\nChecking for updates... "
@@ -62,7 +62,7 @@ done;
 
 ## Look for a previous run - user may want to refresh their list of users.
 if [ -f $PWD/STATUS ]; then
-    echo "It looks like twongo has run in this folder previously.";
+    echo "It looks like Epicosm has run in this folder previously.";
     read -p "Do you want to refresh your user_list? (y/n): " refresh_reply;
     while ! [[ "$refresh_reply" =~ ^[yn]$ ]]; do
         read -p "(y/n): " refresh_reply;
@@ -76,7 +76,7 @@ fi
 frequency_in_seconds=$(($frequency*3600))
 ## How many users does it look like?
 number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//')
-echo "OK, twongo starting, harvesting from $number_of_users users, once every $frequency hours.";
+echo "OK, Epicosm starting, harvesting from $number_of_users users, once every $frequency hours.";
 echo "If prompted, enter your password for this system to confirm Docker launch";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.

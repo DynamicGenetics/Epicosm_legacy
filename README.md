@@ -42,7 +42,7 @@ Epicosm runs in a Docker "container" - this is similar to a virtual machine, whe
 
 This is the usual way of running. Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
 
-To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon).
+To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon). The image repo is hub.docker.com/r/altanner/epicosm.
 
 You must provide 2 further files in the folder with `Epicosm_Launcher`:
 1. a list of user screen names in a file called `user_list`.\

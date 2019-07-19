@@ -13,7 +13,7 @@
   [![GPLv3 license](https://img.shields.io/badge/licence-GPL_v3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 
-#### A social media harvester integrated with MongoDB for data management.
+#### An epidemiology & cohort study social media harvester integrated with MongoDB.
 
 ## Instructions in a nutshell
 #### 1. Install Docker.

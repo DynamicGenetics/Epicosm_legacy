@@ -49,7 +49,7 @@ def stop_mongo(client):
         time.sleep(1)
         timeout -= 1
     if timeout == 0:
-        print(f'MongoDB didn\'t respond to requests to close... be aware that MongoDB is still running.')
+        print(f'\nMongoDB didn\'t respond to requests to close... be aware that MongoDB is still running.')
 
 
 def index_mongo(run_folder, db):  # tidy up the database

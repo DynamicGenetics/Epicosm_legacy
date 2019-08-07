@@ -1,8 +1,8 @@
-STATUS
-credentials.py
-/db
-/db_logs
-/epicosm_logs
-/output
-/__pycache__
-user_list*
+/STATUS
+/credentials.py
+db
+db_logs
+epicosm_logs
+output
+__pycache__
+/user_list*

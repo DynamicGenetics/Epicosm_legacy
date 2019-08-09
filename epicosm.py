@@ -14,10 +14,6 @@ from zipfile import ZipFile
 
 import credentials
 from modules import mongo_ops, epicosm_status, twitter_ops
-#from mongo_ops import start_mongo, stop_mongo, index_mongo
-#from epicosm_status import status_up, status_down
-#from twitter_ops import lookup_users, harvest
-
 
 ## set up a few run variables
 start = time.time()

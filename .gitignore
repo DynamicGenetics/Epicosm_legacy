@@ -1,8 +1,10 @@
 /STATUS
+/frequency
 /credentials.py
+/user_list*
+/*~
 db
 db_logs
 epicosm_logs
 output
 __pycache__
-/user_list*

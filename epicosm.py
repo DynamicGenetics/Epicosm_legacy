@@ -13,9 +13,10 @@ import subprocess
 from zipfile import ZipFile
 
 import credentials
-from mongo_ops import start_mongo, stop_mongo, index_mongo
-from epicosm_status import status_up, status_down
-from twitter_ops import lookup_users, harvest
+from modules import mongo_ops, epicosm_status, twitter_ops
+#from mongo_ops import start_mongo, stop_mongo, index_mongo
+#from epicosm_status import status_up, status_down
+#from twitter_ops import lookup_users, harvest
 
 
 ## set up a few run variables
@@ -115,12 +116,12 @@ def export():
     subprocess.call([mongodump_executable_path, "-o", database_dump_path, "--host=127.0.0.1"])
     subprocess.call(["chmod", "-R", "0755", database_dump_path]) # hand back access permissions to host
     # zip everything up
-    with ZipFile(run_folder + 'db_logs.zip', 'w') as zip:
-        zip.write(run_folder + 'db_logs/') # should these three be combined into one? and should originals be removed?
-    with ZipFile(run_folder + 'epicosm_logs.zip', 'w') as zip:
-        zip.write(run_folder + 'epicosm_logs/')
-    with ZipFile(run_folder + 'output.zip', 'w') as zip:
-        zip.write(run_folder + 'output/')
+#    with ZipFile(run_folder + 'db_logs.zip', 'w') as zip:
+#        zip.write(run_folder + 'db_logs/') # should these three be combined into one? and should originals be removed?
+#    with ZipFile(run_folder + 'epicosm_logs.zip', 'w') as zip:
+#        zip.write(run_folder + 'epicosm_logs/')
+#    with ZipFile(run_folder + 'output.zip', 'w') as zip:
+#        zip.write(run_folder + 'output/')
 
 ############
 ## run it ##
@@ -130,21 +131,21 @@ if __name__ == "__main__":
 
     try:
         ## check/start mongodb
-        start_mongo(mongod_executable_path, db_path, db_log_filename)
+        mongo_ops.start_mongo(mongod_executable_path, db_path, db_log_filename)
         ## modify status file
-        status_up(collection, status_file)
+        epicosm_status.status_up(collection, status_file)
         ## tidy up the database for better efficiency
-        index_mongo(run_folder, db)
+        mongo_ops.index_mongo(run_folder, db)
         ## get persistent user ids from screen names
-        lookup_users(run_folder, screen_names, api)
+        twitter_ops.lookup_users(run_folder, screen_names, api)
         ## get tweets for each user and archive in mongodb
-        harvest(run_folder, db, api, collection)
+        twitter_ops.harvest(run_folder, db, api, collection)
         ## create CSV ouput and backup mongodb
         export()
         ## modify status file
-        status_down(collection, status_file, run_folder)
+        epicosm_status.status_down(collection, status_file, run_folder)
         ## shut down mongodb
-        stop_mongo(client)
+        mongo_ops.stop_mongo(client)
 
         print(f"\nAll done, Epicosm finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 

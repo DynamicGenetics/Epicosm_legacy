@@ -114,22 +114,12 @@ auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET
 auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=5, retry_delay=5, timeout=15)
 try:
-    print(f"Verifying credentials...")
+    print(f"Verifying Twitter credentials...")
     api.verify_credentials(retry_count=3, retry_delay=5)
 except tweepy.error.TweepError:
     print(f"The API credentials do not seem valid: connection to Twitter refused.")
     sys.exit()
 
-def export():
-
-    """Export some fields from the tweets in MongoDB into a CSV file
-    then backup and compress the database"""
-
-    print(f"\nCreating CSV output file...")
-    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,full_text'])
-    print(f'\nBacking up the database...')
-    subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'])
-    subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back access permissions to host
 
 ############
 ## run it ##
@@ -139,19 +129,33 @@ if __name__ == '__main__':
 
     try:
         ## check/start mongodb
-        mongo_ops.start_mongo(mongod_executable_path, db_path, db_log_filename)
+        mongo_ops.start_mongo(mongod_executable_path,
+                              db_path, 
+                              db_log_filename)
         ## modify status file
-        epicosm_status.status_up(collection, status_file)
+        epicosm_status.status_up(collection,
+                                 status_file)
         ## tidy up the database for better efficiency
-        mongo_ops.index_mongo(run_folder, db)
+        mongo_ops.index_mongo(run_folder,
+                              db)
         ## get persistent user ids from screen names
-        twitter_ops.lookup_users(run_folder, screen_names, api)
+        twitter_ops.lookup_users(run_folder,
+                                 screen_names,
+                                 api)
         ## get tweets for each user and archive in mongodb
-        twitter_ops.harvest(run_folder, db, api, collection)
+        twitter_ops.harvest(run_folder,
+                            db,
+                            api,
+                            collection)
         ## create CSV ouput and backup mongodb
-        export()
+        mongo_ops.export_and_backup(mongoexport_executable_path,
+                                    mongodump_executable_path,
+                                    database_dump_path,
+                                    csv_filename)
         ## modify status file
-        epicosm_status.status_down(collection, status_file, run_folder)
+        epicosm_status.status_down(collection,
+                                   status_file,
+                                   run_folder)
         ## shut down mongodb
         mongo_ops.stop_mongo(client)
 

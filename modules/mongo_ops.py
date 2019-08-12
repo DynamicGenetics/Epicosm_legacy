@@ -60,3 +60,17 @@ def index_mongo(run_folder, db):  # tidy up the database
         return
     print(f"\nIndexing MongoDB...")
     db.tweets.create_index([('id_str', pymongo.ASCENDING)], unique=True, dropDups=True)
+
+
+def export_and_backup(mongoexport_executable_path, mongodump_executable_path, database_dump_path, csv_filename):
+
+    """Export some fields from the tweets in MongoDB into a CSV file
+    then backup and compress the database"""
+
+    print(f"\nCreating CSV output file...")
+    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,full_text'])
+#    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,retweeted_status.full_text,full_text'])
+    print(f'\nBacking up the database...')
+    subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'])
+    subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back access permissions to host
+

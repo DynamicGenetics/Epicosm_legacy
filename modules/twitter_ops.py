@@ -4,7 +4,6 @@ import sys
 import pymongo
 import tweepy
 
-
 def lookup_users(run_folder, screen_names, api):
 
     """convert twitter screen names into persistent id numbers"""

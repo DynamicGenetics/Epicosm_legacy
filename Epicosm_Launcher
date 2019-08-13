@@ -81,16 +81,16 @@ echo "If prompted, enter your password for this system to confirm Docker launch"
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then
-    sudo docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
+    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
 else  ## If not refreshing, just harvest, wait and loop.
-    sudo docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; while true; do /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; done" 1>/dev/null;
+    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; while true; do /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; done" 1>/dev/null;
 fi
 
 echo "Starting the Epicosm docker container...";
 
 ## Wait for docker to assign a name to the running container
 while [ -z "$container_name" ]; do
-    container_name=$(sudo docker ps | sed -n 2p | awk 'END {print $NF}');
+    container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
     sleep 0.2;
 done
 
@@ -98,8 +98,8 @@ done
 ## Report that things are up. Docker should error above if things went wrong.
 printf "\n.~^~._.~^~._.~^~  ok, container launched  ~^~._.~^~._.~^~.\n";
 printf "\nDocker assigned your container the name \"$container_name\"";
-printf "\nTo end the process, run this command: sudo docker stop $container_name";
-printf "\nTo see your active containers: sudo docker ps";
+printf "\nTo end the process, run this command: docker stop $container_name";
+printf "\nTo see your active containers: docker ps";
 printf "\nFor more information, see log files in ./epicosm_logs\n\n";
 echo $frequency > $PWD/.frequency
 

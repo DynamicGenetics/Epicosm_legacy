@@ -2,14 +2,19 @@
 ## Docker container starter for Epicosm
 ## For full details see https://github.com/DynamicGenetics/Epicosm
 
+if [ `whoami` != root ]; then
+    printf "Epicosm must be run as root, or using sudo.\n";
+    exit;
+fi
+
 ## Move to the working directory (needed if run from GUI)
 cd -- "$(dirname -- "$BASH_SOURCE")"
 
 ## Deal with control-c interrupt
 trap ctrl_c INT
 function ctrl_c() {
-        echo;
-        exit 0;
+    printf "\nEpicosm aborted by user.\n";
+    exit 0;
 }
 
 ## Check if docker is running on system.
@@ -18,8 +23,8 @@ docker_exit_code=$?;
 if [[ $docker_exit_code != 0 ]]; then 
     if ! pgrep -x "docker" > /dev/null; then
         if ! pgrep -x "dockerd" > /dev/null; then
-            echo "Docker doesn't appear to be running here.";
-            echo "Please start Docker and try again. Exiting.";
+            printf "Docker doesn't appear to be running here.\n";
+            printf "Please start Docker and try again. Exiting.\n";
             read -p "(Press enter to close.)";
             exit 1;
         fi
@@ -28,21 +33,23 @@ fi
 
 ## Check if required files are in the working directory.
 if [ ! -f $PWD/credentials.py ] || [ ! -f $PWD/user_list ]; then
-    echo "Your credentials file and/or user_list don't appear to be here.";
-    echo "Please have your credentials file and user_list in this run folder.";
+    printf "Your credentials.py file and/or user_list don't appear to be here.\n";
+    printf "Please have your credentials file and user_list in this run folder.\n";
     read -p "(Press enter to close.)";
     exit 1;
 fi
 
-echo "_.~^~._.~^~._.~^  dockerhub.com/altanner/Epicosm  .~^~._.~^~._.~^~.";
-echo "_.~^~._.~^~._.  github.com/DynamicGenetics/Epicosm  ^~._.~^~._.~^~.";
-echo "_.~^~._.~^~._.~^  Epicosm Docker Container Runner  ~^~._.~^~._.~^~.";
+printf "==================================\n"
+printf "Epicosm Docker Container Runner\n";
+printf "dockerhub.com/altanner/Epicosm\n";
+printf "github.com/DynamicGenetics/Epicosm\n";
+printf "==================================\n";
 
 ## If first run, get Docker image from dockerhub.
 printf "\nChecking for updates... "
 if ! docker images | grep -q altanner/epicosm; then # this breaks on centos unless the whole script is sudo. adding sudo here doesn't help.
-    echo "It looks like your first run on this system.";
-    echo "Download may take a few minutes, depending on connection speed.";
+    printf "It looks like your first run on this system.\n";
+    printf "Download may take a few minutes, depending on connection speed.\n";
     read -p "Should I continue? (y/n): " download_reply;
     while ! [[ "$download_reply" =~ ^[yn]$ ]]; do
         read -p "(y/n): " download_reply;
@@ -62,7 +69,7 @@ done;
 
 ## Look for a previous run - user may want to refresh their list of users.
 if [ -f $PWD/STATUS ]; then
-    echo "It looks like Epicosm has run in this folder previously.";
+    printf "It looks like Epicosm has run in this folder previously.\n";
     read -p "Do you want to refresh your user_list? (y/n): " refresh_reply;
     while ! [[ "$refresh_reply" =~ ^[yn]$ ]]; do
         read -p "(y/n): " refresh_reply;
@@ -73,11 +80,10 @@ if [[ $refresh_reply = "y" ]]; then
 fi
 
 ## How long between harvest in seconds.
-frequency_in_seconds=$(($frequency*3600))
+frequency_in_seconds=$(($frequency*3600));
 ## How many users does it look like?
-number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//')
-echo "OK, Epicosm starting, harvesting from $number_of_users users, once every $frequency hours.";
-echo "If prompted, enter your password for this system to confirm Docker launch";
+number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//');
+printf "OK, Epicosm starting, harvesting from $number_of_users users, once every $frequency hours.\n";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
 if [[ $refresh_reply = "y" ]]; then
@@ -86,17 +92,8 @@ else  ## If not refreshing, just harvest, wait and loop.
     docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; while true; do /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; done" 1>/dev/null;
 fi
 
-echo "Starting the Epicosm docker container...";
-
-## Wait for docker to assign a name to the running container
-while [ -z "$container_name" ]; do
-    container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
-    sleep 0.2;
-done
-
-
 ## Report that things are up. Docker should error above if things went wrong.
-printf "\n.~^~._.~^~._.~^~  ok, container launched  ~^~._.~^~._.~^~.\n";
+container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
 printf "\nDocker assigned your container the name \"$container_name\"";
 printf "\nTo end the process, run this command: docker stop $container_name";
 printf "\nTo see your active containers: docker ps";

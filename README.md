@@ -16,12 +16,12 @@
 #### An epidemiology & cohort study social media harvester integrated with MongoDB.
 
 ## Instructions in a nutshell
-#### 1. Install Docker.
+#### 1. Install [Docker](https://docs.docker.com/install/).
 #### 2. Put these three files into a folder:
   * Epicosm_Launcher (provided here),
   * Twitter credentials file (provided here, but complete with your own Twitter access keys),  
   * and your user_list (supplied by you: one screen name per line, plain text file).
-#### 3. Run Epicosm_Launcher terminal/command line: `sudo ./Epicosm_Launcher` (docker needs root privileges).
+#### 3. Run Epicosm_Launcher on terminal/command line: `sudo ./Epicosm_Launcher` (docker needs root privileges).
 
 ## Contents
 #### 0.1 What does it do?  

@@ -39,6 +39,7 @@ if [ ! -f $PWD/credentials.py ] || [ ! -f $PWD/user_list ]; then
     exit 1;
 fi
 
+## Intro message
 printf "==================================\n"
 printf "Epicosm Docker Container Runner\n";
 printf "dockerhub.com/altanner/Epicosm\n";
@@ -46,7 +47,6 @@ printf "github.com/DynamicGenetics/Epicosm\n";
 printf "==================================\n";
 
 ## If first run, get Docker image from dockerhub.
-printf "\nChecking for updates... "
 if ! docker images | grep -q altanner/epicosm; then # this breaks on centos unless the whole script is sudo. adding sudo here doesn't help.
     printf "It looks like your first run on this system.\n";
     printf "Download may take a few minutes, depending on connection speed.\n";
@@ -59,6 +59,9 @@ if ! docker images | grep -q altanner/epicosm; then # this breaks on centos unle
         exit 0;
     fi
 fi
+
+## Check for updates and pull if necessary
+printf "\nChecking for updates... "
 docker pull altanner/epicosm:latest;
 
 ## Ask user how often to harvest.
@@ -67,7 +70,7 @@ while ! [[ "$frequency" =~ ^[0-9]+$ ]]; do
     read -p "Please enter a valid number of hours between harvests: " frequency;
 done;
 
-## Look for a previous run - user may want to refresh their list of users.
+## Look for a previous run - ask if user wants to refresh their list of users.
 if [ -f $PWD/STATUS ]; then
     printf "It looks like Epicosm has run in this folder previously.\n";
     read -p "Do you want to refresh your user_list? (y/n): " refresh_reply;
@@ -81,8 +84,11 @@ fi
 
 ## How long between harvest in seconds.
 frequency_in_seconds=$(($frequency*3600));
+
 ## How many users does it look like?
 number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//');
+
+## Confirm start
 printf "OK, Epicosm starting, harvesting from $number_of_users users, once every $frequency hours.\n";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
@@ -94,12 +100,13 @@ fi
 
 ## Report that things are up. Docker should error above if things went wrong.
 container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
-printf "\nDocker assigned your container the name \"$container_name\"";
-printf "\nTo end the process, run this command: docker stop $container_name";
-printf "\nTo see your active containers: docker ps";
-printf "\nFor more information, see log files in ./epicosm_logs\n\n";
+printf "\nDocker assigned your container the name:    $container_name";
+printf "\nTo end the process, run this command:       docker stop $container_name";
+printf "\nTo see your active containers:              docker ps";
+printf "\nFor the current status of your process:     cat STATUS";
+printf "\nFor more information, see log files in:     /epicosm_logs\n\n";
 echo $frequency > $PWD/.frequency
 
-## If double-clicking icon, leave window open so users can see what happened.
+## Outro message.
 read -p "Press enter to exit(!) - (your container will continue running)"
 

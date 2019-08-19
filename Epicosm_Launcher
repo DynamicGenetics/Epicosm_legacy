@@ -40,7 +40,7 @@ if [ ! -f $PWD/credentials.py ] || [ ! -f $PWD/user_list ]; then
 fi
 
 ## Intro message
-printf "==================================\n"
+printf "\n==================================\n"
 printf "Epicosm Docker Container Runner\n";
 printf "dockerhub.com/altanner/Epicosm\n";
 printf "github.com/DynamicGenetics/Epicosm\n";
@@ -103,10 +103,11 @@ container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
 printf "\nDocker assigned your container the name:    $container_name";
 printf "\nTo end the process, run this command:       docker stop $container_name";
 printf "\nTo see your active containers:              docker ps";
-printf "\nFor the current status of your process:     cat STATUS";
+printf "\nCurrent status of your process:             cat STATUS";
+printf "\nCSV output files are in:                    /output/csv";
 printf "\nFor more information, see log files in:     /epicosm_logs\n\n";
 echo $frequency > $PWD/.frequency
 
 ## Outro message.
-read -p "Press enter to exit(!) - (your container will continue running)"
+read -p "Press enter to exit(!) - (your container will continue running)\n"
 

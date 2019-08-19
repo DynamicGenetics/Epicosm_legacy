@@ -46,7 +46,7 @@ You must provide 2 further files in the folder with `Epicosm_Launcher`:
 1. a list of user screen names in a file called `user_list`.\
 The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials. Please see the file in this repository for a template of this file.\
-This file must be called `credentials.py`. You will need your own Twitter API credentials by having a developer account authorised by Twitter. Please see [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this. Be aware that file names are case sensitive.
+This file must be called `credentials.py`. You will need your own Twitter API credentials by having a developer account authorised by Twitter. Please see our [own guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter Authorisation Doc.pdf), and there is further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this. Be aware that file names are case sensitive.
 
 Once these three files are ready, `Epicosm_Launcher` can be run by double clicking it, (you might need to provide permission), or it can be run on the command line: `./Epicosm_Launcher` and you will be guided through the process. Once complete, a docker container will be permanently running, and the status of this can be seen using the command.`docker ps`. Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
 If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run.

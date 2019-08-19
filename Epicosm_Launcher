@@ -109,5 +109,7 @@ printf "\nFor more information, see log files in:     /epicosm_logs\n\n";
 echo $frequency > $PWD/.frequency
 
 ## Outro message.
-read -p "Press enter to exit(!) - (your container will continue running)\n"
+read -p "Press enter to exit(!) - (your container will continue running)"
+printf "\n";
+exit 0;
 

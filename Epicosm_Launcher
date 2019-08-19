@@ -40,11 +40,11 @@ if [ ! -f $PWD/credentials.py ] || [ ! -f $PWD/user_list ]; then
 fi
 
 ## Intro message
-printf "\n====================================\n"
-printf "=Epicosm: Docker Container Launcher=\n";
-printf "===dockerhub.com/altanner/Epicosm===\n";
-printf "=github.com/DynamicGenetics/Epicosm=\n";
-printf "====================================\n";
+printf "\n======================================\n"
+printf "= Epicosm: Docker Container Launcher =\n";
+printf "=== dockerhub.com/altanner/Epicosm ===\n";
+printf "= github.com/DynamicGenetics/Epicosm =\n";
+printf "======================================\n";
 
 ## If first run, get Docker image from dockerhub.
 if ! docker images | grep -q altanner/epicosm; then # this breaks on centos unless the whole script is sudo. adding sudo here doesn't help.

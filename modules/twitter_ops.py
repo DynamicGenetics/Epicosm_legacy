@@ -109,8 +109,6 @@ def get_tweets(run_folder, twitter_id, db, api, collection, empty_users, private
 
     ## update the database with the acquired tweets for this user
     for tweet in alltweets:
-    #    tweet_id = tweet._json['id'] # redundant for now
-    #    if tweet._json['id'] > max_tweet_id:
             try:
                 try:
                     collection.insert_one(tweet._json, {'$set': tweet._json})
@@ -120,22 +118,24 @@ def get_tweets(run_folder, twitter_id, db, api, collection, empty_users, private
                 print(f"User {twitter_id} has no tweets to insert.")
 
 
-def get_friends(twitter_id):
+def get_following(api, run_folder, following_collection):
 
-    """Get the following list for this user"""
-
-    friend_list = []
-    try:
-        for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 200).pages():
-            friend_list.extend(friend) # put the friends into a list
-    except tweepy.RateLimitError as rateerror:
-        print(f"Rate limit reached, waiting for cooldown... {rateerror}")
-    try:
-        for person in friend_list:     # insert those into a mongodb collection called "following"
-            following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
-    except: # make this more specific?
-        print(f"Problem putting friends into MongoDB...")
-
+    """Get the following list and put it in MongoDB"""
+    print(f"\nGetting following lists of users...")
+    following_list = []
+    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
+    for twitter_id in users_to_follow:
+        try:
+            for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 200).pages():
+                following_list.extend(following) # put followings into a list
+        except tweepy.RateLimitError as rateerror:
+            print(f"Rate limit reached, waiting for cooldown... {rateerror}")
+        try:
+            for person in following_list:     # insert those into a mongodb collection called "following"
+                following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
+        except Exception as e: # make this more specific?
+            print(f"Problem putting following list into MongoDB...")
+            print(e)
 
 def harvest(run_folder, db, api, collection):
 
@@ -143,16 +143,12 @@ def harvest(run_folder, db, api, collection):
 
     empty_users = []
     private_users = []
-    ## generate user id list from user2id output file
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
     now = datetime.datetime.now()
     print(f"\nStarting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
     try: ## iterate through this list of ids.
         for twitter_id in users_to_follow:
-            get_tweets(run_folder, twitter_id, db, api, collection, empty_users, private_users)  ## get all their tweets and put into mongodb
-
-            if '--getfriends' in sys.argv:
-                get_friends(twitter_id) ## this tends to rate limit, but tweet harvest doesn't (?!)
+            get_tweets(run_folder, twitter_id, db, api, collection, empty_users, private_users)
 
         if len(empty_users) > 0: # if users are empty, put into empty users file
             print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")

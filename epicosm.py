@@ -94,7 +94,9 @@ class StreamToLogger(object):
     def flush(self):
         pass
 
-if '--log' in sys.argv: # if --log given as argument, create a logfile for this run 
+if '--log' in sys.argv: 
+    # if --log given as argument, create a logfile for this run 
+    # a log will always be made if run inside docker container
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
@@ -147,6 +149,9 @@ if __name__ == '__main__':
                             db,
                             api,
                             collection)
+        ## if user wants the friend list, make it
+        if '--get_following' in sys.argv:
+            twitter_ops.get_following(api, run_folder, following_collection)
         ## create CSV ouput and backup mongodb
         mongo_ops.export_and_backup(mongoexport_executable_path,
                                     mongodump_executable_path,

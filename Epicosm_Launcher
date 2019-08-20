@@ -70,6 +70,15 @@ while ! [[ "$frequency" =~ ^[0-9]+$ ]]; do
     read -p "Please enter a valid number of hours between harvests: " frequency;
 done;
 
+## Ask if users want to gather the following list of users.
+read -p "Do you want to gather the following list of each user? (y/n): " following_reply;
+while ! [[ "$following_reply" =~ ^[yn]$ ]]; do
+    read -p "(y/n): " following_reply;
+done;
+if [[ $following_reply = "y" ]]; then
+    following=--get_following;
+fi
+
 ## Look for a previous run - ask if user wants to refresh their list of users.
 if [ -f $PWD/STATUS ]; then
     printf "It looks like Epicosm has run in this folder previously.\n";
@@ -92,11 +101,15 @@ number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//');
 printf "OK, Epicosm starting, harvesting from $number_of_users users, once every $frequency hours.\n";
 
 ## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
-if [[ $refresh_reply = "y" ]]; then
-    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
-else  ## If not refreshing, just harvest, wait and loop.
-    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; while true; do /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; done" 1>/dev/null;
-fi
+#if [[ $refresh_reply = "y" ]]; then
+#    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; /usr/bin/python3 /epicosm/epicosm.py $refresh $following --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
+#else  ## If not refreshing, just harvest, wait and loop.
+#    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; while true; do /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; done" 1>/dev/null;
+#fi
+
+## Docker run, sending shell command into container with replies to qs
+## First iteration refreshing or getting following list, then into a loop just harvesting
+docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; /usr/bin/python3 /epicosm/epicosm.py $refresh $following --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
 
 ## Report that things are up. Docker should error above if things went wrong.
 container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');

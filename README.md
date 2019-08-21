@@ -38,9 +38,9 @@ Epicosm runs in a Docker "container" - this is similar to a virtual machine, whe
 You will need your own Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.
 
 
-### 1.1 Running with Docker
+### 1.1 Running inside a Docker container
 
-This is the usual way of running. Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
+This is the usual way of running Epicosm (see section 2.1 for running in your local environment as a python script). Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
 
 To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon). The image repo is hub.docker.com/r/altanner/epicosm.
 
@@ -50,7 +50,7 @@ The user list must be a plain text file, with a single username (twitter screen 
 2. Twitter API credentials. Please see the file in this repository for a template.\
 This file must be called `credentials.py`.
 
-Once these three files are ready, `Epicosm_Launcher` can be run by double clicking it, (you might need to provide permission), or it can be run on the command line: `./Epicosm_Launcher` and you will be guided through the process. Once complete, a docker container will be permanently running, and the status of this can be seen using the command.`docker ps`. Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
+Once these three files are ready, `Epicosm_Launcher` on the command line: `sudo ./Epicosm_Launcher` and you will be guided through the process. Docker requires root permission to run, so please ensure you have this authorisation. Once launched, a docker container will be permanently running, and the status of this can be seen using the command.`docker ps`. Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
 If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run.
 
 ### 1.2 Output and data

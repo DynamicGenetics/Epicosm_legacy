@@ -67,7 +67,7 @@ for example:\
 `mongoresotore -d twitter_db ./output/twitter_db/tweets`
 (However, please check [MongoDB documentation](https://docs.mongodb.com/manual/) as commands can change)\
 To view and interact with the database using a GUI, you will need MongoDB installed, and\
-a 3rd-party piece of software. Of free options, we find that [Robo 3T](https://robomongo.org/) works well.
+a 3rd-party piece of software. Of open source options, we find that [Robo 3T](https://robomongo.org/) works well.
 
 ### 2.1 Running the python script independent of Docker
 This repository is the python code running in the docker container (URL to be confirmed).\

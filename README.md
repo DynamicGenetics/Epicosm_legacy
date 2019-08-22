@@ -118,6 +118,7 @@ for example:\
 ### 2.3 Optional parameters  
 The following can be added to your command:\
 `--log`           Create a logfile of all output from the harvest run, in /epicosm_logs\
+                    (a logfile is always made when running with Docker)\
 `--refresh`       Refresh the user list (if you want to modify the list of users to harvest\
                     from, replace your file "user_list", and run with -r so that this is refreshed)\
 `--getfriends`    Gather friend list. This list will go into the MongoDB collection "friends",\

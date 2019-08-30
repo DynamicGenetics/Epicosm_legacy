@@ -170,7 +170,7 @@ if __name__ == '__main__':
         print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
         with open(status_file, 'w+') as status:
             status.write(f"Epicosm is currently idle, but was interruped by user on last run.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
-        stop_mongo(client)
+        mongo_ops.stop_mongo(client)
         sys.exit()
 
                          

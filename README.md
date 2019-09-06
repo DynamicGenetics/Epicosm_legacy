@@ -1,11 +1,11 @@
 
 <p align="left">
-   <a href="https://dynamicgenetics.org/"><img src="img/epicosmPNGsmall.png" height="120"></a> 
+   <a href="https://dynamicgenetics.org/"><img src="img/epicosmPNGsmall.png" width="300"></a> 
 </p>
 <p align="left">
-   <a href="https://www.python.org/"><img src="img/python_logo.png" width="80" height="80" /></a> 
-   <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="80" height="80" /></a> 
-   <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="80" height="80" /></a> 
+   <a href="https://www.python.org/"><img src="img/python_logo.png" width="100" height="80" /></a> 
+   <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="100" height="80" /></a> 
+   <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 
 </p>
 
   [![Build Status](https://travis-ci.com/altanner/Epicosm.svg?token=9HPZTDQLbUBqyFNBytob&branch=master)](https://travis-ci.com/altanner/Epicosm)

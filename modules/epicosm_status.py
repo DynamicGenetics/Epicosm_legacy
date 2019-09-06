@@ -8,8 +8,9 @@ def status_up(collection, status_file):
     
     tweet_count = collection.count_documents({})
     with open(status_file, 'w+') as status:
-        status.write(f"Epicosm is currently running.\nThis process started at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nThe database currently contains {tweet_count} tweets.\n")
-
+        status.write(f"Epicosm is currently running.\nThis process started at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
+        if tweet_count > 0:
+            status.write(f"The database currently contains {tweet_count} tweets.\n")
 
 def status_down(collection, status_file, run_folder):
                      

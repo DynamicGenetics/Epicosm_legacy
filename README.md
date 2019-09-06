@@ -1,6 +1,6 @@
 
 <p align="center">
-   <a href="https://dynamicgenetics.org/"><img src="img/dynamic_genetics.png"></a> 
+   <a href="https://dynamicgenetics.org/"><img src="img/epicosmPNGsmall.png"></a> 
 </p>
 
 <p align="left">

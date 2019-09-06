@@ -1,6 +1,6 @@
 
 <p align="left">
-   <a href="https://dynamicgenetics.org/"><img src="img/epicosmPNGsmall.png" height="150"></a> 
+   <a href="https://dynamicgenetics.org/"><img src="img/epicosmPNGsmall.png" height="120"></a> 
    <a href="https://www.python.org/"><img src="img/python_logo.png" width="80" height="80" /></a> 
    <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="80" height="80" /></a> 
    <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="80" height="80" /></a> 

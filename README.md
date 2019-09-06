@@ -1,5 +1,5 @@
 
-<p align="center">
+<p align="left">
    <a href="https://dynamicgenetics.org/"><img src="img/epicosmPNGsmall.png" width="300"></a> 
 </p>
 

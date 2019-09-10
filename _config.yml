@@ -1,4 +1,4 @@
-theme: jekyll-theme-Slate+Simple
+theme: jekyll-theme-slate
 show_downloads: true
 plugins:
   - jekyll-relative-links

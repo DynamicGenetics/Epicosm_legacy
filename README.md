@@ -56,6 +56,8 @@ If stopped, to restart your container, go to the folder with your files in, and 
 ### 1.2 Output and data
 The processed output is a CSV file, in the folder `/output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
 
+A log file detailing what Epicosm has done is in `/epicosm_logs`. A log is always made if Epicosm is run inside Docker; see section 2.2 for specifying logs and other options when running locally.
+
 Full tweet content and metadata of all tweets is stored in MongoDB in json format. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
 
 A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed,\

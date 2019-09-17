@@ -87,13 +87,12 @@ You must provide 2 files:
 
 Please also see these further requirements.
 
-1: Put all repository files and your user list into their own folder, and the script will work out the paths for itself. The python script must be run from the folder it is in.
-
-2: MongoDB version 4 or higher will need to be installed. It does not need to be running, the script will check MongoDB's status, and start it if it is not running. The working database will be stored in the folder where you place your local copy of this repository (not the default location of /data/db). When running with Docker, MongoDB is not required because it is included inside the Docker container. For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
+1. Put all repository files and your user list into their own folder, and the script will work out the paths for itself. The python script must be run from the folder it is in.
+2. MongoDB version 4 or higher will need to be installed. It does not need to be running, the script will check MongoDB's status, and start it if it is not running. The working database will be stored in the folder where you place your local copy of this repository (not the default location of /data/db). When running with Docker, MongoDB is not required because it is included inside the Docker container. For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 
 `apt install mongodb`
 
-3: The following Python3 dependencies will need to be installed, and are most easily done with pip:
+3. The following Python3 dependencies will need to be installed, and are most easily done with pip:
 
 `apt install python3-pip` ("apt" is a common app manager, though it may be brew, yum or others depending on your OS)   
 `pip3 install psutil` 

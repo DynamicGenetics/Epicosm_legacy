@@ -44,10 +44,8 @@ This is the usual way of running Epicosm (see section 2.1 for running using pyth
 To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon). The Docker repository is hub.docker.com/r/altanner/epicosm.
 
 You must provide 2 further files in the folder with `Epicosm_Launcher`:
-1. a list of user screen names in a file called `user_list`.\
-The user list must be a plain text file, with a single username (twitter screen name) per line.
-2. Twitter API credentials. Please see the file in this repository for a template.\
-This file must be called `credentials.py`.
+1. a list of user screen names in a file called `user_list`. The user list must be a plain text file, with a single username (twitter screen name) per line.
+2. Twitter API credentials. Please see the file in this repository for a template. This file must be called `credentials.py`.
 
 Once these three files are ready, run `Epicosm_Launcher` on the command line: `sudo ./Epicosm_Launcher` and you will be guided through the process. Docker requires root permission to run, so please ensure you have this authorisation. Once launched, a docker container will be permanently running (or until the container, Docker or the computer is stopped). The status of Docker can be seen using the command `docker ps`.
 
@@ -60,14 +58,13 @@ A log file detailing what Epicosm has done is in `/epicosm_logs`. A log is alway
 
 Full tweet content and metadata of all tweets is stored in MongoDB in json format. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
 
-A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed,\
-this can be restored with the command\
-`mongorestore [your name given to the database] [the path to the mongodump file]`\
-for example:\
+A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed, this can be restored with the command
+`mongorestore [your name given to the database] [the path to the mongodump file]`
+for example:
 `mongoresotore -d twitter_db ./output/twitter_db/tweets`
-(However, please check [MongoDB documentation](https://docs.mongodb.com/manual/) as commands can change)\
-To view and interact with the database using a GUI, you will need MongoDB installed, and\
-a 3rd-party piece of software. Of open source options, we find that [Robo 3T](https://robomongo.org/) works well.
+(However, please check [MongoDB documentation](https://docs.mongodb.com/manual/) as commands can change)
+
+To view and interact with the database using a GUI, you will need MongoDB installed, and a 3rd-party piece of software. Of open source options, we find that [Robo 3T](https://robomongo.org/) works well.
 
 ### 2.1 Running the python script independent of Docker
 Epicosm will also run independent of its docker container:\
@@ -110,5 +107,4 @@ The following can be added to your command:\
                     friend list can be very demanding on the API and the run will be severely rate limited.
 
 ### 3.0 License
-DynamicGenetics/Epicosm is licensed under the GNU General Public License v3.0\
-For full details, please see our [license](https://github.com/DynamicGenetics/Epicosm/blob/master/LICENSE) file.
+DynamicGenetics/Epicosm is licensed under the GNU General Public License v3.0. For full details, please see our [license](https://github.com/DynamicGenetics/Epicosm/blob/master/LICENSE) file.

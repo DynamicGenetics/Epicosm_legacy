@@ -16,7 +16,7 @@
 ## Instructions in a nutshell
 #### 1. Install [Docker](https://docs.docker.com/install/).
 #### 2. Put these three files into a folder:
-  * Epicosm_Launcher (provided here),
+  * Epicosm_Launcher.sh (provided here),
   * Twitter credentials file (provided here, but complete with your own Twitter access keys),  
   * and your user_list (supplied by you: one screen name per line, plain text file).
 
@@ -58,7 +58,7 @@ The processed output is a CSV file, in the folder `/output/csv/`, which by defau
 
 A log file detailing what Epicosm has done is in `/epicosm_logs`. A log is always made if Epicosm is run inside Docker; see section 2.2 for specifying logs and other options when running locally.
 
-Full tweet content and metadata of all tweets is stored in MongoDB in json format. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
+Full tweet content and metadata of all tweets is stored in [MongoDB](https://www.mongodb.com/) in json format. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
 
 A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed, this can be restored with the command
 `mongorestore [your name given to the database] [the path to the mongodump file]`

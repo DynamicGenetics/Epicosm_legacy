@@ -31,7 +31,9 @@
 #### 2.1 Running the python script independent of docker
 #### 2.2 Optional parameters
 #### 3.0 License
+
 <p align="center"> ••• </p>
+
 ### 0.1 What does it do?
 Epicosm is a Twitter harvester. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
 
@@ -40,6 +42,7 @@ Epicosm can be run in two ways. It can be run inside a Docker "container" - this
 You will need Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.
 
 <p align="center"> ••• </p>
+
 ### 1.1 Running inside a Docker container
 
 This is the usual way of running Epicosm (see section 2.1 for running using python). Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that, or get in contact for help.
@@ -53,7 +56,9 @@ You must provide 2 further files in the folder with `Epicosm_Launcher`:
 Once these three files are ready, run `Epicosm_Launcher` on the command line: `sudo ./Epicosm_Launcher` and you will be guided through the process. Docker requires root permission to run, so please ensure you have this authorisation. Once launched, a docker container will be permanently running (or until the container, Docker or the computer is stopped). The status of Docker can be seen using the command `docker ps`.
 
 If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run and guide you through restarting.
+
 <p align="center"> ••• </p>
+
 ### 1.2 Output and data
 The processed output is a CSV file, in the folder `/output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
 
@@ -68,7 +73,9 @@ for example:
 (However, please check [MongoDB documentation](https://docs.mongodb.com/manual/) as commands can change)
 
 To view and interact with the database using a GUI, you will need MongoDB installed, and a 3rd-party piece of software. Of open source options, we find that [Robo 3T](https://robomongo.org/) works well.
+
 <p align="center"> ••• </p>
+
 ### 2.1 Running the python script independent of Docker
 Epicosm will also run independent of its docker container:\
 `python3 epicosm.py`
@@ -98,7 +105,9 @@ For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 `pip3 install psutil`\
 `pip3 install tweepy`\
 `pip3 install pymongo`
+
 <p align="center"> ••• </p>
+
 ### 2.2 Optional parameters  
 The following can be added to your command:\
 `--log`           Create a logfile of all output from the harvest run, in /epicosm_logs\
@@ -108,6 +117,8 @@ The following can be added to your command:\
 `--getfriends`    Gather friend list. This list will go into the MongoDB collection "friends",\
                     in the database "twitter_db". This is normally disabled because requesting the\
                     friend list can be very demanding on the API and the run will be severely rate limited.
+
 <p align="center"> ••• </p>
+
 ### 3.0 License
 DynamicGenetics/Epicosm is licensed under the GNU General Public License v3.0. For full details, please see our [license](https://github.com/DynamicGenetics/Epicosm/blob/master/LICENSE) file.

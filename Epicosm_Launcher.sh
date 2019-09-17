@@ -1,4 +1,5 @@
 #!/bin/bash
+
 ## Docker container starter for Epicosm
 ## For full details see https://github.com/DynamicGenetics/Epicosm
 
@@ -99,13 +100,6 @@ number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//');
 
 ## Confirm start
 printf "OK, Epicosm starting, harvesting from $number_of_users users, once every $frequency hours.\n";
-
-## If refreshing, do one refresh iteration, then loop into not refreshing like normal.
-#if [[ $refresh_reply = "y" ]]; then
-#    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; /usr/bin/python3 /epicosm/epicosm.py $refresh $following --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
-#else  ## If not refreshing, just harvest, wait and loop.
-#    docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /epicosm; while true; do /usr/bin/python3 /epicosm/epicosm.py $refresh --log; sleep $frequency_in_seconds; done" 1>/dev/null;
-#fi
 
 ## Docker run, sending shell command into container with replies to qs
 ## First iteration refreshing or getting following list, then into a loop just harvesting

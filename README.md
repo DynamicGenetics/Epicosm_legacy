@@ -26,8 +26,7 @@
 #### 1.1 Running with Docker
 #### 1.2 Output and other data
 #### 2.1 Running the python script independent of docker
-#### 2.2 Output and data
-#### 2.3 Optional parameters
+#### 2.2 Optional parameters
 #### 3.0 License
 
 ### 0.1 What does it do?
@@ -55,11 +54,9 @@ Once these three files are ready, run `Epicosm_Launcher` on the command line: `s
 If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run and guide you through restarting.
 
 ### 1.2 Output and data
-Full content and metadata of all tweets is stored in MongoDB, in a database `twitter_db`, with two collections `tweets` which contains all json data and content of each tweet, and `following` which contains a list of all users that each user in your list are following. *MongoDB does not need to be installed on your computer*, all database activity happens in the container.
-The following collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter!*
+The processed output is a CSV file, in the folder `/output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
 
-A refined CSV file is created, in the folder `/output/csv/`, which by default collects the user, the\
-time of tweet, and the tweet content.
+Full tweet content and metadata of all tweets is stored in MongoDB in json format. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
 
 A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed,\
 this can be restored with the command\
@@ -71,8 +68,7 @@ To view and interact with the database using a GUI, you will need MongoDB instal
 a 3rd-party piece of software. Of open source options, we find that [Robo 3T](https://robomongo.org/) works well.
 
 ### 2.1 Running the python script independent of Docker
-This repository is the python code running in the docker container (URL to be confirmed).\
-The python3 script will also run independent of its docker container:\
+Epicosm will also run independent of its docker container:\
 `python3 epicosm.py`
 
 You must provide 2 files:
@@ -101,22 +97,7 @@ For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 `pip3 install tweepy`\
 `pip3 install pymongo`
 
-### 2.2 Output and other data
-Full content and metadata of all tweets is be stored in MongoDB, in a database `twitter_db`,\
-with two collections `tweets` which contains all json data and content of each tweet, and\
-`following` which contains a list of all users that each user in your list are following.
-
-A refined CSV file is created, in the folder `/output/csv/`, which by default collects the user, the\
-time of tweet, and the tweet content.
-
-A backup of the entire database is stored in `/output/twitter_db/`.\
-This can be restored by MongoDB using the command\
-`mongorestore [your name given to the database] [the path to the mongodump file]`\
-for example:\
-`mongorestore -d twitter_db ./output/twitter_db/tweets`\
-(However, please check MongoDB documentation as commands can change)
-
-### 2.3 Optional parameters  
+### 2.2 Optional parameters  
 The following can be added to your command:\
 `--log`           Create a logfile of all output from the harvest run, in /epicosm_logs\
                     (a logfile is always made when running with Docker)\

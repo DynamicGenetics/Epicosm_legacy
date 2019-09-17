@@ -33,16 +33,16 @@
 ### 0.1 What does it do?
 Epicosm is a Twitter harvester. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
 
-Epicosm runs in a Docker "container" - this is similar to a virtual machine, where a computer emulates another operating system within itself. Data is sent back onto the main "host" computer for the user to access. This approach means users do not need to install anything other than Docker, running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience.
+Epicosm can be run in two ways. It can be run inside a Docker "container" - this is similar to a virtual machine, where a computer emulates another operating system within itself. This approach means users do not need to install anything other than Docker, that running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience. Alternatively, Epicosm can be run by Python version 3+; details are in section 2.1.
 
-You will need your own Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.
+You will need Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.
 
 
 ### 1.1 Running inside a Docker container
 
-This is the usual way of running Epicosm (see section 2.1 for running in your local environment as a python script). Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that.
+This is the usual way of running Epicosm (see section 2.1 for running using python). Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that, or get in contact for help.
 
-To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon). The image repo is hub.docker.com/r/altanner/epicosm.
+To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon). The Docker repository is hub.docker.com/r/altanner/epicosm.
 
 You must provide 2 further files in the folder with `Epicosm_Launcher`:
 1. a list of user screen names in a file called `user_list`.\
@@ -50,8 +50,9 @@ The user list must be a plain text file, with a single username (twitter screen 
 2. Twitter API credentials. Please see the file in this repository for a template.\
 This file must be called `credentials.py`.
 
-Once these three files are ready, `Epicosm_Launcher` on the command line: `sudo ./Epicosm_Launcher` and you will be guided through the process. Docker requires root permission to run, so please ensure you have this authorisation. Once launched, a docker container will be permanently running, and the status of this can be seen using the command.`docker ps`. Your container will stop if docker is ended, or the computer running docker is shutdown or rebooted.\
-If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run.
+Once these three files are ready, run `Epicosm_Launcher` on the command line: `sudo ./Epicosm_Launcher` and you will be guided through the process. Docker requires root permission to run, so please ensure you have this authorisation. Once launched, a docker container will be permanently running (or until the container, Docker or the computer is stopped). The status of Docker can be seen using the command `docker ps`.
+
+If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run and guide you through restarting.
 
 ### 1.2 Output and data
 Full content and metadata of all tweets is stored in MongoDB, in a database `twitter_db`, with two collections `tweets` which contains all json data and content of each tweet, and `following` which contains a list of all users that each user in your list are following. *MongoDB does not need to be installed on your computer*, all database activity happens in the container.

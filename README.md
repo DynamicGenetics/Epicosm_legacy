@@ -94,22 +94,23 @@ Please also see these further requirements.
 
 3. The following Python3 dependencies will need to be installed, and are most easily done with pip:
 
-`apt install python3-pip` ("apt" is a common app manager, though it may be brew, yum or others depending on your OS)   
-`pip3 install psutil` 
+`apt install python3-pip`
+
+`pip3 install psutil`
+
 `pip3 install tweepy` 
+
 `pip3 install pymongo` 
 
 <p align="center"> ••• </p>
 
 ### 2.2 Optional parameters  
 The following arguments can be appended:  
-`--log`           Create a logfile of all output from the harvest run, in /epicosm_logs\
-                    (a logfile is always made when running with Docker)\
-`--refresh`       Refresh the user list (if you want to modify the list of users to harvest\
-                    from, replace your file "user_list", and run with -r so that this is refreshed)\
-`--get_following`    Gather friend list. This list will go into the MongoDB collection "friends",\
-                    in the database "twitter_db". This is normally disabled because requesting the\
-                    friend list can be very demanding on the API and the run will be severely rate limited.
+`--log`              Create a logfile of all output from the harvest run, in `/epicosm_logs` (a logfile is always made when running with Docker).
+
+`--refresh`          Refresh the user list (if you want to modify the list of users to harvest from, replace your file `user_list`, and run with `--refresh` so that this is refreshed).
+
+`--get_following`    Gather friend list. This list will go into the MongoDB collection "friends", in the database "twitter_db". This is normally disabled because requesting the friend list can be very demanding on the API and the run will be severely rate limited.
 
 <p align="center"> ••• </p>
 

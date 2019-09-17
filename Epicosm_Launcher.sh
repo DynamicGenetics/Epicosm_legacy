@@ -32,6 +32,17 @@ if [[ $docker_exit_code != 0 ]]; then
     fi
 fi 
 
+## Check if a container is already running using this folder as volume
+if [ -f $PWD/.container_name ]; then
+    container=`cat .container_name`
+    if docker ps | grep -q $container; then
+        printf "It looks like the Docker container \"$container\" is currently using this folder.\n";
+        printf "You can stop $container with:   docker stop $container    or use a new folder for this run.\n";
+        read -p "(Press enter to close.)";
+        exit 1;
+    fi
+fi
+
 ## Check if required files are in the working directory.
 if [ ! -f $PWD/credentials.py ] || [ ! -f $PWD/user_list ]; then
     printf "Your credentials.py file and/or user_list don't appear to be here.\n";
@@ -66,12 +77,16 @@ printf "\nChecking for updates... "
 docker pull altanner/epicosm:latest;
 
 ## Ask user how often to harvest.
+printf "\nInfo: Harvests are typically done every few days. Speed will depend on a range of factors,\n";
+printf "but very roughly Epicosm runs at 100 users per hour on first run, and faster on subsequent runs.\n\n"; 
 read -p "How often would you like to harvest (in hours)? " frequency;
 while ! [[ "$frequency" =~ ^[0-9]+$ ]]; do
     read -p "Please enter a valid number of hours between harvests: " frequency;
 done;
 
 ## Ask if users want to gather the following list of users.
+printf "\nInfo: Gathering users' following lists takes significantly longer than gathering just tweets.\n";
+printf "(but this will only affect the first run).\n\n";
 read -p "Do you want to gather the following list of each user? (y/n): " following_reply;
 while ! [[ "$following_reply" =~ ^[yn]$ ]]; do
     read -p "(y/n): " following_reply;
@@ -82,7 +97,7 @@ fi
 
 ## Look for a previous run - ask if user wants to refresh their list of users.
 if [ -f $PWD/STATUS ]; then
-    printf "It looks like Epicosm has run in this folder previously.\n";
+    printf "\nIt looks like Epicosm has run in this folder previously.\n\n";
     read -p "Do you want to refresh your user_list? (y/n): " refresh_reply;
     while ! [[ "$refresh_reply" =~ ^[yn]$ ]]; do
         read -p "(y/n): " refresh_reply;
@@ -105,15 +120,16 @@ printf "OK, Epicosm starting, harvesting from $number_of_users users, once every
 ## First iteration refreshing or getting following list, then into a loop just harvesting
 docker run -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /Epicosm/credentials.py; /usr/bin/python3 /Epicosm/epicosm.py $refresh $following --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /Epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
 
-## Report that things are up. Docker should error above if things went wrong.
+## Report that things are up & make some status files. Docker should error above if things went wrong.
 container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');
+echo $container_name > $PWD/.container_name;
+echo $frequency > $PWD/.frequency
 printf "\nDocker assigned your container the name:    $container_name";
 printf "\nTo end the process, run this command:       docker stop $container_name";
 printf "\nTo see your active containers:              docker ps";
 printf "\nCurrent status of your process:             cat STATUS";
 printf "\nCSV output files are in:                    /output/csv";
 printf "\nFor more information, see log files in:     /epicosm_logs\n\n";
-echo $frequency > $PWD/.frequency
 
 ## Outro message.
 read -p "Press enter to exit(!) - (your container will continue running)"

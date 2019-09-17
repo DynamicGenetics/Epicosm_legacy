@@ -77,38 +77,33 @@ To view and interact with the database using a GUI, you will need MongoDB instal
 <p align="center"> ••• </p>
 
 ### 2.1 Running the python script independent of Docker
-Epicosm will also run independent of its docker container:\
+Epicosm will also run independent of its docker container:
+
 `python3 epicosm.py`
 
 You must provide 2 files:
-1. a list of user screen names in a file called `user_list`.\
-The user list must be a plain text file, with a single username (twitter screen name) per line.
-2. Twitter API credentials will need to be supplied, by editing the file `credentials.py`\
-(further instructions inside file). You will need your own Twitter API\
-credentials by having a developer account authorised by Twitter, and generating\
-the required codes. Please see Twitter documentation for how to do this.
+1. a list of user screen names in a file called `user_list`. The user list must be a plain text file, with a single username (twitter screen name) per line.  
+2. Twitter API credentials will need to be supplied, by editing the file `credentials.py` (further instructions inside file). You will need your own Twitter API credentials by having a developer account authorised by Twitter, and generating the required codes. Please see [our guide](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) on how to do this.
 
-Please also see these further requirements.\
-1: Put all repository files and your user list into their own folder, and the script will\
-work out the paths for itself. The python script must be run from the folder it is in.
+Please also see these further requirements.
 
-2: MongoDB version 4 or higher will need to be installed. It does not need to be running,\
-the script will check MongoDB's status, and start it if it is not running.\
-The working database will be stored in the folder where you place your local copy\
-of this repository (not the default location of /data/db). When running with Docker,\
-MongoDB is not required because it is included inside the Docker container.\
-For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:\
+1: Put all repository files and your user list into their own folder, and the script will work out the paths for itself. The python script must be run from the folder it is in.
+
+2: MongoDB version 4 or higher will need to be installed. It does not need to be running, the script will check MongoDB's status, and start it if it is not running. The working database will be stored in the folder where you place your local copy of this repository (not the default location of /data/db). When running with Docker, MongoDB is not required because it is included inside the Docker container. For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
+
 `apt install mongodb`
 
-3: The following Python3 dependencies will need to be installed, and are most easily done with pip:\
-`apt install python3-pip` ("apt" is a common app manager, though it may be brew, yum or others)\
-`pip3 install psutil`\
-`pip3 install tweepy`\
-`pip3 install pymongo`
+3: The following Python3 dependencies will need to be installed, and are most easily done with pip:
+
+`apt install python3-pip` ("apt" is a common app manager, though it may be brew, yum or others depending on your OS)   
+`pip3 install psutil` 
+`pip3 install tweepy` 
+`pip3 install pymongo` 
 
 <p align="center"> ••• </p>
+
 ### 2.2 Optional parameters  
-The following can be added to your command:\
+The following arguments can be appended:  
 `--log`           Create a logfile of all output from the harvest run, in /epicosm_logs\
                     (a logfile is always made when running with Docker)\
 `--refresh`       Refresh the user list (if you want to modify the list of users to harvest\

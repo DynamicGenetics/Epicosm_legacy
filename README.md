@@ -20,7 +20,8 @@
   * Twitter credentials file (provided here, but complete with your own Twitter access keys),  
   * and your user_list (supplied by you: one screen name per line, plain text file).
 
-#### 3. Run Epicosm_Launcher on terminal/command line: `sudo ./Epicosm_Launcher` (docker needs root privileges).
+#### 3. Run Epicosm_Launcher on terminal/command line: 
+`sudo ./Epicosm_Launcher` (docker needs root privileges).
 <p align="center"> ••• </p>
    
 ## Contents

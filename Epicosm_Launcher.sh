@@ -111,7 +111,7 @@ fi
 frequency_in_seconds=$(($frequency*3600));
 
 ## How many users does it look like?
-number_of_users=$(sed '/^\s*$/d' $PWD/user_list | wc -l | sed -e 's/^[ \t]*//');
+number_of_users=$(grep -cve '^\s*$' $PWD/user_list)
 
 ## Confirm start
 printf "OK, Epicosm starting, harvesting from $number_of_users users, once every $frequency hours.\n";

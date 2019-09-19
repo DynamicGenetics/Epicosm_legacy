@@ -68,11 +68,11 @@ Full tweet content and metadata of all tweets is stored in [MongoDB](https://www
 
 A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed, this can be restored with the command
 
-`mongorestore [your name given to the database] [the path to the mongodump file]`
+`mongorestore [your name given to the database] [the path to the mongodump bson file]`
 
 for example:
 
-`mongoresotore -d twitter_db ./output/twitter_db/tweets`
+`mongoresotore -d twitter_db ./output/twitter_db/tweets.bson`
 
 (However, please check [MongoDB documentation](https://docs.mongodb.com/manual/) as commands can change)
 

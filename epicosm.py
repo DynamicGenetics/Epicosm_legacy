@@ -23,7 +23,7 @@ db = client.twitter_db
 collection = db.tweets
 following_collection = db.following
 
-## set up environment specific variables
+## set up environment specific variables # awaiting environment integration module
 if not os.path.exists('/.dockerenv'):   ## if not in docker container
     run_folder = os.getcwd() + '/'
     status_file = run_folder + 'STATUS'

@@ -21,7 +21,7 @@
   * and your user_list (supplied by you: one screen name per line, plain text file).
 
 #### 3. Run Epicosm_Launcher on terminal/command line: 
-`sudo ./Epicosm_Launcher` (docker needs root privileges).
+`sudo ./Epicosm_Launcher` (docker needs root privileges - please ask your IT admin for details if this is an issue).
 <p align="center"> ••• </p>
    
 ## Contents

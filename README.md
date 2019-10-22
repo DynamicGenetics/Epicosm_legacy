@@ -121,4 +121,4 @@ The following arguments can be appended:
 ### 3.0 License
 DynamicGenetics/Epicosm is licensed under the GNU General Public License v3.0. For full details, please see our [license](https://github.com/DynamicGenetics/Epicosm/blob/master/LICENSE) file. 
 
-Epicosm is written and maintained by Alastair Tanner, University of Bristol, Integrative Epidemiology Unit.
+Epicosm is written and maintained by [Alastair Tanner](https://github.com/altanner), University of Bristol, Integrative Epidemiology Unit.

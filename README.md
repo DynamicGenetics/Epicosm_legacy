@@ -24,7 +24,7 @@
 `sudo ./Epicosm_Launcher` (docker needs root privileges - please ask your IT admin for details if this is an issue).
 <p align="center"> ••• </p>
    
-## Contents
+## Documentation
 #### 0.1 What does it do?  
 #### 1.1 Running with Docker
 #### 1.2 Output and other data

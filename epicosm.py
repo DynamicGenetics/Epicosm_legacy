@@ -5,23 +5,15 @@
 import os
 import sys
 import time
-import tweepy
-import pymongo
-import logging
 import datetime
 import subprocess
-from zipfile import ZipFile
 
+# Epicosm specific imports
 import credentials
-from modules import mongo_ops, epicosm_status, twitter_ops
+from modules import mongo_ops, epicosm_meta, twitter_ops
 
-## set up a few run variables
 start = time.time()
 now = datetime.datetime.now()
-client = pymongo.MongoClient('localhost', 27017)
-db = client.twitter_db
-collection = db.tweets
-following_collection = db.following
 
 ## set up environment specific variables # awaiting environment integration module
 if not os.path.exists('/.dockerenv'):   ## if not in docker container
@@ -77,51 +69,6 @@ if not os.path.exists(run_folder + '/epicosm_logs'):
     print(f"Epicosm log folder seems absent, creating folder...")
     os.makedirs(run_folder + '/epicosm_logs')
 
-## Set up logging
-class StreamToLogger(object):
-    """
-    Write chatter to logfile.
-    """
-    def __init__(self, logger, log_level=logging.INFO):
-        self.logger = logger
-        self.log_level = log_level
-        self.linebuf = ''
-
-    def write(self, buf):
-        for line in buf.rstrip().splitlines():
-            self.logger.log(self.log_level, line.rstrip())
-
-    def flush(self):
-        pass
-
-if '--log' in sys.argv: 
-    # if --log given as argument, create a logfile for this run 
-    # a log will always be made if run inside docker container
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
-        filename = epicosm_log_filename,
-        filemode='a'
-    )
-    stdout_logger = logging.getLogger('STDOUT')
-    sl = StreamToLogger(stdout_logger, logging.INFO)
-    sys.stdout = sl
-
-    stderr_logger = logging.getLogger('STDERR')
-    sl = StreamToLogger(stderr_logger, logging.ERROR)
-    sys.stderr = sl
-
-## connect to Twitter API
-auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
-auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=5, retry_delay=5, timeout=15)
-try:
-    print(f"Verifying Twitter credentials...")
-    api.verify_credentials(retry_count=3, retry_delay=5)
-except tweepy.error.TweepError:
-    print(f"The API credentials do not seem valid: connection to Twitter refused.")
-    sys.exit()
-
 
 ############
 ## run it ##
@@ -130,39 +77,38 @@ except tweepy.error.TweepError:
 if __name__ == '__main__':
 
     try:
+        ## check if MongoDB is alright
+        mongo_ops.check_mongo()
+        ## set up logging
+        epicosm_meta.logger_setup(epicosm_log_filename)
+        ## connect to Twitter API
+        twitter_ops.authorise()
         ## check/start mongodb
         mongo_ops.start_mongo(mongod_executable_path,
-                              db_path, 
+                              db_path,
                               db_log_filename)
         ## modify status file
-        epicosm_status.status_up(collection,
-                                 status_file)
+        epicosm_meta.status_up(status_file)
         ## tidy up the database for better efficiency
-        mongo_ops.index_mongo(run_folder,
-                              db)
+        mongo_ops.index_mongo(run_folder)
         ## get persistent user ids from screen names
         twitter_ops.lookup_users(run_folder,
-                                 screen_names,
-                                 api)
+                                 screen_names)
         ## get tweets for each user and archive in mongodb
-        twitter_ops.harvest(run_folder,
-                            db,
-                            api,
-                            collection)
+        twitter_ops.harvest(run_folder)
         ## if user wants the friend list, make it
         if '--get_following' in sys.argv:
-            twitter_ops.get_following(api, run_folder, following_collection)
+            twitter_ops.get_following(run_folder)
         ## create CSV ouput and backup mongodb
         mongo_ops.export_and_backup(mongoexport_executable_path,
                                     mongodump_executable_path,
                                     database_dump_path,
                                     csv_filename)
         ## modify status file
-        epicosm_status.status_down(collection,
-                                   status_file,
+        epicosm_meta.status_down(status_file,
                                    run_folder)
         ## shut down mongodb
-        mongo_ops.stop_mongo(client)
+        mongo_ops.stop_mongo()
 
         print(f"\nAll done, Epicosm finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
 
@@ -170,7 +116,6 @@ if __name__ == '__main__':
         print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
         with open(status_file, 'w+') as status:
             status.write(f"Epicosm is currently idle, but was interruped by user on last run.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
-        mongo_ops.stop_mongo(client)
+        mongo_ops.stop_mongo()
         sys.exit()
 
-                         

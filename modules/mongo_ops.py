@@ -5,6 +5,28 @@ import time
 import psutil
 import pymongo
 
+## why does this complain that variables are not defined?
+## I am defining them!
+def check_mongo():
+
+    """check if MongoDB is present and correct"""
+
+    try:
+        mongod_executable_path = subprocess.check_output(['which', 'mongod']).decode('utf-8').strip()
+    except:
+        print(f"You don't seem to have MongoDB installed. Stopping.")
+        sys.exit()
+    try:
+        mongoexport_executable_path = subprocess.check_output(['which', 'mongoexport']).decode('utf-8').strip()
+    except:
+        print(f"Mongoexport seems missing... stopping.")
+        sys.exit()
+    try:
+        mongodump_executable_path = subprocess.check_output(['which', 'mongodump']).decode('utf-8').strip()
+    except:
+        print(f"Mongodump seems missing... stopping.")
+        sys.exit()
+    return mongod_executable_path, mongoexport_executable_path, mongodump_executable_path
 
 def start_mongo(mongod_executable_path, db_path, db_log_filename):
 
@@ -30,10 +52,11 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename):
         mongo_go()
 
 
-def stop_mongo(client):
+def stop_mongo():
 
     """gracefully close the mongo daemon"""
 
+    client = pymongo.MongoClient('localhost', 27017)
     print(f"\nAsking MongoDB to close...")
     client.close()
     subprocess.call(['pkill', '-15', 'mongod'])
@@ -52,10 +75,12 @@ def stop_mongo(client):
         print(f"\nMongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
 
 
-def index_mongo(run_folder, db):  # tidy up the database
+def index_mongo(run_folder):
 
     """tidy up the database so that upsert operations are faster"""
 
+    client = pymongo.MongoClient('localhost', 27017)
+    db = client.twitter_db
     if not os.path.isfile(run_folder + '/db/WiredTiger'):
         return
     print(f"\nIndexing MongoDB...")
@@ -72,4 +97,3 @@ def export_and_backup(mongoexport_executable_path, mongodump_executable_path, da
     print(f'\nBacking up the database...')
     subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'])
     subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back access permissions to host
-

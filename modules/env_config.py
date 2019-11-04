@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 
 
@@ -6,7 +7,8 @@ DEFAULT_RUN_FOLDER = '/root/host_interface/'
 
 
 class EnvironmentConfig:
-    """"""
+
+    """ """
 
     def __init__(self):
         if os.path.exists('./dockerenv'):
@@ -48,9 +50,4 @@ class EnvironmentConfig:
     @property
     def database_dump_path(self):
         return os.path.join(self.run_folder, 'output')
-
-if __name__ == '__main__':
-    env_config = EnvironmentConfig()
-
-
 

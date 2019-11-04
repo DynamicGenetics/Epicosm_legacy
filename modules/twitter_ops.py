@@ -32,9 +32,9 @@ def lookup_users(run_folder, screen_names):
     """convert twitter screen names into persistent id numbers"""
     duplicate_users = []
     not_found = []
-    if '--refresh' not in sys.argv and os.path.exists(run_folder + "user_list.ids"):
+    if '--refresh' not in sys.argv and os.path.exists(run_folder + "/user_list.ids"):
         return
-    with open(run_folder + "user_list") as file:
+    with open(run_folder + "/user_list") as file:
         lines = [x.strip() for x in file.readlines()]
         lines = [x for x in lines if x]
         for line in lines:
@@ -44,14 +44,14 @@ def lookup_users(run_folder, screen_names):
     # Write duplicate users to file.
     if len(duplicate_users) > 0:
         print(f"Info: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
-        with open(run_folder + "user_list.duplicates", 'w') as duplicate_file:
+        with open(run_folder + "/user_list.duplicates", 'w') as duplicate_file:
             for duplicate in duplicate_users:
                 duplicate_file.write("%s\n" % duplicate)
 
     print(f"Converting user screen names to persistent id numbers...")
     # Count the number of screen names in the input file
     non_blank_count = 0
-    with open(run_folder + "user_list") as count_file:
+    with open(run_folder + "/user_list") as count_file:
         for line in count_file:
             if line.strip():
                 non_blank_count += 1
@@ -77,14 +77,14 @@ def lookup_users(run_folder, screen_names):
             print(f"")
 
     # Write user codes to file.
-    with open(run_folder + "user_list.ids", 'w') as id_file:
+    with open(run_folder + "/user_list.ids", 'w') as id_file:
         for id in id_list:
             id_file.write("%s\n" % id)
 
     # Write non-found users to file.
     if len(not_found) > 0:
         print(f"Info: {len(set(not_found))} users were not found (see user_list.not_found)")
-        with open(run_folder + "user_list.not_found", 'w') as not_found_file:
+        with open(run_folder + "/user_list.not_found", 'w') as not_found_file:
             for not_found_user in not_found:
                 not_found_file.write("%s\n" % not_found_user)
 
@@ -146,7 +146,7 @@ def get_following(run_folder):
 
     print(f"\nGetting following lists of users...")
     following_list = []
-    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
+    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "/user_list.ids")]
     for twitter_id in users_to_follow:
         try:
             for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 200).pages():
@@ -166,7 +166,7 @@ def harvest(run_folder):
 
     empty_users = []
     private_users = []
-    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "user_list.ids")]
+    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "/user_list.ids")]
     now = datetime.datetime.now()
     print(f"\nStarting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
     try: ## iterate through this list of ids.
@@ -175,17 +175,16 @@ def harvest(run_folder):
 
         if len(empty_users) > 0: # if users are empty, put into empty users file
             print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")
-            with open(run_folder + "user_list.empty", 'w') as empty_user_file:
+            with open(run_folder + "/user_list.empty", 'w') as empty_user_file:
                 for empty_user in empty_users:
                     empty_user_file.write("%s\n" % empty_user)    # write to empty user file
 
         if len(private_users) > 0: # if users are private found, put into private user file
             print(f"Info: {len(private_users)} users have private accounts (see user_list.private)")
-            with open(run_folder + "user_list.private", 'w') as private_user_file:
+            with open(run_folder + "/user_list.private", 'w') as private_user_file:
                 for private_user in private_users:
                     private_user_file.write("%s\n" % private_user)    # write to private user file
 
     except Exception as e:
         print(f"{e}")
-
 

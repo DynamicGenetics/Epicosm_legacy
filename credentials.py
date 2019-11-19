@@ -4,6 +4,8 @@ ACCESS_TOKEN = ''
 ACCESS_TOKEN_SECRET = ''
 
 # Please complete the four lines above with your API credentials,
+# For details of how to obtain API credentials, see our guide
+# https://dynamicgenetics.github.io/Epicosm/
 # For an example, see the lines below. (These are not functioning details.)
 
 # CONSUMER_KEY = 'TRedt9JxtrTRRja32SssrhQpA'

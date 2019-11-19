@@ -5,16 +5,16 @@ import pymongo
 import tweepy
 import credentials
 
-# mongodb and twitter auth details
-client = pymongo.MongoClient('localhost', 27017)
-db = client.twitter_db
-collection = db.tweets
-auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
+# Set up some MongoDB server details, Twitter API authentication details.
+client = pymongo.MongoClient('localhost', 27017) # Default local port for MongoDB
+db = client.twitter_db # The name of the database.
+collection = db.tweets # The name of the collection inside that database.
+auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET) # Auth from credentials.py
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=5, retry_delay=5, timeout=15)
 
 def authorise():
 
-    """ attempt to connect to Twitter API, using keys from credentials.py """
+    """ Attempt to connect to Twitter API, using keys from credentials.py """
 
     auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
@@ -49,6 +49,7 @@ def lookup_users(run_folder, screen_names):
                 duplicate_file.write("%s\n" % duplicate)
 
     print(f"Converting user screen names to persistent id numbers...")
+ 
     # Count the number of screen names in the input file
     non_blank_count = 0
     with open(run_folder + "/user_list") as count_file:
@@ -93,9 +94,9 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users):
 
     """acquire tweets from each user id number and store them in MongoDB"""
 
-    ## check if this user history has been acquired
+    # check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
-        ## we already have this user's timeline, just get recent tweets
+        # we already have this user's timeline, just get recent tweets
         try:
             print(f"User {twitter_id} is in the database, normal acquisition cycle...")
             alltweets = []
@@ -106,30 +107,30 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users):
             print(f"Not possible to acquire timeline of {twitter_id} : {tweeperror}")
             private_users.append(twitter_id)
     else:
-        ## this user isn't in database: get <3200 tweets if possible
+        # this user isn't in database: get <3200 tweets if possible
         try:
             print(f"User {twitter_id} is new, deep acquisition cycle...")
             alltweets = [] # IS BELOW REDUNDANT?
             new_tweets = api.user_timeline(id=twitter_id, count=200,
                                            tweet_mode='extended', exclude_replies=True)
-            alltweets.extend(new_tweets)
+            alltweets.extend(new_tweets) # this gets the first 200 (maximum per request)
             try:
-                oldest = alltweets[-1].id - 1
-                while len(new_tweets) > 0:
+                oldest = alltweets[-1].id - 1 # this is now the oldest tweet
+                while len(new_tweets) > 0: # so we do it again, going back another 200 tweets
                     new_tweets = api.user_timeline(id=twitter_id, count=200, max_id=oldest,
                                                    tweet_mode='extended', exclude_replies=True)
                     alltweets.extend(new_tweets)
-                    oldest = alltweets[-1].id - 1
-            except IndexError:
+                    oldest = alltweets[-1].id - 1 # this is now the oldest tweet
+            except IndexError: # Index error means it is an empty account.
                 print(f"Empty timeline for user {twitter_id} : skipping.")
                 empty_users.append(twitter_id)
-        except tweepy.TweepError as tweeperror:
+        except tweepy.TweepError as tweeperror: # Tweep error is access denied
             print(f"Not possible to acquire timeline of {twitter_id} : {tweeperror}")
-            private_users.append(twitter_id)
-        except tweepy.RateLimitError as rateerror:
+            private_users.append(twitter_id) # Make a record of private account
+        except tweepy.RateLimitError as rateerror: # Twitter telling us to chill out
             print(f"Rate limit reached, waiting for cooldown...")
 
-    ## update the database with the acquired tweets for this user
+    # update the database with the acquired tweets for this user
     for tweet in alltweets:
             try:
                 try:
@@ -159,6 +160,7 @@ def get_following(run_folder):
         except Exception as e: # make this more specific?
             print(f"Problem putting following list into MongoDB...")
             print(e)
+
 
 def harvest(run_folder):
 

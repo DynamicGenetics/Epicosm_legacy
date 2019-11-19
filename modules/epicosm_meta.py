@@ -8,9 +8,11 @@ import logging
 def logger_setup(epicosm_log_filename):
     ## Set up logging
     class StreamToLogger(object):
+        
         """
         Write chatter to logfile.
         """
+        
         def __init__(self, logger, log_level=logging.INFO):
             self.logger = logger
             self.log_level = log_level
@@ -23,28 +25,25 @@ def logger_setup(epicosm_log_filename):
         def flush(self):
             pass
 
-    if '--log' in sys.argv:
-        # if --log given as argument, create a logfile for this run
-        # a log will always be made if run inside docker container
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
-            filename = epicosm_log_filename,
-            filemode='a'
-        )
-        stdout_logger = logging.getLogger('STDOUT')
-        sl = StreamToLogger(stdout_logger, logging.INFO)
-        sys.stdout = sl
-
-        stderr_logger = logging.getLogger('STDERR')
-        sl = StreamToLogger(stderr_logger, logging.ERROR)
-        sys.stderr = sl
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
+                        filename = epicosm_log_filename,
+                        filemode='a')
+    stdout_logger = logging.getLogger('STDOUT')
+    sl = StreamToLogger(stdout_logger, logging.INFO)
+    sys.stdout = sl
+    stderr_logger = logging.getLogger('STDERR')
+    sl = StreamToLogger(stderr_logger, logging.ERROR)
+    sys.stderr = sl
 
 
 def status_up(status_file):
-
-    """ Update STATUS file in run folder to notify when running """
-
+    
+    """ Update STATUS file in run folder to notify when running.
+    
+    Does a quick count of the current database,
+    and rewrite the STATUS file to say that process is in progress."""
+    
     client = pymongo.MongoClient('localhost', 27017)
     db = client.twitter_db
     collection = db.tweets
@@ -57,7 +56,10 @@ def status_up(status_file):
 
 def status_down(status_file, run_folder):
 
-    """ Update STATUS file in run folder to notify when idle, and next run """
+    """ Update STATUS file in run folder to notify when idle, and next run.
+                     
+    Does a quick count of the current database,
+    and rewrite the STATUS file to say that process is in progress."""
 
     client = pymongo.MongoClient('localhost', 27017)
     db = client.twitter_db

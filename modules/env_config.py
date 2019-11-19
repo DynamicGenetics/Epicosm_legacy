@@ -7,8 +7,10 @@ DEFAULT_RUN_FOLDER = '/root/host_interface/'
 
 
 class EnvironmentConfig:
-
-    """ """
+    """Detects if environment is interactive or in Docker container.
+    
+    Returns the paths of files and executables relevant to that environment
+    """
 
     def __init__(self):
         if os.path.exists('./dockerenv'):

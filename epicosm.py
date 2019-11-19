@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 import time
@@ -5,24 +7,34 @@ import datetime
 import subprocess
 import signal
 
-## Epicosm specific imports
+# Epicosm specific imports, coming from ./modules
 import credentials
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config
 
-## Handle SIGINT, user interrupt ctrl-c, etc
+# Check the time
+start = time.time()
+now = datetime.datetime.now()
+
+
 def signal_handler(sig, frame):
+    """Handle interrupt signals, eg ctrl-c (and other kill signals).
+    
+    Exiting more abruptly can leave MongoDB running, which can cause issues,
+    so Mongo is asked to stop
+    """
     print(f"\n\nJust a second while I try to exit gracefully...")
     with open(status_file, 'w+') as status:
         status.write(f"Epicosm is currently idle, but was interruped by user on last run.\nThe most recent harvest\
  was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
     mongo_ops.stop_mongo()
     sys.exit()
+
+                     
+# setup signal handler
 signal.signal(signal.SIGINT, signal_handler)
 
-start = time.time()
-now = datetime.datetime.now()
 
-## check if MongoDB is present and correct
+# check if MongoDB is present and correct
 try:
     mongod_executable_path = subprocess.check_output(['which', 'mongod']).decode('utf-8').strip()
 except:
@@ -39,10 +51,10 @@ except:
     print(f"Mongodump seems missing... stopping.")
     sys.exit()
 
-## Set paths as instance of EnvironmentConfig
+# Set paths as instance of EnvironmentConfig
 env = env_config.EnvironmentConfig()
 
-## Check user list exists and get it
+# Check user list exists and get it
 if not os.path.exists(env.run_folder + '/user_list'):
     print(f"USAGE: please provide a list of users to follow, named 'user_list'.")
     sys.exit()
@@ -50,7 +62,7 @@ number_of_users_provided = sum(1 for line_exists in open(env.run_folder + '/user
 screen_names = list(dict.fromkeys(line.strip() for line in open(env.run_folder + '/user_list'))) # remove duplicates
 screen_names = [name for name in screen_names if name] # remove empty lines
 
-## Check or make directory structure
+# Check or make directory structure
 if not os.path.exists(env.run_folder + '/db'):
     print(f"MongoDB database folder seems absent, creating folder...")
     os.makedirs(env.run_folder + '/db')
@@ -69,35 +81,35 @@ if not os.path.exists(env.run_folder + '/epicosm_logs'):
 if __name__ == '__main__':
 
     try:
-        ## set up logging
+        # set up logging
         epicosm_meta.logger_setup(env.epicosm_log_filename)
-        ## connect to Twitter API
+        # connect to Twitter API
         twitter_ops.authorise()
-        ## start mongodb
+        # start mongodb
         mongo_ops.start_mongo(mongod_executable_path,
                               env.db_path,
                               env.db_log_filename)
-        ## modify status file
+        # modify status file
         epicosm_meta.status_up(env.status_file)
-        ## tidy up the database for better efficiency
+        # tidy up the database for better efficiency
         mongo_ops.index_mongo(env.run_folder)
-        ## get persistent user ids from screen names
+        # get persistent user ids from screen names
         twitter_ops.lookup_users(env.run_folder,
                                  screen_names)
-        ## get tweets for each user and archive in mongodb
+        # get tweets for each user and archive in mongodb
         twitter_ops.harvest(env.run_folder)
-        ## if user wants the friend list, make it
+        # if user wants the friend list, make it
         if '--get_following' in sys.argv:
             twitter_ops.get_following(env.run_folder)
-        ## create CSV ouput and backup mongodb
+        # create CSV ouput and backup mongodb
         mongo_ops.export_and_backup(mongoexport_executable_path,
                                     mongodump_executable_path,
                                     env.database_dump_path,
                                     env.csv_filename)
-        ## modify status file
+        # modify status file
         epicosm_meta.status_down(env.status_file,
                                  env.run_folder)
-        ## shut down mongodb
+        # shut down mongodb
         mongo_ops.stop_mongo()
 
         print(f"\nAll done, Epicosm finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")

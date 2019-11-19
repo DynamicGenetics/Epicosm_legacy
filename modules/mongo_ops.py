@@ -8,7 +8,13 @@ import pymongo
 
 def start_mongo(mongod_executable_path, db_path, db_log_filename):
 
-    """start mongo daemon, unless it is already running"""
+    """Spin up a MongoDB daemon (mongod) from the shell.
+    
+    The db path is set as suitable to the environment (locally in the 
+    folder it is run in, but docker in the volumes folder).
+    pgrep will look for running mongod processes and inform of conflicts,
+    but this might throw an error if it comes across a zombie, in which case
+    it ignores it and carries on with starting the daemon."""
 
     def mongo_go():
         print(f"\nStarting the MongoDB daemon...\n")
@@ -32,30 +38,32 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename):
 
 def stop_mongo():
 
-    """gracefully close the mongo daemon"""
+    """ Gracefully close the mongo daemon.
+    
+    pkill -15 is a standard way of ending mongod, which will close connections
+    cleanly. """
 
     client = pymongo.MongoClient('localhost', 27017)
     print(f"\nAsking MongoDB to close...")
     client.close()
     subprocess.call(['pkill', '-15', 'mongod'])
     timeout = 60
-    while timeout > 0:
+    while timeout > 0: # wait one minute for mongod to close
         try:
             subprocess.check_output(['pgrep', 'mongod'])
         except subprocess.CalledProcessError:
             print(f"\nOK, MongoDB daemon closed.")
             break
-        if '--log' not in sys.argv:
-            print(".", end='', flush=True)
+        print(".", end='', flush=True)
         time.sleep(1)
         timeout -= 1
-    if timeout == 0:
+    if timeout == 0: # this has never happened...
         print(f"\nMongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
 
 
 def index_mongo(run_folder):
 
-    """tidy up the database so that upsert operations are faster"""
+    """Tidy up the database so that upsert operations are faster."""
 
     client = pymongo.MongoClient('localhost', 27017)
     db = client.twitter_db
@@ -68,7 +76,7 @@ def index_mongo(run_folder):
 def export_and_backup(mongoexport_executable_path, mongodump_executable_path, database_dump_path, csv_filename):
 
     """Export some fields from the tweets in MongoDB into a CSV file
-    then backup and compress the database"""
+    then backup and compress the database."""
 
     print(f"\nCreating CSV output file...")
     subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,full_text,retweeted_status.full_text'])

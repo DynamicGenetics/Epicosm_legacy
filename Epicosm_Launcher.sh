@@ -118,7 +118,7 @@ printf "OK, Epicosm starting, harvesting from $number_of_users users, once every
 
 ## Docker run, sending shell command into container with replies to qs
 ## First iteration refreshing or getting following list, then into a loop just harvesting
-docker run --net=host -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /Epicosm/credentials.py; /usr/bin/python3 /Epicosm/epicosm.py $refresh $following --log; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /Epicosm/epicosm.py --log; sleep $frequency_in_seconds; done" 1>/dev/null;
+docker run --net=host -d -v $PWD:/root/host_interface/ altanner/epicosm:latest /bin/bash -c "cp /root/host_interface/credentials.py /Epicosm/credentials.py; /usr/bin/python3 /Epicosm/epicosm.py $refresh $following; sleep $frequency_in_seconds; while true; do /usr/bin/python3 /Epicosm/epicosm.py; sleep $frequency_in_seconds; done" 1>/dev/null;
 
 ## Report that things are up & make some status files. Docker should error above if things went wrong.
 container_name=$(docker ps | sed -n 2p | awk 'END {print $NF}');

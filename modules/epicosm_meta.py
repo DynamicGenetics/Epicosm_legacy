@@ -25,16 +25,20 @@ def logger_setup(epicosm_log_filename):
         def flush(self):
             pass
 
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
-                        filename = epicosm_log_filename,
-                        filemode='a')
-    stdout_logger = logging.getLogger('STDOUT')
-    sl = StreamToLogger(stdout_logger, logging.INFO)
-    sys.stdout = sl
-    stderr_logger = logging.getLogger('STDERR')
-    sl = StreamToLogger(stderr_logger, logging.ERROR)
-    sys.stderr = sl
+    if '--log' in sys.argv:
+        # if --log given as argument, create a logfile for this run
+        # a log will always be made if run inside docker container
+        print("Epicosm running, the logfile for this run is:\n", epicosm_log_filename)
+        logging.basicConfig(level=logging.INFO,
+                            format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
+                            filename = epicosm_log_filename,
+                            filemode='a')
+        stdout_logger = logging.getLogger('STDOUT')
+        sl = StreamToLogger(stdout_logger, logging.INFO)
+        sys.stdout = sl
+        stderr_logger = logging.getLogger('STDERR')
+        sl = StreamToLogger(stderr_logger, logging.ERROR)
+        sys.stderr = sl
 
 
 def status_up(status_file):

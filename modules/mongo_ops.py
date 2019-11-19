@@ -19,7 +19,7 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename):
     def mongo_go():
         print(f"\nStarting the MongoDB daemon...\n")
         try:
-            subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', db_log_filename])
+            subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', db_log_filename], stdout=subprocess.DEVNULL)
             time.sleep(1)
         except subprocess.CalledProcessError as e:
             print(f"There is a problem opening the MonogoDB daemon... halting.\n", e.output)
@@ -69,7 +69,7 @@ def index_mongo(run_folder):
     db = client.twitter_db
     if not os.path.isfile(run_folder + '/db/WiredTiger'):
         return
-    print(f"\nIndexing MongoDB...")
+    print(f"Indexing MongoDB...")
     db.tweets.create_index([('id_str', pymongo.ASCENDING)], unique=True, dropDups=True)
 
 
@@ -79,7 +79,7 @@ def export_and_backup(mongoexport_executable_path, mongodump_executable_path, da
     then backup and compress the database."""
 
     print(f"\nCreating CSV output file...")
-    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,full_text,retweeted_status.full_text'])
+    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,full_text,retweeted_status.full_text'], stderr=subprocess.DEVNULL)
     print(f'\nBacking up the database...')
-    subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'])
+    subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'], stderr=subprocess.DEVNULL)
     subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back access permissions to host

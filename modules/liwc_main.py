@@ -10,7 +10,14 @@ from datetime import datetime
 
 # Set up the dataframe by importing tweet.csv and setting up columns
 def set_up_dataframe(csv_file, category_names):
-    '''build a dataframe with a tweet for each row, append word count and categories'''
+    
+    """ Build a dataframe with a tweet for each row.
+    
+    Rows are tweets, columns are time tweeted to the day,
+    and to keep consistency with LIWC official output
+    we add append word count and categories (otherwise if it appends
+    them later it can get messy"""
+    
     # the read_csv engine must be python, not default of c, or some lines will mess with it
     df = DataFrame(pd.read_csv(csv_file, encoding='utf-8', engine='python', error_bad_lines=False))
     df['created_at'] = df['created_at'].apply(lambda d: datetime.strptime(d, '%a %b %d %H:%M:%S %z %Y').strftime('%d-%m-%Y'))
@@ -21,14 +28,17 @@ def set_up_dataframe(csv_file, category_names):
 
 
 def tokenize(text):
-    '''split each text entry into words (tokens)'''
-    # this needs to be tested or merged with Oliver's
+
+    """Split each text entry into words (tokens)"""
+
     for match in re.finditer(r'\w+', text, re.UNICODE):
         yield match.group(0)
 
 
 def count_and_insert(df, parse_fn):
-    '''assign each word to dictionary category and put in dataframe'''
+    
+    """Assign each word to dictionary category and put in dataframe"""
+    
     index = 0
     df['word_count'] = df['full_text'].apply(lambda x: len(str(x).split(' ')))
     for tweet in df['full_text']:
@@ -60,8 +70,4 @@ if __name__ == '__main__':
     count_and_insert(df, parse_fn=parse)
     df_anonymised = df.drop(['id_str', 'full_text'], axis=1)
     df_anonymised.to_csv('LIWC_' + sys.argv[2], sep=',', encoding='utf-8')
-    #print(df_anonymised)
-
-
-
 

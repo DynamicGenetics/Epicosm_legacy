@@ -12,6 +12,14 @@
   [![GPLv3 license](https://img.shields.io/badge/licence-GPL_v3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 
+## Overview
+Epicosm is used for gathering and analysis of social media, in the context of cohort study epidemiology. Currently it works with Twitter. It's abilities include:
+* Harvesting ongoing and retrospective Tweets from a list of users.
+* Real-time stream-listening from geographic locations.
+* Sentiment analysis of Tweets using LIWC and labMT.
+* [in development] Benchmarking of sentiment analysis against ground truth validations.
+
+
 
 ## Instructions in a nutshell
 #### 1. Install [Docker](https://docs.docker.com/install/).

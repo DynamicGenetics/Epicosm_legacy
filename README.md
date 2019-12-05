@@ -13,10 +13,11 @@
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 
 ## Overview
-Epicosm is used for gathering and analysis of social media, in the context of cohort study epidemiology. Currently it works with Twitter. It's abilities include:
+Epicosm integrates social media analysis with cohort study epidemiology. 
 * Harvesting ongoing and retrospective Tweets from a list of users.
 * Real-time stream-listening from geographic locations.
-* Sentiment analysis of Tweets using LIWC and labMT.
+* [in development] Real-time mapping of sentiment analysis.
+* Sentiment analysis of Tweets using labMT and LIWC (dictionary required for the latter).
 * [in development] Benchmarking of sentiment analysis against ground truth validations.
 
 

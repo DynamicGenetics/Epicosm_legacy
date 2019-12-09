@@ -73,13 +73,28 @@ def index_mongo(run_folder):
     db.tweets.create_index([('id_str', pymongo.ASCENDING)], unique=True, dropDups=True)
 
 
-def export_and_backup(mongoexport_executable_path, mongodump_executable_path, database_dump_path, csv_filename):
+def export_csv(mongoexport_executable_path, csv_filename):
 
-    """Export some fields from the tweets in MongoDB into a CSV file
-    then backup and compress the database."""
+    """Export some fields from the tweets in MongoDB into a CSV file."""
 
+    # export selected fields (specified after --fields) into csv
     print(f"\nCreating CSV output file...")
     subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,full_text,retweeted_status.full_text'], stderr=subprocess.DEVNULL)
+
+
+def export_json(mongoexport_executable_path, json_filename):
+
+    """Export ALL fields (json export cannot currently specify fields) into JSON file
+    THIS WILL BE A LARGE FILE, AND TAKE A LONG TIME IF THE DB IS LARGE!!!"""
+
+    print(f"\nCreating JSON output file...")
+    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=json', '--pretty', '--out', json_filename], stderr=subprocess.DEVNULL)
+
+
+def backup_db(mongodump_executable_path, database_dump_path):
+    
+    """ Do a full backup of the database into BSON format """
+    
     print(f'\nBacking up the database...')
     subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'], stderr=subprocess.DEVNULL)
-    subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back access permissions to host
+    subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back permissions to host

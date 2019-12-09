@@ -94,21 +94,23 @@ if __name__ == '__main__':
         # tidy up the database for better efficiency
         mongo_ops.index_mongo(env.run_folder)
         # get persistent user ids from screen names
-        twitter_ops.lookup_users(env.run_folder,
-                                 screen_names)
+        twitter_ops.lookup_users(env.run_folder, screen_names)
         # get tweets for each user and archive in mongodb
         twitter_ops.harvest(env.run_folder)
         # if user wants the friend list, make it
+        # !!! this is very slow, so is an option
         if '--get_following' in sys.argv:
             twitter_ops.get_following(env.run_folder)
-        # create CSV ouput and backup mongodb
-        mongo_ops.export_and_backup(mongoexport_executable_path,
-                                    mongodump_executable_path,
-                                    env.database_dump_path,
-                                    env.csv_filename)
+        # create CSV file
+        mongo_ops.export_csv(mongoexport_executable_path, env.csv_filename)
+        # create JSON file
+        # !!! this is big, slow and fields cannot be specified, so an option
+        if '--json' in sys.argv:
+            mongo_ops.export_json(mongoexport_executable_path, env.json_filename)
+        # backup database into BSON
+        mongo_ops.backup_db(mongodump_executable_path, env.database_dump_path)
         # modify status file
-        epicosm_meta.status_down(env.status_file,
-                                 env.run_folder)
+        epicosm_meta.status_down(env.status_file, env.run_folder)
         # shut down mongodb
         mongo_ops.stop_mongo()
 

@@ -20,8 +20,16 @@ class EnvironmentConfig:
         self._current_time = datetime.now()
 
     @property
-    def logfilename(self):
+    def log_datetime(self):
         return '{}.log'.format(self._current_time.strftime('%H:%M:%S_%d-%m-%Y'))
+
+    @property
+    def csv_datetime(self):
+        return '{}.csv'.format(self._current_time.strftime('%H:%M:%S_%d-%m-%Y'))
+
+    @property
+    def json_datetime(self):
+        return '{}.json'.format(self._current_time.strftime('%H:%M:%S_%d-%m-%Y'))
 
     @property
     def run_folder(self):
@@ -33,7 +41,7 @@ class EnvironmentConfig:
 
     @property
     def db_log_filename(self):
-        return os.path.join(self.run_folder, 'db_logs', self.logfilename)
+        return os.path.join(self.run_folder, 'db_logs', self.log_datetime)
 
     @property
     def db_path(self):
@@ -43,11 +51,15 @@ class EnvironmentConfig:
 
     @property
     def csv_filename(self):
-        return os.path.join(self.run_folder, 'output', 'csv', self.logfilename)
+        return os.path.join(self.run_folder, 'output', 'csv', self.csv_datetime)
+
+    @property
+    def json_filename(self):
+        return os.path.join(self.run_folder, 'output', 'json', self.json_datetime)
 
     @property
     def epicosm_log_filename(self):
-        return os.path.join(self.run_folder, 'epicosm_logs', self.logfilename)
+        return os.path.join(self.run_folder, 'epicosm_logs', self.log_datetime)
 
     @property
     def database_dump_path(self):

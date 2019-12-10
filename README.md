@@ -22,16 +22,25 @@ Epicosm integrates social media analysis with cohort study epidemiology.
 
 
 
-## Instructions in a nutshell
+## Docker: Instructions in a nutshell
 #### 1. Install [Docker](https://docs.docker.com/install/).
 #### 2. Put these three files into a folder:
   * Epicosm_Launcher.sh (provided here),
-  * Twitter credentials file (provided here, but complete with your own Twitter access keys),  
+  * Twitter credentials.py file (provided here, but complete with your own Twitter access keys),  
   * and your user_list (supplied by you: one screen name per line, plain text file).
 
 #### 3. Run Epicosm_Launcher on terminal/command line: 
 `sudo ./Epicosm_Launcher` (docker needs root privileges - please ask your IT admin for details if this is an issue).
 <p align="center"> ••• </p>
+   
+## Python: Instructions in a nutshell
+#### 1. Download the Epicosm repository.
+#### 2. Put these files into the folder you will run the process in:
+  * Twitter credentials.py file (provided here, but complete with your own Twitter access keys),  
+  * and your user_list (supplied by you: one screen name per line, plain text file).
+
+#### 3. Run the python file epicosm.py
+  * For example `python epicosm.py`
    
 ## Documentation
 #### 0.1 What does it do?  

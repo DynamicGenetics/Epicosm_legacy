@@ -49,25 +49,29 @@ def count_and_insert(df, parse_fn):
         index += 1
 
 
-if __name__ == '__main__':
-
+def csv_2_liwc_run():
     # check that inputs exist.
     if len(sys.argv) != 3:
         print(f'Please assign your dictionary and file to analyse.')
         print(f'eg: python3 main.py LIWC.dic some.txt')
         exit(0)
     if not os.path.isfile(sys.argv[1]):
-        print(f"The dictionary", sys.argv[1], "doesn't seem to exist here.")
+        print(f"The dictionary", sys.argv[1], "doesn't seem to exist.")
         exit(0)
     if not os.path.isfile(sys.argv[2]):
-        print(f"The CSV file", sys.argv[2], "doesn't seem to exist here.")
+        print(f"The CSV file", sys.argv[2], "doesn't seem to exist.")
         exit(0)
 
-
     # bring the dictionary in, sys.argv[1] is the dictionary name
+    print(f"Analysing", sys.argv[2], "using LIWC, just a moment...")
     parse, category_names = liwc.load_token_parser(sys.argv[1])
     df = set_up_dataframe(csv_file=sys.argv[2], category_names=category_names)
     count_and_insert(df, parse_fn=parse)
-    df_anonymised = df.drop(['id_str', 'full_text'], axis=1)
-    df_anonymised.to_csv('LIWC_' + sys.argv[2], sep=',', encoding='utf-8')
+    df_anonymised = df.drop(['id_str', 'full_text', 'retweeted_status.full_text'], axis=1)
+    output_filename = os.path.splitext(sys.argv[2])[0] + '_LIWC.csv'
+    df_anonymised.to_csv(output_filename, sep=',', encoding='utf-8')
 
+
+if __name__ == '__main__':
+    
+    csv_2_liwc_run()

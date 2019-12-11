@@ -35,18 +35,32 @@ def tokenize(text):
         yield match.group(0)
 
 
+def load_dictionary(dictionary):
+    parse, category_names = liwc.load_token_parser(dictionary)
+    return parse, category_names
+
+
 def count_and_insert(df, parse_fn):
     
     """Assign each word to dictionary category and put in dataframe"""
     
     index = 0
-    df['word_count'] = df['full_text'].apply(lambda x: len(str(x).split(' ')))
-    for tweet in df['full_text']:
+#    df['word_count'] = df['full_text'].apply(lambda x: len(str(x).split(' ')))
+    df['word_count'] = df['text'].apply(lambda x: len(str(x).split(' ')))
+    #for tweet in df['full_text']:
+    for tweet in df['text']:
         text_tokens = tokenize(tweet)
         text_counts = Counter(category for token in text_tokens for category in parse_fn(token))
         for count_category in text_counts: # insert the LIWC values as proportion of word_count
             df.at[index, count_category] = text_counts[count_category] / (df.iloc[index]['word_count'])
         index += 1
+
+
+def liwc_analysis(csv_file, category_names, parse):
+    df = set_up_dataframe(csv_file=csv_file, category_names=category_names)
+    count_and_insert(df, parse_fn=parse)
+    df_anonymised = df.drop(['text'], axis=1)
+    df_anonymised.to_csv(csv_file + 'LIWC', sep=',', encoding='utf-8')
 
 
 def csv_2_liwc_run():
@@ -67,7 +81,8 @@ def csv_2_liwc_run():
     parse, category_names = liwc.load_token_parser(sys.argv[1])
     df = set_up_dataframe(csv_file=sys.argv[2], category_names=category_names)
     count_and_insert(df, parse_fn=parse)
-    df_anonymised = df.drop(['id_str', 'full_text', 'retweeted_status.full_text'], axis=1)
+#    df_anonymised = df.drop(['id_str', 'full_text', 'retweeted_status.full_text'], axis=1)
+    df_anonymised = df.drop(['id_str', 'text', 'retweeted_status.full_text'], axis=1)
     output_filename = os.path.splitext(sys.argv[2])[0] + '_LIWC.csv'
     df_anonymised.to_csv(output_filename, sep=',', encoding='utf-8')
 

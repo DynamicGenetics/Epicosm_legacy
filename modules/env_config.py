@@ -1,16 +1,14 @@
 import os
-import sys
 from datetime import datetime
 
 
-DEFAULT_RUN_FOLDER = '/root/host_interface/'
+DEFAULT_RUN_FOLDER = '/root/host_interface/'  # the docker volume folder
 
 
 class EnvironmentConfig:
-    """Detects if environment is interactive or in Docker container.
-    
-    Returns the paths of files and executables relevant to that environment
-    """
+
+    """Have a look at the environment and set up paths to relevant locations.
+    In particular, discerns if run is in docker container."""
 
     def __init__(self):
         if os.path.exists('./dockerenv'):
@@ -20,16 +18,8 @@ class EnvironmentConfig:
         self._current_time = datetime.now()
 
     @property
-    def log_datetime(self):
+    def logfilename(self):
         return '{}.log'.format(self._current_time.strftime('%H:%M:%S_%d-%m-%Y'))
-
-    @property
-    def csv_datetime(self):
-        return '{}.csv'.format(self._current_time.strftime('%H:%M:%S_%d-%m-%Y'))
-
-    @property
-    def json_datetime(self):
-        return '{}.json'.format(self._current_time.strftime('%H:%M:%S_%d-%m-%Y'))
 
     @property
     def run_folder(self):
@@ -40,8 +30,12 @@ class EnvironmentConfig:
         return os.path.join(self.run_folder, 'STATUS')
 
     @property
+    def latest_geotweet(self):
+        return os.path.join(self.run_folder, 'latest_geotweet.csv')
+
+    @property
     def db_log_filename(self):
-        return os.path.join(self.run_folder, 'db_logs', self.log_datetime)
+        return os.path.join(self.run_folder, 'db_logs', self.logfilename)
 
     @property
     def db_path(self):
@@ -51,15 +45,11 @@ class EnvironmentConfig:
 
     @property
     def csv_filename(self):
-        return os.path.join(self.run_folder, 'output', 'csv', self.csv_datetime)
-
-    @property
-    def json_filename(self):
-        return os.path.join(self.run_folder, 'output', 'json', self.json_datetime)
+        return os.path.join(self.run_folder, 'output', 'csv', self.logfilename)
 
     @property
     def epicosm_log_filename(self):
-        return os.path.join(self.run_folder, 'epicosm_logs', self.log_datetime)
+        return os.path.join(self.run_folder, 'epicosm_logs', self.logfilename)
 
     @property
     def database_dump_path(self):

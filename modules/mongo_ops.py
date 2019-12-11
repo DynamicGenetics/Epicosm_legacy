@@ -6,6 +6,35 @@ import psutil
 import pymongo
 
 
+def mongo_checks():
+
+    """figure out where mongodb executables are on this system,
+    assign them to variables"""
+
+    try:
+        mongod_executable_path = subprocess.check_output(['which', 'mongod']).decode('utf-8').strip()
+    except:
+        print(f"You don't seem to have MongoDB installed. Stopping.")
+        sys.exit()
+    try:
+        mongoexport_executable_path = subprocess.check_output(['which', 'mongoexport']).decode('utf-8').strip()
+    except:
+        print(f"Mongoexport seems missing... stopping.")
+        sys.exit()
+    try:
+        mongodump_executable_path = subprocess.check_output(['which', 'mongodump']).decode('utf-8').strip()
+    except:
+        print(f"Mongodump seems missing... stopping.")
+        sys.exit()
+    try:
+        mongoimport_executable_path = subprocess.check_output(['which', 'mongoimport']).decode('utf-8').strip()
+    except:
+        print(f"Mongoimport seems missing... stopping.")
+        sys.exit()
+
+    return mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, mongoimport_executable_path
+
+
 def start_mongo(mongod_executable_path, db_path, db_log_filename):
 
     """Spin up a MongoDB daemon (mongod) from the shell.
@@ -98,3 +127,24 @@ def backup_db(mongodump_executable_path, database_dump_path):
     print(f'\nBacking up the database...')
     subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'], stderr=subprocess.DEVNULL)
     subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back permissions to host
+
+
+def export_latest_tweet(mongoexport_executable_path):
+
+    """Export most recent tweet as csv"""
+
+    print(f"\nCreating CSV output file...")
+    subprocess.call(
+        [mongoexport_executable_path, '--host=127.0.0.1', '--db=geotweets', '--collection=geotweets_collection',
+         '--type=csv', '--out=latest_geotweet.csv', '--fields=created_at,geo.coordinates,text', '--sort="{_id:-1}"',
+         '--limit=1'])
+
+
+def import_analysed_tweet(mongoimport_executable_path, latest_tweet):
+
+    """Import metrics from sentiment analysis into MongoDB"""
+
+    print(f"\nImporting LIWC analysis output...")
+    subprocess.call(
+        [mongoimport_executable_path, '--host=127.0.0.1', '--db=geotweets', '--collection=geotweets_analysed',
+         '--type=csv', '--headerline', '--file=' + latest_tweet])

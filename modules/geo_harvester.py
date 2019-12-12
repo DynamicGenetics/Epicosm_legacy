@@ -7,9 +7,11 @@ import signal
 import os
 import time
 from pymongo import MongoClient
+from urllib3.exceptions import ProtocolError
 
 # local imports
-from modules import mongo_ops, credentials, geo_boxes, env_config, epicosm_liwc
+import credentials
+from modules import mongo_ops, geo_boxes, env_config, csv_2_liwc
 
 
 def signal_handler(signal, frame):
@@ -77,7 +79,7 @@ class StreamListener(tweepy.StreamListener):
         mongo_ops.export_latest_tweet(mongoexport_executable_path)
 
         # turn most recent tweet into sentiment metrics
-        epicosm_liwc.liwc_analysis(env.latest_geotweet, category_names, parse)
+        csv_2_liwc.liwc_analysis(env.latest_geotweet, category_names, parse)
 
         # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
         mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC')
@@ -97,7 +99,7 @@ if __name__ == "__main__":
         print(f'eg: python geo_harvester.py LIWC.dic')
         exit(0)
     dictionary = sys.argv[1]
-    parse, category_names = epicosm_liwc.load_dictionary(dictionary)
+    parse, category_names = csv_2_liwc.load_dictionary(dictionary)
 
     ## See if the Mongo environment looks right
     mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, mongoimport_executable_path = mongo_ops.mongo_checks()
@@ -120,5 +122,8 @@ if __name__ == "__main__":
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
-    stream.filter(locations=geo_boxes.boxes)
-
+    while True:
+        try: # this deals with connection drops, needs logging.
+            stream.filter(locations=geo_boxes.boxes)
+        except (ProtocolError, AttributeError):
+            continue

@@ -7,6 +7,7 @@ import signal
 import os
 import time
 from pymongo import MongoClient
+from urllib3.exceptions import ProtocolError
 
 # local imports
 import credentials
@@ -121,5 +122,8 @@ if __name__ == "__main__":
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
-    stream.filter(locations=geo_boxes.boxes)
-
+    while True:
+        try: # catch connection exceptions. needs logging.
+            stream.filter(locations=geo_boxes.boxes)
+        except (ProtocolError, AttributeError):
+            continue

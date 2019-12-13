@@ -9,6 +9,7 @@ import credentials
 client = pymongo.MongoClient('localhost', 27017) # Default local port for MongoDB
 db = client.twitter_db # The name of the database.
 collection = db.tweets # The name of the collection inside that database.
+following_collection = db.following # The collection of user's following list.
 auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET) # Auth from credentials.py
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=5, retry_delay=5, timeout=15)
 

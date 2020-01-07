@@ -7,10 +7,16 @@ import signal
 import os
 import time
 from pymongo import MongoClient
+import pymongo
 from urllib3.exceptions import ProtocolError
 
 # local imports
-import credentials
+
+try:
+    import credentials
+except:
+    print(f"Your credentials.py file doesn't seem to be here... stopping.")
+    sys.exit(0)
 from modules import mongo_ops, geo_boxes, env_config, csv_2_liwc
 
 
@@ -44,33 +50,34 @@ class StreamListener(tweepy.StreamListener):
         if status_code == 401:
             print(f"\n!!! Authorisation failed. Have you put your API keys into /modules/credentials.py?")
             mongo_ops.stop_mongo()
-            return False
+            sys.exit(0)
         while status_code == 420:
             print(f"\n!!! Twitter API rate limit reached; try again in a minute or two.")
             mongo_ops.stop_mongo()
-            return False
+            sys.exit(0)
         while status_code == 500:
             print(f"\n!!! Twitter seems very busy; try again in a moment.")
             mongo_ops.stop_mongo()
-            return False
+            sys.exit(0)
 
         # all other streamer errors :'(
         print("!!! Something didn't work; Twitter gave this error code: " + repr(status_code))
         mongo_ops.stop_mongo()
-        return False
+        sys.exit(0)
 
 
     def on_data(self, data):
 
         """Put incoming tweets into DB, put out a csv and analyse sentiment"""
 
-        client = MongoClient()
-
-        # Connect to or initiate a database called 'geotweets'
-        db = client.geotweets
-
         # Deal with the incoming json
         datajson = json.loads(data)
+
+        # LIWC doesn't like tweets which are just numbers (bots tweet this sometimes?)
+        # so, here we skip tweets with no letters in
+        if not any(tweettext.isalpha() for tweettext in datajson.get('text')):
+            print("This tweet didn't contain letters - skipping.")
+            return
 
         # put raw tweet into 'geotweets_collection' of the 'geotweets' database.
         db.geotweets_collection.insert_one(datajson)
@@ -122,8 +129,16 @@ if __name__ == "__main__":
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
+    client = MongoClient()
+    db = client.geotweets
     while True:
         try: # catch connection exceptions. needs logging.
             stream.filter(locations=geo_boxes.boxes)
         except (ProtocolError, AttributeError):
+            continue
+        except pymongo.errors.ServerSelectionTimeoutError:
+            print("Is MongoDB down? trying to restart it...")
+            mongo_ops.start_mongo(mongod_executable_path,
+                          env.db_path,
+                          env.db_log_filename)
             continue

@@ -79,6 +79,10 @@ class StreamListener(tweepy.StreamListener):
             print("This tweet didn't contain letters - skipping.")
             return
 
+        if datajson.get('text') in ("True", "False"):
+            print("Caught that silly true/false error heheh")
+            return
+
         # put raw tweet into 'geotweets_collection' of the 'geotweets' database.
         db.geotweets_collection.insert_one(datajson)
 
@@ -134,8 +138,8 @@ if __name__ == "__main__":
     while True:
         try: # catch connection exceptions. needs logging.
             stream.filter(locations=geo_boxes.boxes)
-        except (ProtocolError, AttributeError):
-            continue
+#        except (ProtocolError, AttributeError):
+ #           continue
         except pymongo.errors.ServerSelectionTimeoutError:
             print("Is MongoDB down? trying to restart it...")
             mongo_ops.start_mongo(mongod_executable_path,

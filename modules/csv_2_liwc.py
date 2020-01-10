@@ -48,11 +48,7 @@ def count_and_insert(df, parse_fn):
     df['word_count'] = df['text'].apply(lambda x: len(str(x).split(' ')))
     for tweet in df['text']:
         text_tokens = tokenize(tweet)
-        try:
-            text_counts = Counter(category for token in text_tokens for category in parse_fn(token))
-        except Exception: # if the text is "1" it throws a TypeError. are bots doing this? tweets are not visible if you look them up.
-            print("Exception happened, text was", tweet)
-            pass
+        text_counts = Counter(category for token in text_tokens for category in parse_fn(token))
         for count_category in text_counts: # insert the LIWC values as proportion of word_count
             df.at[index, count_category] = text_counts[count_category] / (df.iloc[index]['word_count'])
         index += 1

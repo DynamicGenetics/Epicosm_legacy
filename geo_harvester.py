@@ -11,7 +11,6 @@ import pymongo
 from urllib3.exceptions import ProtocolError
 
 # local imports
-
 try:
     import credentials
 except:
@@ -79,8 +78,9 @@ class StreamListener(tweepy.StreamListener):
             print("This tweet didn't contain letters - skipping.")
             return
 
+        # True or False look like booleans to liwc
         if datajson.get('text') in ("True", "False"):
-            print("Caught that silly true/false error heheh")
+            print("Boolean misinterpretation... ignoring")
             return
 
         # put raw tweet into 'geotweets_collection' of the 'geotweets' database.
@@ -138,10 +138,17 @@ if __name__ == "__main__":
     while True:
         try: # catch connection exceptions. needs logging.
             stream.filter(locations=geo_boxes.boxes)
-#        except (ProtocolError, AttributeError):
- #           continue
-        except pymongo.errors.ServerSelectionTimeoutError:
-            print("Is MongoDB down? trying to restart it...")
+        except (ProtocolError, AttributeError) as e:
+            print("Protocol/Attribute error, ignoring:", e)
+            continue
+        except pymongo.errors.ServerSelectionTimeoutError as e:
+            print("Is MongoDB down? trying to restart it...", e)
+            mongo_ops.start_mongo(mongod_executable_path,
+                          env.db_path,
+                          env.db_log_filename)
+            continue
+        except pymongo.errors.AutoReconnect as e:
+            print("Is MongoDB down? trying to restart it...", e)
             mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
                           env.db_log_filename)

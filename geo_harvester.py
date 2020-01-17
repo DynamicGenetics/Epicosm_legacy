@@ -16,7 +16,7 @@ try:
 except:
     print(f"Your credentials.py file doesn't seem to be here... stopping.")
     sys.exit(0)
-from modules import mongo_ops, geo_boxes, env_config, csv_2_liwc
+from modules import mongo_ops, geo_boxes, env_config, csv_2_liwc, df_cleaning_functions
 
 
 def signal_handler(signal, frame):
@@ -90,6 +90,10 @@ class StreamListener(tweepy.StreamListener):
         mongo_ops.export_latest_tweet(mongoexport_executable_path)
 
         # turn most recent tweet into sentiment metrics
+        # !! --- here we need latest_tweet > vader
+        # !! csv > df
+        # !! df appending with vader scores
+        # !! df > geojson
         csv_2_liwc.liwc_analysis(env.latest_geotweet, category_names, parse)
 
         # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
@@ -143,12 +147,14 @@ if __name__ == "__main__":
             continue
         except pymongo.errors.ServerSelectionTimeoutError as e:
             print("Is MongoDB down? trying to restart it...", e)
+            mongo_ops.stop_mongo() # refresh
             mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
                           env.db_log_filename)
             continue
         except pymongo.errors.AutoReconnect as e:
             print("Is MongoDB down? trying to restart it...", e)
+            mongo_ops.stop_mongo() # refresh
             mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
                           env.db_log_filename)

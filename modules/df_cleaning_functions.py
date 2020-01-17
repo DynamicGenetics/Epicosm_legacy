@@ -19,32 +19,37 @@ def vader_df_2_geojson(df):
     df['lat'] = ""
     df['long'] = ""
 
-    # If there is no point location information, average the bounding box
-    if pd.isnull(df.loc[0, 'geo.coordinates']):
+    # If there is neither box or point geolocation
+    if pd.isnull(df.loc[0, 'geo.coordinates']) and pd.isnull(df.loc[0, 'place.bounding_box.coordinates']):
+
+        geo_coordinates = [''], [''] # make empty list
+
+    # If there is only a bounding box, make a point location of the centre of the box
+    elif pd.isnull(df.loc[0, 'geo.coordinates']):
 
         # regex out the box edges and average them to get pseudo point coordinates
         extract_geo_locs = re.findall(r"[-+]?\d*\.\d+|\d+", df.loc[0, 'place.bounding_box.coordinates'])
         box_edges = [float(i) for i in extract_geo_locs]
         geo_coordinates = [((box_edges[1] + box_edges[5]) / 2)], [((box_edges[0] + box_edges[4]) / 2)]
 
-    # If there is point location, isolate it
-    if not pd.isnull(df.loc[0, 'geo.coordinates']):
-
+    # If there is point location, extract it
+    else:
         # regex out the point location
         extract_geo_locs = re.findall(r"[-+]?\d*\.\d+|\d+", df.loc[0, 'geo.coordinates'])
         geo_coordinates = [float(i) for i in extract_geo_locs]
 
-    # Insert into fields
+    # Insert geolocation into fields
     df.loc[0, 'lat'] = geo_coordinates[0]
     df.loc[0, 'long'] = geo_coordinates[1]
 
     # Remove unwanted columns
     df.drop(['place.full_name', 'geo.coordinates', 'place.bounding_box.coordinates', 'text'], axis=1, inplace=True)
 
-    print(df) # DEBUG PRINT.
+    print(df) # DEBUG
 
     # Output a geojson from this refined dataframe
 #    df.to_csv(output_filename, sep=',', encoding='utf-8')
+
 
 
 def read_json(tweet_json_file):

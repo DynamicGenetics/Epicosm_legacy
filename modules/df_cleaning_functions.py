@@ -12,8 +12,8 @@ def vader_df_2_geojson(df):
     created_at place.full_name place.bounding_box.coordinates geo.coordinates
     text vader_neg vader_neu vader_pos vader_comp
 
-    Writes a csv with fields:
-    when, [vader scores], where"""
+    Writes a geojson with fields: NOPE THIS ISN'T FINISHED YET :)
+    when, [vader scores], [relevant emoji given scores], where"""
 
     # Add latitude and longitude fields to dataframe
     df['lat'] = ""
@@ -25,7 +25,7 @@ def vader_df_2_geojson(df):
         # regex out the box edges and average them to get pseudo point coordinates
         extract_geo_locs = re.findall(r"[-+]?\d*\.\d+|\d+", df.loc[0, 'place.bounding_box.coordinates'])
         box_edges = [float(i) for i in extract_geo_locs]
-        geo_coordinates = [((box_edges[0] + box_edges[4]) / 2)], [((box_edges[1] + box_edges[5]) / 2)]
+        geo_coordinates = [((box_edges[1] + box_edges[5]) / 2)], [((box_edges[0] + box_edges[4]) / 2)]
 
     # If there is point location, isolate it
     if not pd.isnull(df.loc[0, 'geo.coordinates']):
@@ -170,4 +170,3 @@ def read_and_tidy(tweet_json_file):
     data = tidy_text_cols(data)
     data = parse_datetime(data)
     return data
-    

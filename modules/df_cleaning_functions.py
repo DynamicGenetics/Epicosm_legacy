@@ -41,7 +41,7 @@ def vader_df_2_geojson(df):
     # Remove unwanted columns
     df.drop(['place.full_name', 'geo.coordinates', 'place.bounding_box.coordinates', 'text'], axis=1, inplace=True)
 
-    print(df)
+    print(df) # DEBUG PRINT.
 
     # Output a geojson from this refined dataframe
 #    df.to_csv(output_filename, sep=',', encoding='utf-8')

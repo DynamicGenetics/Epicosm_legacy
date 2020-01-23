@@ -16,7 +16,7 @@ try:
 except:
     print(f"Your credentials.py file doesn't seem to be here... stopping.")
     sys.exit(0)
-from modules import mongo_ops, geo_boxes, env_config, csv_2_liwc, df_cleaning_functions
+from modules import mongo_ops, geo_boxes, env_config, csv2liwc, df_cleaning_functions
 
 
 def signal_handler(signal, frame):
@@ -94,7 +94,7 @@ class StreamListener(tweepy.StreamListener):
         # !! csv > df
         # !! df appending with vader scores
         # !! df > geojson
-        csv_2_liwc.liwc_analysis(env.latest_geotweet, category_names, parse)
+        csv2liwc.liwc_analysis(env.latest_geotweet, category_names, parse)
 
         # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
         mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC')
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         print(f'eg: python geo_harvester.py LIWC.dic')
         exit(0)
     dictionary = sys.argv[1]
-    parse, category_names = csv_2_liwc.load_dictionary(dictionary)
+    parse, category_names = csv2liwc.load_dictionary(dictionary)
 
     ## See if the Mongo environment looks right
     mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, mongoimport_executable_path = mongo_ops.mongo_checks()

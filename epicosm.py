@@ -7,9 +7,16 @@ import datetime
 import subprocess
 import signal
 
-# Epicosm specific imports, coming from ./modules
-import credentials
+# local imports 
+try:
+    import credentials
+except:
+    print(f"Your credentials.py file doesn't seem to be here... stopping.")
+    sys.exit(0)
+
+# from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config
+
 
 # Check the time
 start = time.time()

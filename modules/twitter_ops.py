@@ -10,8 +10,7 @@ client = pymongo.MongoClient('localhost', 27017) # Default local port for MongoD
 db = client.twitter_db # The name of the database.
 collection = db.tweets # The name of the collection inside that database.
 following_collection = db.following # The collection of user's following list.
-auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET) # Auth from credentials.py
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=5, retry_delay=5, timeout=15)
+
 
 def authorise():
 
@@ -19,10 +18,10 @@ def authorise():
 
     auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
-    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=5, retry_delay=5, timeout=15)
+    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=3, retry_delay=1, timeout=10)
     try:
         print(f"Verifying Twitter credentials...")
-        api.verify_credentials(retry_count=3, retry_delay=5)
+        api.verify_credentials(retry_count=3, retry_delay=1)
     except tweepy.error.TweepError:
         print(f"The API credentials do not seem valid: connection to Twitter refused.")
         sys.exit()
@@ -31,8 +30,13 @@ def authorise():
 def lookup_users(run_folder, screen_names):
 
     """convert twitter screen names into persistent id numbers"""
+
+    auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
+    auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
+    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=3, retry_delay=1, timeout=10)    
     duplicate_users = []
     not_found = []
+
     if '--refresh' not in sys.argv and os.path.exists(run_folder + "/user_list.ids"):
         return
     with open(run_folder + "/user_list") as file:
@@ -44,7 +48,7 @@ def lookup_users(run_folder, screen_names):
 
     # Write duplicate users to file.
     if len(duplicate_users) > 0:
-        print(f"Info: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
+        print(f"\nInfo: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
         with open(run_folder + "/user_list.duplicates", 'w') as duplicate_file:
             for duplicate in duplicate_users:
                 duplicate_file.write("%s\n" % duplicate)
@@ -69,14 +73,16 @@ def lookup_users(run_folder, screen_names):
         comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
         for user in chunk:
             try:
-                user = api.get_user(screen_name = user)
+                user = api.get_user(screen_name = user) ## this is the problem
                 id_list.append(user.id) # get the id and put it in the id_list
                 if "--log" not in sys.argv:
-                    print('.', end='', flush=True)
+                     print('.', end='', flush=True)
+    
             except tweepy.error.TweepError as e:
                 not_found.append(user) # if not found, put user in not found list
         if "--log" not in sys.argv:
             print(f"")
+
 
     # Write user codes to file.
     with open(run_folder + "/user_list.ids", 'w') as id_file:
@@ -85,7 +91,7 @@ def lookup_users(run_folder, screen_names):
 
     # Write non-found users to file.
     if len(not_found) > 0:
-        print(f"Info: {len(set(not_found))} users were not found (see user_list.not_found)")
+        print(f"\nInfo: {len(set(not_found))} users were not found (see user_list.not_found)")
         with open(run_folder + "/user_list.not_found", 'w') as not_found_file:
             for not_found_user in not_found:
                 not_found_file.write("%s\n" % not_found_user)
@@ -95,6 +101,8 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users):
 
     """acquire tweets from each user id number and store them in MongoDB"""
 
+    auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET) # Auth from credentials.py
+    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=0)
     # check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
         # we already have this user's timeline, just get recent tweets
@@ -130,6 +138,11 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users):
             private_users.append(twitter_id) # Make a record of private account
         except tweepy.RateLimitError as rateerror: # Twitter telling us to chill out
             print(f"Rate limit reached, waiting for cooldown...")
+
+    return alltweets
+
+
+def insert_to_mongodb(alltweets):
 
     # update the database with the acquired tweets for this user
     for tweet in alltweets:
@@ -174,16 +187,17 @@ def harvest(run_folder):
     print(f"\nStarting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
     try: ## iterate through this list of ids.
         for twitter_id in users_to_follow:
-            get_tweets(run_folder, twitter_id, empty_users, private_users)
+            alltweets = get_tweets(run_folder, twitter_id, empty_users, private_users)
+            insert_to_mongodb(alltweets)
 
         if len(empty_users) > 0: # if users are empty, put into empty users file
-            print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")
+            print(f"\nInfo: {len(empty_users)} users have empty accounts (see user_list.empty)")
             with open(run_folder + "/user_list.empty", 'w') as empty_user_file:
                 for empty_user in empty_users:
                     empty_user_file.write("%s\n" % empty_user)    # write to empty user file
 
         if len(private_users) > 0: # if users are private found, put into private user file
-            print(f"Info: {len(private_users)} users have private accounts (see user_list.private)")
+            print(f"\nInfo: {len(private_users)} users have private accounts (see user_list.private)")
             with open(run_folder + "/user_list.private", 'w') as private_user_file:
                 for private_user in private_users:
                     private_user_file.write("%s\n" % private_user)    # write to private user file

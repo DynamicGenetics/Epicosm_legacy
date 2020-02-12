@@ -15,12 +15,30 @@ following_collection = db.following # The collection of user's following list.
 def get_credentials():
 
     credentials = {}
-    with open("credentials.txt") as file:
-        for line in file:
-            line = line.strip()  # always good to get rid of possible "noisy" formattings
-            if line and not line.startswith('#'):
-                key, val = line.split()
-                credentials[key.upper()] = val
+    try:
+        with open("credentials.txt") as file:
+            for line in file:
+                line = line.strip()  # remove errant whitespace
+                if line and not line.startswith("#"):
+                    key, val = line.split()
+                    if val:
+                        credentials[key.upper()] = val
+                    else: # users might have forgotten to update the credentials template file
+                        print("Your credentials.txt file doesn't look complete.")
+                        sys.exit(0) 
+    except FileNotFoundError:
+        print("Your credentials.txt file doesn't seem to exist here.")
+        sys.exit(0)
+    # verify the given credentials
+    auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"])
+    auth.set_access_token(credentials["ACCESS_TOKEN"], credentials["ACCESS_TOKEN_SECRET"])
+    api = tweepy.API(auth)
+    try:
+        api.verify_credentials()
+        print("Credentials verified by Twitter...")
+    except:
+        print("Your credentials were not verified - could you check them?")
+        sys.exit(0)
     return credentials
 
 
@@ -97,7 +115,7 @@ def lookup_users(run_folder, screen_names, credentials):
 def get_tweets(run_folder, twitter_id, empty_users, private_users, credentials):
 
     """acquire tweets from each user id number and store them in MongoDB"""
-#    authorise()
+
     auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"]) # Auth from credentials.py
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=0)
     # check if this user history has been acquired

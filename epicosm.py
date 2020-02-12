@@ -80,7 +80,7 @@ if not os.path.exists(env.run_folder + '/epicosm_logs'):
 
 if __name__ == '__main__':
 
-    try:
+  #  try:
         # set up logging
         epicosm_meta.logger_setup(env.epicosm_log_filename)
         # bring the credentials in from credentials.txt
@@ -115,5 +115,5 @@ if __name__ == '__main__':
         mongo_ops.stop_mongo()
 
         print(f"\nAll done, Epicosm finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}, taking around {int(round((time.time() - start) / 60))} minutes.")
-    except:
-        pass
+#    except:
+ #       pass

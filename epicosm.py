@@ -7,13 +7,6 @@ import datetime
 import subprocess
 import signal
 
-# local imports 
-try:
-    import credentials
-except:
-    print(f"Your credentials.py file doesn't seem to be here... stopping.")
-    sys.exit(0)
-
 # from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config
 
@@ -90,8 +83,8 @@ if __name__ == '__main__':
     try:
         # set up logging
         epicosm_meta.logger_setup(env.epicosm_log_filename)
-        # connect to Twitter API
-        twitter_ops.authorise()
+        # bring the credentials in from credentials.txt
+        credentials = twitter_ops.get_credentials()
         # start mongodb
         mongo_ops.start_mongo(mongod_executable_path,
                               env.db_path,
@@ -101,13 +94,13 @@ if __name__ == '__main__':
         # tidy up the database for better efficiency
         mongo_ops.index_mongo(env.run_folder)
         # get persistent user ids from screen names
-        twitter_ops.lookup_users(env.run_folder, screen_names)
+        twitter_ops.lookup_users(env.run_folder, screen_names, credentials)
         # get tweets for each user and archive in mongodb
-        twitter_ops.harvest(env.run_folder)
+        twitter_ops.harvest(env.run_folder, credentials)
         # if user wants the friend list, make it
         # !!! this is very slow, so is an option
         if '--get_following' in sys.argv:
-            twitter_ops.get_following(env.run_folder)
+            twitter_ops.get_following(env.run_folder, credentials)
         # create CSV file
         mongo_ops.export_csv(mongoexport_executable_path, env.csv_filename)
         # create JSON file

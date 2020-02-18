@@ -13,7 +13,7 @@
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 
 ## Overview
-Epicosm integrates social media analysis with cohort study epidemiology. 
+Epicosm: Epidemiology of Cohort Social Media. 
 * Harvesting ongoing and retrospective Tweets from a list of users.
 * Real-time stream-listening from geographic locations.
 * [in development] Real-time mapping of sentiment analysis.
@@ -22,26 +22,22 @@ Epicosm integrates social media analysis with cohort study epidemiology.
 
 
 
-## Docker: Instructions in a nutshell
-#### 1. Install [Docker](https://docs.docker.com/install/).
-#### 2. Put these three files into a folder:
-  * Epicosm_Launcher.sh (provided here),
-  * Twitter credentials.py file (provided here, but complete with your own Twitter access keys),  
-  * and your user_list (supplied by you: one screen name per line, plain text file).
-
-#### 3. Run Epicosm_Launcher on terminal/command line: 
-`sudo ./Epicosm_Launcher` (docker needs root privileges - please ask your IT admin for details if this is an issue).
-<p align="center"> ••• </p>
-   
-## Python: Instructions in a nutshell
+## Instructions in a nutshell
 #### 1. Download the Epicosm repository.
-#### 2. Put these files into the folder you will run the process in:
-  * Twitter credentials.py file (provided here, but complete with your own Twitter access keys),  
+#### 2. Install MongoDB
+  * In a Mac terminal type `brew install mongodb`
+  * In a Linux terminal type `apt install mongodb`
+#### 3. Put these three files into a folder:
+  * epicosm_mac OR epicosm_linux, depending on your operating system,
+  * Twitter credentials.txt file (provided here, but complete with [your own Twitter access keys](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf)),  
   * and your user_list (supplied by you: one screen name per line, plain text file).
 
-#### 3. Run the python file epicosm.py
-  * For example `python epicosm.py`
-   
+#### 4. Run the epicosm executable on terminal/command line: 
+`./epicosm_linux`
+
+#### (5. Alternatively, you can run `python epicosm.py` in /src, but you will have to update your own dependencies for it to run successfully.)
+<p align="center"> ••• </p>
+
 ## Documentation
 #### 0.1 What does it do?  
 #### 1.1 Running with Docker
@@ -53,32 +49,34 @@ Epicosm integrates social media analysis with cohort study epidemiology.
 <p align="center"> ••• </p>
 
 ### 0.1 What does it do?
-Epicosm is a social media harvester and sentiment analyser. Currently, the platform demonstrates work with Twitter as the data source and LIWC as the sentiment analysis method. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
+Epicosm is a social media harvester and sentiment analyser. Currently, the platform uses Twitter as the data source and LIWC as the sentiment analysis method. You provide it with a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content.
 
-Epicosm can be run in two ways. It can be run inside a Docker "container" - this is similar to a virtual machine, where a computer emulates another operating system within itself. This approach means users do not need to install anything other than Docker, that running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience. Alternatively, Epicosm can be run by Python version 3+; details are in section 2.1.
+Epicosm uses [MongoDB](https://www.mongodb.com/) for data management, and this must be installed before being running Epicosm. This can be done through downloading and installing from the MongoDB website, or it can be done in a Terminal window with the commands
+`brew install mongodb` on a Mac
+`apt install mongodb` on Linux (Debian-based systems like Ubuntu).
+
+Epicosm can be run in two ways. It can be run using the executables provided, `epicosm_mac` or `epicosm_linux`. If there are any issues with your input files (your `user_list` and your `credentials.txt`) Epicosm will try to help you hine, where a computer emulates another operating system within itself. This approach means users do not need to install anything other than Docker, that running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience. Alternatively, Epicosm can be run by Python version 3+; details are in section 2.1.
 
 You will need Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.
 
 <p align="center"> ••• </p>
 
-### 1.1 Running inside a Docker container
+### 1.1 Running Epicosm from executable
 
-This is the usual way of running Epicosm (see section 2.1 for running using python). Epicosm's software requirement is [Docker](https://docs.docker.com/install/). Please look up the most up-to-date way of installing for your operating system. At time of writing, running Docker in Windows 10+ requires emulation of a Linux OS, so please follow guides for that, or get in contact for help.
+This is the usual way of running Epicosm (see section 2.1 for running using Python).
 
-To run within a docker container, save the file `Epicosm_Launcher` and place it in a folder. Docker must be running: if it is not, it can be started with `systemctl start docker` (on Linux distributions), or `open /Applications/Docker.app` (in both MacOS and Linux, Docker can be started by clicking the app icon). The Docker repository is hub.docker.com/r/altanner/epicosm.
-
-You must provide 2 further files in the folder with `Epicosm_Launcher`:
+You must provide 2 further files in the folder with the Epicosm executable:
 1. a list of user screen names in a file called `user_list`. The user list must be a plain text file, with a single username (twitter screen name) per line.
 2. Twitter API credentials. Please see the file in this repository for a template. This file must be called `credentials.py`.
 
-Once these three files are ready, run `Epicosm_Launcher` on the command line: `sudo ./Epicosm_Launcher` and you will be guided through the process. Docker requires root permission to run, so please ensure you have this authorisation. Once launched, a docker container will be permanently running (or until the container, Docker or the computer is stopped). The status of Docker can be seen using the command `docker ps`.
-
-If stopped, to restart your container, go to the folder with your files in, and run `./Epicosm_Launcher` again, which will recognise that it is in a folder in which it has previously run and guide you through restarting.
+Then you can run the suitable executable,
+`./epicosm_linux` or
+`./epicosm_mac`
 
 <p align="center"> ••• </p>
 
 ### 1.2 Output and data
-The processed output is a CSV file, in the folder `/output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
+The processed output is a a database of tweets from the users in your `user_list`, and a CSV file, in the folder `./output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
 
 A log file detailing what Epicosm has done is in `/epicosm_logs/`. A log is always made if Epicosm is run inside Docker; see section 2.2 for specifying logs and other options when running locally.
 

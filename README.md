@@ -28,9 +28,9 @@ Epicosm: Epidemiology of Cohort Social Media.
   * In a Mac terminal type `brew install mongodb`
   * In a Linux terminal type `apt install mongodb`
 #### 3. Put these three files into a folder:
-  * epicosm_mac OR epicosm_linux, depending on your operating system,
-  * Twitter credentials.txt file (provided here, but complete with [your own Twitter access keys](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf)),  
-  * and your user_list (supplied by you: one screen name per line, plain text file).
+  * `epicosm_mac` OR `epicosm_linux`, depending on your operating system,
+  * Twitter `credentials.txt` file (provided here, but complete with [your own Twitter access keys](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf)),  
+  * and your `user_list` (supplied by you: one screen name per line, plain text file).
 
 #### 4. Run the epicosm executable on terminal/command line: 
 `./epicosm_linux`

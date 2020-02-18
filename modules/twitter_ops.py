@@ -20,10 +20,11 @@ def get_credentials():
             for line in file:
                 line = line.strip()  # remove errant whitespace
                 if line and not line.startswith("#"):
-                    key, val = line.split()
-                    if val:
-                        credentials[key.upper()] = val
-                    else: # users might have forgotten to update the credentials template file
+                    try:
+                        key, val = line.split()
+                        if val:
+                            credentials[key.upper()] = val
+                    except ValueError: # users might have forgotten to update the credentials template file
                         print("Your credentials.txt file doesn't look complete.")
                         sys.exit(0) 
     except FileNotFoundError:

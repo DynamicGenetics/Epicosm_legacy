@@ -14,35 +14,35 @@
 
 ## Overview
 Epicosm: Epidemiology of Cohort Social Media. 
-* Harvesting ongoing and retrospective Tweets from a list of users.
+* Harvest ongoing and retrospective Tweets from a list of users.
 * Real-time stream-listening from geographic locations.
 * [in development] Real-time mapping of sentiment analysis.
-* Sentiment analysis of Tweets using labMT and LIWC (dictionary required for the latter).
+* Sentiment analysis of Tweets using labMT, Vader and LIWC (dictionary required for the latter).
 * [in development] Benchmarking of sentiment analysis against ground truth validations.
 
 
 
 ## Instructions in a nutshell
 #### 1. Download the Epicosm repository.
-#### 2. Install MongoDB
+#### 2. Install MongoDB:
   * In a Mac terminal type `brew install mongodb`
   * In a Linux terminal type `apt install mongodb`
 #### 3. Put these three files into a folder:
   * `epicosm_mac` OR `epicosm_linux`, depending on your operating system,
-  * Twitter `credentials.txt` file (provided here, but complete with [your own Twitter access keys](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf)),  
+  * `credentials.txt` file (provided here, but complete with [your own Twitter access keys](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf)),  
   * and your `user_list` (supplied by you: one screen name per line, plain text file).
 
-#### 4. Run the epicosm executable on terminal/command line: 
-`./epicosm_linux`
+#### 4. Double click or run Epicosm: 
+`./epicosm_linux` or `./epicosm_mac`
 
-#### (5. Alternatively, you can run `python epicosm.py` in /src, but you will have to update your own dependencies for it to run successfully.)
+#### (5. Alternatively, you can run `python epicosm.py` in /src, but you will have to update your own dependencies for it to run successfully; follow instructions in section 2.1.)
 <p align="center"> ••• </p>
 
 ## Documentation
 #### 0.1 What does it do?  
-#### 1.1 Running with Docker
+#### 1.1 Running Epicosm
 #### 1.2 Output and other data
-#### 2.1 Running the python script independent of docker
+#### 2.1 Running python scripts
 #### 2.2 Optional parameters
 #### 3.0 License
 

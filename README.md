@@ -67,7 +67,7 @@ This is the usual way of running Epicosm (see section 2.1 for running using Pyth
 
 You must provide 2 further files in the folder with the Epicosm executable:
 1. a list of user screen names in a file called `user_list`. The user list must be a plain text file, with a single username (twitter screen name) per line.
-2. Twitter API credentials. Please see the file in this repository for a template. This file must be called `credentials.py`.
+2. Twitter API credentials. Please see the file in this repository for a template. This file must be called `credentials.txt`.
 
 Then you can run the suitable executable,
 `./epicosm_linux` or

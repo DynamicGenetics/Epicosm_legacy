@@ -55,7 +55,7 @@ Epicosm uses [MongoDB](https://www.mongodb.com/) for data management, and this m
 `brew install mongodb` on a Mac
 `apt install mongodb` on Linux (Debian-based systems like Ubuntu).
 
-Epicosm can be run in two ways. It can be run using the executables provided, `epicosm_mac` or `epicosm_linux`. If there are any issues with your input files (your `user_list` and your `credentials.txt`) Epicosm will try to help you hine, where a computer emulates another operating system within itself. This approach means users do not need to install anything other than Docker, that running the program is consistent for all users, and use of the program is simplified, requiring little or no command-line experience. Alternatively, Epicosm can be run by Python version 3+; details are in section 2.1.
+Epicosm can be run in two ways. It can be run using the executables provided, `epicosm_mac` or `epicosm_linux`. If there are any issues with your input files (your `user_list` and your `credentials.txt`) Epicosm will try to help you. Alternatively, Epicosm can be run by Python version 3+; details are in section 2.1.
 
 You will need Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.
 

@@ -24,7 +24,7 @@ Epicosm: Epidemiology of Cohort Social Media.
 
 ## Instructions in a nutshell
 #### 1. [Download the Epicosm repository](https://github.com/DynamicGenetics/Epicosm/archive/master.zip)
-#### 2. Install MongoDB:
+#### 2. Install [MongoDB](https://www.mongodb.com/):
   * In a Mac terminal type `brew install mongodb`
   * In a Linux terminal type `apt install mongodb`
 #### 3. Put these three files into a folder:

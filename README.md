@@ -35,7 +35,6 @@ Epicosm: Epidemiology of Cohort Social Media.
 #### 4. Double click or run Epicosm: 
 `./epicosm_linux` or `./epicosm_mac`
 
-#### (5. Alternatively, you can run `python epicosm.py` in /src, but you will have to update your own dependencies for it to run successfully; follow instructions in section 2.1.)
 <p align="center"> ••• </p>
 
 ## Documentation

@@ -78,7 +78,7 @@ Then you can run the suitable executable,
 ### 1.2 Output and data
 The processed output is a a database of tweets from the users in your `user_list`, and a CSV file, in the folder `./output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
 
-A log file detailing what Epicosm has done is in `/epicosm_logs/`. A log is always made if Epicosm is run inside Docker; see section 2.2 for specifying logs and other options when running locally.
+A log file detailing what Epicosm has done is in `/epicosm_logs/`.
 
 Full tweet content and metadata of all tweets is stored in [MongoDB](https://www.mongodb.com/) in json format. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
 
@@ -96,8 +96,8 @@ To view and interact with the database using a GUI, you will need MongoDB instal
 
 <p align="center"> ••• </p>
 
-### 2.1 Running the python script independent of Docker
-Epicosm will also run independent of its docker container:
+### 2.1 Running the python script manually
+See the source file in `/src` and run it with
 
 `python3 epicosm.py`
 
@@ -108,7 +108,7 @@ You must provide 2 files:
 Please also see these further requirements.
 
 1. Put all repository files and your user list into their own folder, and the script will work out the paths for itself. The python script must be run from the folder it is in.
-2. MongoDB version 4 or higher will need to be installed. It does not need to be running, the script will check MongoDB's status, and start it if it is not running. The working database will be stored in the folder where you place your local copy of this repository (not the default location of /data/db). When running with Docker, MongoDB is not required because it is included inside the Docker container. For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
+2. MongoDB version 4 or higher will need to be installed. It does not need to be running, the script will check MongoDB's status, and start it if it is not running. The working database will be stored in the folder where you place your local copy of this repository (not the default location of /data/db). For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
 
 `apt install mongodb` (or `yum`, `brew` or other package manager as appropriate)
 
@@ -126,7 +126,7 @@ Please also see these further requirements.
 
 ### 2.2 Optional parameters  
 The following arguments can be appended:  
-`--log`              Create a logfile of all output from the harvest run, in `/epicosm_logs` (a logfile is always made when running with Docker).
+`--log`              Create a logfile of all output from the harvest run, in `/epicosm_logs`.
 
 `--refresh`          Refresh the user list (if you want to modify the list of users to harvest from, replace your file `user_list`, and run with `--refresh` so that this is refreshed).
 

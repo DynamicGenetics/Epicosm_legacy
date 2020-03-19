@@ -51,18 +51,13 @@ class StreamListener(tweepy.StreamListener):
             mongo_ops.stop_mongo()
             sys.exit(0)
         while status_code == 420:
-            print(f"\n!!! Twitter API rate limit reached; try again in a minute or two.")
-            mongo_ops.stop_mongo()
-            sys.exit(0)
+            print(f"\n!!! Twitter API rate limit reached; trying again in 20 seconds.")
+            time.sleep(21)
+            stream.filter(locations=geo_boxes.boxes)
         while status_code == 500:
-            print(f"\n!!! Twitter seems very busy; try again in a moment.")
-            mongo_ops.stop_mongo()
-            sys.exit(0)
-
-        # all other streamer errors :'(
-        print("!!! Something didn't work; Twitter gave this error code: " + repr(status_code))
-        mongo_ops.stop_mongo()
-        sys.exit(0)
+            print(f"\n!!! Twitter seems very busy; trying again in 5 seconds.")
+            time.sleep(6)
+            stream.filter(locations=geo_boxes.boxes)
 
 
     def on_data(self, data):
@@ -144,15 +139,16 @@ if __name__ == "__main__":
             stream.filter(locations=geo_boxes.boxes)
         except (ProtocolError, AttributeError) as e:
             print("Protocol/Attribute error, ignoring:", e)
-            continue
         except (pymongo.errors.ServerSelectionTimeoutError, pymongo.errors.AutoReconnect) as e:
             print("Is MongoDB down? trying to restart it...", e)
             mongo_ops.stop_mongo() # refresh
             mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
                           env.db_log_filename)
-            continue
         except TypeError as e:
             print("There was a TypeError, very strange...", e)
-            continue
-            
+        except tweepy.error.TweepError as e:
+            print("Tweepy:", e) # catches rate limits and timeouts
+        except Exception as e:
+            print("Something went wrong there:", e)
+

@@ -24,9 +24,9 @@ Epicosm: Epidemiology of Cohort Social Media.
 
 ## Instructions in a nutshell
 #### 1. [Download the Epicosm repository](https://github.com/DynamicGenetics/Epicosm/archive/master.zip)
-#### 2. Install [MongoDB](https://www.mongodb.com/):
-  * In a Mac terminal type `brew install mongodb`
-  * In a Linux terminal type `apt install mongodb`
+#### 2. Install [MongoDB](https://www.mongodb.com/) version 4 or higher:
+  * In a Mac terminal `brew install mongodb`
+  * In a Linux terminal `apt install mongodb`
 #### 3. Put these three files into a folder:
   * `epicosm_mac` OR `epicosm_linux`, depending on your operating system,
   * `credentials.txt` file (provided here, but complete with [your own Twitter access keys](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf)),  
@@ -119,7 +119,9 @@ Please also see these further requirements.
 
 `pip3 install tweepy` 
 
-`pip3 install pymongo` 
+`pip3 install pymongo`
+
+`pip3 install schedule`
 
 <p align="center"> ••• </p>
 

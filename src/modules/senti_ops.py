@@ -3,8 +3,9 @@ import csv
 from collections import namedtuple
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+# Link up the local DB
 client = pymongo.MongoClient('localhost', 27017)
-db = client.twitter_db # how can we fix this? repetition.
+db = client.twitter_db
 
 def insert_groundtruth(db):
 
@@ -41,6 +42,9 @@ insert_groundtruth(db)
 
 def mongo_vader(db):
 
+    """Do Vader (Hutto & Gilbert 2014) analysis on the contents of the DB,
+    appending positive, negative, neutral and compound metrics to DB."""
+
     print(f"Vader sentiment, analysing...")
 
     # initialise analyser
@@ -67,16 +71,49 @@ mongo_vader(db)
 
 
 def mongo_labmt(dbpath, db, collection):
+
+    """Do LabMT (Dodds & Danforth XXXX) to contents of DB,
+    appending positive and negative metric fields to DB."""
+
+    print(f"LabMT sentiment, analysing...")
+
     pass
 
 
 
 def mongo_liwc(dbpath, db, collection):
+
+    """Do LIWC (Pennebaker et al 2015) to contents of DB,
+    appending 78 (?) metric fields to DB.
+
+    Requires an LIWC dictionary, named LIWC.dic, in the run folder."""
+
+    print(f"LIWC sentiment, analysing...")
+
     pass
 
 
+def mongo_time_of_day(db):
 
-def custom_nlp(dpbath, db, collection, nlp_name):
+    """Apply a fuzzy time of day field eg early morning/midday/evening etc"""
+
+    pass
+
+
+def mongo_extract_emojis(db):
+
+    """Find emojis used in the post and copy them to an epicosm subfield."""
+
+    pass
+
+
+def mongo_groundtruth_deltas(db):
+    # give a metric of difference from groundtruth of candidate senti-analysis
+    # root mean squares?
+    pass
+
+
+def custom_senti_analysis(dpbath, db, collection, nlp_name):
     pass
     # make a df of tweets (which fields?)
 

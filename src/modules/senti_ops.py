@@ -17,6 +17,8 @@ def insert_groundtruth(db):
     user_id and a float. in this prototype, user_id is the twitter id,
     and the float for the ground truth is a random number -1 < x < 1"""
 
+    print(f"Inserting groundtruth values...")
+
     # Turn csv into named tuple, for easier dot notation in pymongo ops
     with open("groundtruth.csv") as incoming_csv:
 
@@ -25,20 +27,27 @@ def insert_groundtruth(db):
         groundtruth_in = [Data(*r) for r in reader]
 
     # Create or update fields (epicosm.grountruth_1) with values
-    for user in groundtruth_in:
+    for index, user in enumerate(groundtruth_in):
 
         db.tweets.update_many({"user.id_str": user.user}, {"$set": {"epicosm.groundtruth.gt_stat_1": user.gt_stat_1}})
 
+    # Need "this user is not in the database"
+
+    print(f"OK - Groundtruth appended to {index + 1} users' records.")
+
 #debug
-#insert_groundtruth(db)
+insert_groundtruth(db)
+
 
 def mongo_vader(db):
+
+    print(f"Vader sentiment, analysing...")
 
     # initialise analyser
     analyser = SentimentIntensityAnalyzer()
 
     # analyse and insert each vader score for each tweet text
-    for tweet_text in db.tweets.find({}, {"id_str": 1, "full_text": 1}):
+    for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, "full_text": 1})):
 
         vader_negative = analyser.polarity_scores(tweet_text["full_text"])['neg']
         vader_neutral = analyser.polarity_scores(tweet_text["full_text"])['neu']
@@ -50,6 +59,8 @@ def mongo_vader(db):
                               "epicosm.vader.neu": vader_neutral,
                               "epicosm.vader.pos": vader_positive,
                               "epicosm.vader.comp": vader_compound}})
+
+    print(f"OK - Vader sentiment analysis applied to {index + 1} records.")
 
 #debug
 mongo_vader(db)

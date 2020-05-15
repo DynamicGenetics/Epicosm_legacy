@@ -1,11 +1,15 @@
 import pymongo
 import csv
 from collections import namedtuple
+import sys, os
+import codecs  ## handle utf8
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from labMTsimple.storyLab import *
 
 # Link up the local DB
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
+
 
 def insert_groundtruth(db):
 
@@ -14,20 +18,20 @@ def insert_groundtruth(db):
     These go in new fields, or if the fields already exist
     they are updated.
 
-    The gt_input_file must be in csv format, with two fields
+    The groundtruth.csv must be in csv format, with two fields
     user_id and a float. in this prototype, user_id is the twitter id,
     and the float for the ground truth is a random number -1 < x < 1"""
 
     print(f"Inserting groundtruth values...")
 
-    # Turn csv into named tuple, for easier dot notation in pymongo ops
+    # Turn csv into named tuple, for dot notation in pymongo ops
     with open("groundtruth.csv") as incoming_csv:
 
         reader = csv.reader(incoming_csv)
         Data = namedtuple("Data", next(reader))
         groundtruth_in = [Data(*r) for r in reader]
 
-    # Create or update fields (epicosm.grountruth_1) with values
+    # Create or update field (epicosm.groundtruth.gt_stat_1) with values
     for index, user in enumerate(groundtruth_in):
 
         db.tweets.update_many({"user.id_str": user.user}, {"$set": {"epicosm.groundtruth.gt_stat_1": user.gt_stat_1}})
@@ -37,7 +41,7 @@ def insert_groundtruth(db):
     print(f"OK - Groundtruth appended to {index + 1} users' records.")
 
 #debug
-insert_groundtruth(db)
+#insert_groundtruth(db)
 
 
 def mongo_vader(db):
@@ -67,18 +71,38 @@ def mongo_vader(db):
     print(f"OK - Vader sentiment analysis applied to {index + 1} records.")
 
 #debug
-mongo_vader(db)
+#mongo_vader(db)
 
 
-def mongo_labmt(dbpath, db, collection):
+def mongo_labMT(db):
 
-    """Do LabMT (Dodds & Danforth XXXX) to contents of DB,
+    """Do labMT (Dodds & Danforth 2011) to contents of DB,
     appending positive and negative metric fields to DB."""
 
-    print(f"LabMT sentiment, analysing...")
+    print(f"labMT sentiment, analysing...")
 
-    pass
+    lang = 'english'
+    labMT, labMTvector, labMTwordList = emotionFileReader(stopval=0.0, lang=lang, returnVector=True)
 
+    for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, "full_text": 1})):
+
+        # compute valence score and return frequency vector for generating wordshift
+        valence, frequency_vector = emotion(tweet_text["full_text"], labMT, shift=True, happsList=labMTvector)
+
+        # assign a stop vector
+        stop_vector = stopper(frequency_vector, labMTvector, labMTwordList, stopVal=1.0)
+
+        # get the emotional valence
+        output_valence = emotionV(stop_vector, labMTvector)
+
+        # insert score into DB
+        db.tweets.update_one({"id_str": tweet_text["id_str"]}, {"$set": {
+                              "epicosm.labMT.emotion_valence": format(output_valence, '.3f')}})
+
+    print(f"OK - labMT sentiment analysis applied to {index + 1} records.")
+
+#debug
+#mongo_labMT(db)
 
 
 def mongo_liwc(dbpath, db, collection):

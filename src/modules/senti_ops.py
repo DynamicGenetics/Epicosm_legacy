@@ -23,10 +23,10 @@ def main():
     pass
     insert_groundtruth(db)
     # mongo_random_noise_sentiment(db)
-    # mongo_vader(db)
-    # mongo_labMT(db)
-    # mongo_liwc(db)
-    # mongo_nlp_example(db)
+    mongo_vader(db)
+    mongo_labMT(db)
+    mongo_liwc(db)
+    mongo_nlp_example(db)
 
 
 def tweet_or_retweet(db_document_dict):
@@ -44,10 +44,10 @@ def tweet_or_retweet(db_document_dict):
     db[collection_name].find({}, {"id_str": 1, "full_text": 1, "retweeted_status.full_text": 1})
     """
 
-    full_text_field = "db_document_dict[full_text]"
+    full_text_field = "db_document_dict[\"full_text\"]"
 
     if "retweeted_status" in db_document_dict: # if this key exists, it is a retweet
-        full_text_field = "db_document_dict[retweeted_status][full_text]"
+        full_text_field = "db_document_dict[\"retweeted_status\"][\"full_text\"]"
 
     return full_text_field
 
@@ -93,46 +93,24 @@ def insert_groundtruth(db):
     existing_users_but_no_groundtruth = list(set(total_users_in_db) - set(users_with_groundtruth_provided))
     existing_groundtruths_but_no_user = list(set(users_with_groundtruth_provided) - set(total_users_in_db))
 
+    # make some log files if there are discrepancies
     if len(existing_groundtruths_but_no_user) > 0:
 
         print("Groundtruth was provided for", len(existing_groundtruths_but_no_user), "users not appearing in the DB.",
-              "See groundtruth_but_no_user")
+              "See groundtruth_but_no_user.log")
 
-        with open("groundtruth_but_no_user", "w") as save_file:
+        with open("groundtruth_but_no_user.log", "w") as save_file:
             for user in existing_groundtruths_but_no_user:
                 save_file.write("%s\n" % user)
 
     if len(existing_users_but_no_groundtruth) > 0:
 
         print("Groundtruth was not provided for", len(existing_users_but_no_groundtruth), "users appearing in the DB.",
-              "See user_but_no_groundtruth")
+              "See user_but_no_groundtruth.log")
 
-        with open("user_but_no_groundtruth", "w") as save_file:
+        with open("user_but_no_groundtruth.log", "w") as save_file:
             for user in existing_users_but_no_groundtruth:
                 save_file.write("%s\n" % user)
-
-
-def mongo_random_noise_sentiment(db):
-
-    """
-    Sets up some random fields for benchmarking of candidate sentiment analysis.
-    Appends field named epicosm.random.uniform
-    """
-
-    print(f"Inserting random noise testbed values...")
-
-    # db[collection_name].update_one({"id_str": db_document_dict["id_str"]}, {"$set": {
-    #     "epicosm.vader.negative": vader_negative,
-    #     "epicosm.vader.neutral": vader_neutral,
-    #     "epicosm.vader.positive": vader_positive,
-    #     "epicosm.vader.compound": vader_compound}})
-    # include flat dist
-    # include normal dist
-    # include gamma dist
-
-#    with tqdm(total=total_records, file=sys.stdout) as pbar:
-
-    print(f"OK - Noise appended to users' records.")
 
 
 def mongo_vader(db):
@@ -151,24 +129,23 @@ def mongo_vader(db):
     # analyse and insert each vader score for each tweet text
     with tqdm(total=total_records, file=sys.stdout) as pbar:
 
-            for index, db_document_dict in enumerate(db[collection_name].find({})):
+        for index, db_document_dict in enumerate(db[collection_name].find({})):
 
-                # decide if it is a tweet or retweet and use correct field
-                full_text_field = tweet_or_retweet(db_document_dict)
+            # decide if it is a tweet or retweet and assign relevant field
+            full_text_field = eval(tweet_or_retweet(db_document_dict))
 
-                vader_negative = analyser.polarity_scores(full_text_field)['neg']
-                vader_neutral = analyser.polarity_scores(full_text_field)['neu']
-                vader_positive = analyser.polarity_scores(full_text_field)['pos']
-                vader_compound = analyser.polarity_scores(full_text_field)['compound']
+            vader_negative = analyser.polarity_scores(full_text_field)["neg"]
+            vader_neutral = analyser.polarity_scores(full_text_field)["neu"]
+            vader_positive = analyser.polarity_scores(full_text_field)["pos"]
+            vader_compound = analyser.polarity_scores(full_text_field)["compound"]
 
-                db[collection_name].update_one({"id_str": db_document_dict["id_str"]},
-                                     {"$set": {
-                                      "epicosm.vader.negative": vader_negative,
-                                      "epicosm.vader.neutral": vader_neutral,
-                                      "epicosm.vader.positive": vader_positive,
-                                      "epicosm.vader.compound": vader_compound}})
+            db[collection_name].update_one({"id_str": db_document_dict["id_str"]}, {"$set": {
+                                  "epicosm.vader.negative": vader_negative,
+                                  "epicosm.vader.neutral": vader_neutral,
+                                  "epicosm.vader.positive": vader_positive,
+                                  "epicosm.vader.compound": vader_compound}})
 
-                pbar.update(1)
+            pbar.update(1)
 
     print(f"OK - Vader sentiment analysis applied to {index + 1} records.")
 
@@ -189,8 +166,8 @@ def mongo_labMT(db):
 
         for index, db_document_dict in enumerate(db[collection_name].find({})):
 
-            # decide if it is a tweet or retweet and use correct field
-            full_text_field = tweet_or_retweet(db_document_dict)
+            # decide if it is a tweet or retweet and assign relevant field
+            full_text_field = eval(tweet_or_retweet(db_document_dict))
 
             # compute valence score and return frequency vector for generating wordshift
             valence, frequency_vector = emotion(full_text_field, labMT, shift=True, happsList=labMTvector)
@@ -232,7 +209,7 @@ def mongo_liwc(db):
         dictionary = "LIWC.dic"
     else:
         print(f"Please have your dictionary here, named LIWC.dic")
-        exit(0)
+        return
 
     print(f"LIWC sentiment, analysing...")
 
@@ -242,8 +219,8 @@ def mongo_liwc(db):
 
         for index, db_document_dict in enumerate(db[collection_name].find({})):
 
-            # decide if it is a tweet or retweet and use correct field
-            full_text_field = tweet_or_retweet(db_document_dict)
+            # decide if it is a tweet or retweet and assign relevant field
+            full_text_field = eval(tweet_or_retweet(db_document_dict))
 
             word_count = len(re.findall(r'\w+', full_text_field))
             text_tokens = tokenize(full_text_field)
@@ -296,7 +273,7 @@ def mongo_extract_emojis(db):
 
 def mongo_nlp_example(db):
 
-    """This is a trivial placeholder for custom analyses, just checking I/O for MongoDB.
+    """This is a trivial placeholder for custom analyses.
     Outputs the ratio of the letter 'e' to total characters
     in field epicosm.trivial_nlp.e_ratio"""
 
@@ -307,7 +284,7 @@ def mongo_nlp_example(db):
         for index, db_document_dict in enumerate(db[collection_name].find({})):
 
             # decide if it is a tweet or retweet and use correct field
-            full_text_field = tweet_or_retweet(db_document_dict)
+            full_text_field = eval(tweet_or_retweet(db_document_dict))
 
             count = Counter(full_text_field)
             db[collection_name].update_one({"id_str": db_document_dict["id_str"]},

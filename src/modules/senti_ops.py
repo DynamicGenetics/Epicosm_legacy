@@ -10,51 +10,60 @@ import liwc
 
 
 # Link up the local DB
+
+db_name = "twitter_db"
+collection_name = "tweets"
+
 client = pymongo.MongoClient('localhost', 27017)
-db = client.twitter_db
-total_records = db.tweets.estimated_document_count()
+db = client[db_name]
+total_records = db[collection_name].estimated_document_count()
 
 
 def main():
-
-    user_id_field = ""
-    interest_field = "full_text"
+    pass
     insert_groundtruth(db)
     # mongo_random_noise_sentiment(db)
-    mongo_vader(db)
-    mongo_labMT(db, interest_field)
-    mongo_liwc(db, interest_field)
-    mongo_nlp_example(db, interest_field)
+    # mongo_vader(db)
+    # mongo_labMT(db)
+    # mongo_liwc(db)
+    # mongo_nlp_example(db)
 
 
-def tweet_or_retweet(mongodb_record):
+def tweet_or_retweet(db_document_dict):
 
-    """tweet jsons are kind of moronic - if the tweet is a retweet, the full_text field is
-    truncated, and the field underneath called 'truncated' says 'false'. I do not know when
-    the 'truncated' field does not say false.
+    """
+    tweet jsons are kind of moronic - if the tweet is a retweet, the full_text field is
+    truncated (ending with single character ellipsis (...)),
+    and the field underneath called 'truncated' says 'false'.
+    I do not know when the 'truncated' field does not say false.
 
-    Anyway, we have to get the true full text from the field retweeted_status.full_text
-    in the case that a tweet is a retweet -.-"""
+    Anyway, we have to get the *true* full text from the field retweeted_status.full_text
+    in the case that a tweet is a retweet -.-
 
-    full_text_field = "full_text"
-    if db.tweets.find({"retweeted_status": 1}):
-        print("RT")
-        full_text_field = "retweeted_status.full_text"
+    tweet_text is a dict created by the pymongo query like
+    db[collection_name].find({}, {"id_str": 1, "full_text": 1, "retweeted_status.full_text": 1})
+    """
 
-#    print("t" if full_text_field == "full_text")
+    full_text_field = "db_document_dict[full_text]"
+
+    if "retweeted_status" in db_document_dict: # if this key exists, it is a retweet
+        full_text_field = "db_document_dict[retweeted_status][full_text]"
+
     return full_text_field
 
 
 def insert_groundtruth(db):
 
-    """ Open up the local MongoDB, and for each record
+    """
+    Open up the local MongoDB, and for each record
     insert values representing groundtruth.
     These go in new fields, or if the fields already exist
     they are updated.
 
     The groundtruth.csv must be in csv format, with two fields
-    user_id and a float. in this prototype, user_id is the twitter id,
-    and the float for the ground truth is a random number -1 < x < 1"""
+    user_id and a float. user_id is the twitter id number,
+    and the float for the ground truth is a random number -1 < x < 1
+    """
 
     print(f"Inserting groundtruth values...")
 
@@ -65,24 +74,62 @@ def insert_groundtruth(db):
         Data = namedtuple("Data", next(reader))
         groundtruth_in = [Data(*r) for r in reader]
 
+    # Count users in db and groundtruth for crosschecking
+    total_users_in_db = db[collection_name].distinct("user.id_str")
+    users_with_groundtruth_provided = []
+
     # Create or update field (epicosm.groundtruth.gt_stat_1) with values
     for index, user in enumerate(groundtruth_in):
 
-        db.tweets.update_many({"user.id_str": user.user}, {"$set": {"epicosm.groundtruth.gt_stat_1": float(user.gt_stat_1)}})
+        db[collection_name].update_many({"user.id_str": user.user},
+                              {"$set":
+                              {"epicosm.groundtruth.gt_stat_1": float(user.gt_stat_1)}})
 
-    # Need "groundtruth was provided for n users not in DB: ____"
-    # Need "groundtruth was not provided for n users in DB: ____"
+        users_with_groundtruth_provided.append(user.user)
 
     print(f"OK - Groundtruth appended to {index + 1} users' records.")
+
+    # Cross-checking of groundtruth against users in DB.
+    existing_users_but_no_groundtruth = list(set(total_users_in_db) - set(users_with_groundtruth_provided))
+    existing_groundtruths_but_no_user = list(set(users_with_groundtruth_provided) - set(total_users_in_db))
+
+    if len(existing_groundtruths_but_no_user) > 0:
+
+        print("Groundtruth was provided for", len(existing_groundtruths_but_no_user), "users not appearing in the DB.",
+              "See groundtruth_but_no_user")
+
+        with open("groundtruth_but_no_user", "w") as save_file:
+            for user in existing_groundtruths_but_no_user:
+                save_file.write("%s\n" % user)
+
+    if len(existing_users_but_no_groundtruth) > 0:
+
+        print("Groundtruth was not provided for", len(existing_users_but_no_groundtruth), "users appearing in the DB.",
+              "See user_but_no_groundtruth")
+
+        with open("user_but_no_groundtruth", "w") as save_file:
+            for user in existing_users_but_no_groundtruth:
+                save_file.write("%s\n" % user)
 
 
 def mongo_random_noise_sentiment(db):
 
+    """
+    Sets up some random fields for benchmarking of candidate sentiment analysis.
+    Appends field named epicosm.random.uniform
+    """
+
     print(f"Inserting random noise testbed values...")
+
+    # db[collection_name].update_one({"id_str": db_document_dict["id_str"]}, {"$set": {
+    #     "epicosm.vader.negative": vader_negative,
+    #     "epicosm.vader.neutral": vader_neutral,
+    #     "epicosm.vader.positive": vader_positive,
+    #     "epicosm.vader.compound": vader_compound}})
     # include flat dist
     # include normal dist
     # include gamma dist
-    
+
 #    with tqdm(total=total_records, file=sys.stdout) as pbar:
 
     print(f"OK - Noise appended to users' records.")
@@ -90,8 +137,11 @@ def mongo_random_noise_sentiment(db):
 
 def mongo_vader(db):
 
-    """Do Vader (Hutto & Gilbert 2014) analysis on the contents of the DB,
-    appending positive, negative, neutral and compound metrics to DB."""
+    """
+    Do Vader (Hutto & Gilbert 2014) analysis on the contents of the DB,
+    appending four fields: epicosm.vader.negative epicosm.vader.neutral
+    epicosm.vader.positive epicosm.vader.compound
+    """
 
     print(f"Vader sentiment, analysing...")
 
@@ -101,34 +151,34 @@ def mongo_vader(db):
     # analyse and insert each vader score for each tweet text
     with tqdm(total=total_records, file=sys.stdout) as pbar:
 
-        # for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, interest_field: 1})):
-        for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, "full_text": 1, "retweeted_status.full_text": 1})):
+            for index, db_document_dict in enumerate(db[collection_name].find({})):
 
-            full_text_field = "tweet_text[full_text]" # needs refactoring into tweet_or_retweet
+                # decide if it is a tweet or retweet and use correct field
+                full_text_field = tweet_or_retweet(db_document_dict)
 
-            if "retweeted_status" in tweet_text:
-                full_text_field = "tweet_text[retweeted_status][full_text]"
+                vader_negative = analyser.polarity_scores(full_text_field)['neg']
+                vader_neutral = analyser.polarity_scores(full_text_field)['neu']
+                vader_positive = analyser.polarity_scores(full_text_field)['pos']
+                vader_compound = analyser.polarity_scores(full_text_field)['compound']
 
-            vader_negative = analyser.polarity_scores(full_text_field)['neg']
-            vader_neutral = analyser.polarity_scores(full_text_field)['neu']
-            vader_positive = analyser.polarity_scores(full_text_field)['pos']
-            vader_compound = analyser.polarity_scores(full_text_field)['compound']
+                db[collection_name].update_one({"id_str": db_document_dict["id_str"]},
+                                     {"$set": {
+                                      "epicosm.vader.negative": vader_negative,
+                                      "epicosm.vader.neutral": vader_neutral,
+                                      "epicosm.vader.positive": vader_positive,
+                                      "epicosm.vader.compound": vader_compound}})
 
-            db.tweets.update_one({"id_str": tweet_text["id_str"]}, {"$set": {
-                                  "epicosm.vader.negative": vader_negative,
-                                  "epicosm.vader.neutral": vader_neutral,
-                                  "epicosm.vader.positive": vader_positive,
-                                  "epicosm.vader.compound": vader_compound}})
-
-            pbar.update(1)
+                pbar.update(1)
 
     print(f"OK - Vader sentiment analysis applied to {index + 1} records.")
 
 
-def mongo_labMT(db, interest_field):
+def mongo_labMT(db):
 
-    """Do labMT (Dodds & Danforth 2011) to contents of DB,
-    appending positive and negative metric fields to DB."""
+    """
+    Do labMT (Dodds & Danforth 2011) to contents of DB,
+    appending one field called epicosm.labMT.emotion_valence
+    """
 
     print(f"labMT sentiment, analysing...")
 
@@ -136,10 +186,14 @@ def mongo_labMT(db, interest_field):
     labMT, labMTvector, labMTwordList = emotionFileReader(stopval=0.0, lang=lang, returnVector=True)
 
     with tqdm(total=total_records, file=sys.stdout) as pbar:
-        for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, interest_field: 1})):
+
+        for index, db_document_dict in enumerate(db[collection_name].find({})):
+
+            # decide if it is a tweet or retweet and use correct field
+            full_text_field = tweet_or_retweet(db_document_dict)
 
             # compute valence score and return frequency vector for generating wordshift
-            valence, frequency_vector = emotion(tweet_text[interest_field], labMT, shift=True, happsList=labMTvector)
+            valence, frequency_vector = emotion(full_text_field, labMT, shift=True, happsList=labMTvector)
 
             # assign a stop vector
             stop_vector = stopper(frequency_vector, labMTvector, labMTwordList, stopVal=1.0)
@@ -148,7 +202,7 @@ def mongo_labMT(db, interest_field):
             output_valence = emotionV(stop_vector, labMTvector)
 
             # insert score into DB
-            db.tweets.update_one({"id_str": tweet_text["id_str"]}, {"$set": {
+            db[collection_name].update_one({"id_str": db_document_dict["id_str"]}, {"$set": {
                                   "epicosm.labMT.emotion_valence": float(format(output_valence, '.4f'))}})
 
             pbar.update(1)
@@ -156,12 +210,16 @@ def mongo_labMT(db, interest_field):
     print(f"OK - labMT sentiment analysis applied to {index + 1} records.")
 
 
-def mongo_liwc(db, interest_field):
+def mongo_liwc(db):
 
-    """Do LIWC (Pennebaker et al 2015) to contents of DB,
+    """
+    Do LIWC (Pennebaker et al 2015) to contents of DB,
     appending 78 (?) metric fields to DB.
 
-    Requires an LIWC dictionary, named LIWC.dic, in the run folder."""
+    Requires an LIWC dictionary, named LIWC.dic, in the run folder.
+
+    Appends fields epicosm.liwc.[category]
+    """
 
     def tokenize(text):
 
@@ -181,15 +239,23 @@ def mongo_liwc(db, interest_field):
     parse, category_names = liwc.load_token_parser(dictionary)
 
     with tqdm(total=total_records, file=sys.stdout) as pbar:
-        for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, interest_field: 1})):
 
-            word_count = len(re.findall(r'\w+', tweet_text[interest_field]))
-            text_tokens = tokenize(tweet_text[interest_field])
+        for index, db_document_dict in enumerate(db[collection_name].find({})):
+
+            # decide if it is a tweet or retweet and use correct field
+            full_text_field = tweet_or_retweet(db_document_dict)
+
+            word_count = len(re.findall(r'\w+', full_text_field))
+            text_tokens = tokenize(full_text_field)
             text_counts = Counter(category for token in text_tokens for category in parse(token))
 
             for count_category in text_counts:  # insert the LIWC values as proportion of word_count
-                 db.tweets.update_one({"id_str": tweet_text["id_str"]}, {"$set": {
-                                       "epicosm.liwc." + count_category: float(format((text_counts[count_category] / word_count), '.4f'))}})
+
+                 db[collection_name].update_one({"id_str": db_document_dict["id_str"]},
+                                                {"$set":
+                                                {"epicosm.liwc." + count_category:
+                                                float(format((text_counts[count_category] / word_count),
+                                                '.4f'))}})
 
             pbar.update(1)
 
@@ -217,18 +283,18 @@ def mongo_extract_emojis(db):
 #
 #     with tqdm(total=total_records, file=sys.stdout) as pbar:
 #
-#         for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, interest_field: 1})):
+#         for index, tweet_text in enumerate(db[collection_name].find({}, {"id_str": 1, interest_field: 1})):
 #
 #             groundtruth_delta = groundtruthfield - candidate_inference_output_field
 #
-#             db.tweets.update_one({"id_str": tweet_text["id_str"]}, {"$set": {
+#             db[collection_name].update_one({"id_str": tweet_text["id_str"]}, {"$set": {
 #                 "epicosm." + candidate_inference + ".groundtruth_delta": format(groundtruth_delta, '.4f')
 #
 #         pbar.update(1)
 
 
 
-def mongo_nlp_example(db, interest_field):
+def mongo_nlp_example(db):
 
     """This is a trivial placeholder for custom analyses, just checking I/O for MongoDB.
     Outputs the ratio of the letter 'e' to total characters
@@ -238,11 +304,16 @@ def mongo_nlp_example(db, interest_field):
 
     with tqdm(total=total_records, file=sys.stdout) as pbar:
 
-        for index, tweet_text in enumerate(db.tweets.find({}, {"id_str": 1, interest_field: 1})):
+        for index, db_document_dict in enumerate(db[collection_name].find({})):
 
-            count = Counter(tweet_text[interest_field])
-            db.tweets.update_one({"id_str": tweet_text["id_str"]}, {"$set": {
-                "epicosm.trivial_nlp.e_ratio": float(format(int(count['e']) / int(len(tweet_text[interest_field])), '.4f'))}})
+            # decide if it is a tweet or retweet and use correct field
+            full_text_field = tweet_or_retweet(db_document_dict)
+
+            count = Counter(full_text_field)
+            db[collection_name].update_one({"id_str": db_document_dict["id_str"]},
+                                           {"$set":
+                                           { "epicosm.trivial_nlp.e_ratio":
+                                           float(format(int(count['e']) / int(len(full_text_field)), '.4f'))}})
 
             pbar.update(1)
 

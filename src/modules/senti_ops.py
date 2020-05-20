@@ -1,6 +1,5 @@
 import pymongo
 import csv
-import random
 from collections import namedtuple, Counter
 from tqdm import tqdm
 import sys
@@ -10,23 +9,32 @@ import liwc
 
 
 # Link up the local DB
-
 db_name = "twitter_db"
 collection_name = "tweets"
+mongodb_port = 27017
 
-client = pymongo.MongoClient('localhost', 27017)
+try:  # check if mongod is running here
+
+    client = pymongo.MongoClient('localhost', mongodb_port, serverSelectionTimeoutMS = 3000)
+    print("Connected to MongoDB version", client.server_info()["version"], "on port", mongodb_port)
+
+except pymongo.errors.ServerSelectionTimeoutError as e:
+
+    print("MongoDB cannot be reached - is it running?   ", e)
+    exit(1)
+
 db = client[db_name]
 total_records = db[collection_name].estimated_document_count()
 
 
 def main():
-    pass
-    insert_groundtruth(db)
-    # mongo_random_noise_sentiment(db)
+
+    mongo_insert_groundtruth(db)
     mongo_vader(db)
     mongo_labMT(db)
     mongo_liwc(db)
     mongo_nlp_example(db)
+    # mongo_groundtruth_delta(db, senti_method)
 
 
 def tweet_or_retweet(db_document_dict):
@@ -46,13 +54,13 @@ def tweet_or_retweet(db_document_dict):
 
     full_text_field = "db_document_dict[\"full_text\"]"
 
-    if "retweeted_status" in db_document_dict: # if this key exists, it is a retweet
+    if "retweeted_status" in db_document_dict:  # if this key exists, it is a retweet
         full_text_field = "db_document_dict[\"retweeted_status\"][\"full_text\"]"
 
     return full_text_field
 
 
-def insert_groundtruth(db):
+def mongo_insert_groundtruth(db):
 
     """
     Open up the local MongoDB, and for each record
@@ -205,11 +213,12 @@ def mongo_liwc(db):
         for match in re.finditer(r'\w+', text, re.UNICODE):
             yield match.group(0)
 
+    # Look for an LIWC dictionary
     if os.path.isfile('./LIWC.dic'):
         dictionary = "LIWC.dic"
     else:
         print(f"Please have your dictionary here, named LIWC.dic")
-        return
+        return  # abort LIWC if not dictionary
 
     print(f"LIWC sentiment, analysing...")
 
@@ -228,11 +237,11 @@ def mongo_liwc(db):
 
             for count_category in text_counts:  # insert the LIWC values as proportion of word_count
 
-                 db[collection_name].update_one({"id_str": db_document_dict["id_str"]},
-                                                {"$set":
-                                                {"epicosm.liwc." + count_category:
-                                                float(format((text_counts[count_category] / word_count),
-                                                '.4f'))}})
+                db[collection_name].update_one({"id_str": db_document_dict["id_str"]},
+                                               {"$set":
+                                               {"epicosm.liwc." + count_category:
+                                               float(format((text_counts[count_category] / word_count),
+                                               '.4f'))}})
 
             pbar.update(1)
 
@@ -253,29 +262,13 @@ def mongo_extract_emojis(db):
     pass
 
 
-# def mongo_groundtruth_delta(db, candidate_inference):
-#
-#     """This is a trivial placeholder for ascertaining how well a candidate analysis
-#     algorithm is correlating with groundtruth"""
-#
-#     with tqdm(total=total_records, file=sys.stdout) as pbar:
-#
-#         for index, tweet_text in enumerate(db[collection_name].find({}, {"id_str": 1, interest_field: 1})):
-#
-#             groundtruth_delta = groundtruthfield - candidate_inference_output_field
-#
-#             db[collection_name].update_one({"id_str": tweet_text["id_str"]}, {"$set": {
-#                 "epicosm." + candidate_inference + ".groundtruth_delta": format(groundtruth_delta, '.4f')
-#
-#         pbar.update(1)
-
-
-
 def mongo_nlp_example(db):
 
-    """This is a trivial placeholder for custom analyses.
+    """
+    This is a trivial placeholder for custom analyses.
     Outputs the ratio of the letter 'e' to total characters
-    in field epicosm.trivial_nlp.e_ratio"""
+    in field epicosm.trivial_nlp.e_ratio
+    """
 
     print(f"e_ratio, analysing...")
 
@@ -297,5 +290,25 @@ def mongo_nlp_example(db):
     print(f"OK - e_ratio analysis applied to {index + 1} records.")
 
 
+# def mongo_groundtruth_delta(db, candidate_inference):
+#
+#     """
+#     This is a placeholder for ascertaining how well a candidate analysis
+#     algorithm is correlating with groundtruth
+#     """
+#
+#     with tqdm(total=total_records, file=sys.stdout) as pbar:
+#
+#         for index, tweet_text in enumerate(db[collection_name].find({}, {"id_str": 1, interest_field: 1})):
+#
+#             groundtruth_delta = groundtruthfield - candidate_inference_output_field
+#
+#             db[collection_name].update_one({"id_str": tweet_text["id_str"]}, {"$set": {
+#                 "epicosm." + candidate_inference + ".groundtruth_delta": format(groundtruth_delta, '.4f')
+#
+#         pbar.update(1)
+
+
 if __name__ == "__main__":
     main()
+

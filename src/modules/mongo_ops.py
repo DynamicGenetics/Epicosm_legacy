@@ -35,7 +35,7 @@ def mongo_checks():
     return mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, mongoimport_executable_path
 
 
-def start_mongo(mongod_executable_path, db_path, db_log_filename):
+def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_filename):
 
     """Spin up a MongoDB daemon (mongod) from the shell.
     
@@ -46,19 +46,19 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename):
     it ignores it and carries on with starting the daemon."""
 
     def mongo_go():
-        print(f"\nStarting the MongoDB daemon...\n")
+        print(f"Starting the MongoDB daemon...")
         try:
-            subprocess.Popen([mongod_executable_path, '--dbpath', db_path, '--logpath', db_log_filename], stdout=subprocess.DEVNULL)
+            subprocess.Popen([mongod_executable_path, '--dbpath',
+                              db_path, '--logpath', db_log_filename], stdout = open(epicosm_log_filename, 'a+'))
             time.sleep(1)
         except subprocess.CalledProcessError as e:
-            print(f"There is a problem opening the MonogoDB daemon... halting.\n", e.output)
+            print(f"There is a problem opening the MonogoDB daemon... stopping.", e.output)
             sys.exit()
 
     try:
         if 'mongod' in (p.name() for p in psutil.process_iter()):
-            print(f"\nMongoDB daemon appears to be already running. This could cause conflicts. Please stop the daemon and retry.")
+            print(f"MongoDB daemon appears to be already running. This could cause conflicts... continuing for now.")
             print(f"(You can do this with the command: pkill -15 mongod)\n")
-            sys.exit()
         else:
             mongo_go()
     except psutil.ZombieProcess:
@@ -73,7 +73,7 @@ def stop_mongo():
     cleanly. """
 
     client = pymongo.MongoClient('localhost', 27017)
-    print(f"\nAsking MongoDB to close...")
+    print(f"Asking MongoDB to close...")
     client.close()
     subprocess.call(['pkill', '-15', 'mongod'])
     timeout = 60
@@ -81,13 +81,12 @@ def stop_mongo():
         try:
             subprocess.check_output(['pgrep', 'mongod'])
         except subprocess.CalledProcessError:
-            print(f"\nOK, MongoDB daemon closed.")
+            print(f"OK, MongoDB daemon closed.")
             break
-        print(".", end='', flush=True)
         time.sleep(1)
         timeout -= 1
     if timeout == 0: # this has never happened...
-        print(f"\nMongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
+        print(f"MongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
 
 
 def index_mongo(run_folder):
@@ -99,52 +98,70 @@ def index_mongo(run_folder):
     if not os.path.isfile(run_folder + '/db/WiredTiger'):
         return
     print(f"Indexing MongoDB...")
-    db.tweets.create_index([('id_str', pymongo.ASCENDING)], unique=True, dropDups=True)
+    db.tweets.create_index([('id_str', pymongo.ASCENDING)],
+                           unique=True, dropDups=True)
 
 
-def export_csv(mongoexport_executable_path, csv_filename):
+def export_csv(mongoexport_executable_path, csv_filename, epicosm_log_filename):
 
     """Export some fields from the tweets in MongoDB into a CSV file."""
 
     # export selected fields (specified after --fields) into csv
-    print(f"\nCreating CSV output file...")
-    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=csv', '--out', csv_filename, '--fields', 'user.id_str,id_str,created_at,full_text,retweeted_status.full_text'], stderr=subprocess.DEVNULL)
+    print(f"Creating CSV output file...")
+    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1',
+                     '--db', 'twitter_db',
+                     '--collection', 'tweets',
+                     '--type=csv',
+                     '--out', csv_filename,
+                     '--fields', 'user.id_str,id_str,created_at,full_text,retweeted_status.full_text'],
+                     stdout = open(epicosm_log_filename, 'a+'))
 
-
-def export_json(mongoexport_executable_path, json_filename):
+def export_json(mongoexport_executable_path, json_filename, epicosm_log_filename):
 
     """Export ALL fields (json export cannot currently specify fields) into JSON file
     THIS WILL BE A LARGE FILE, AND TAKE A LONG TIME IF THE DB IS LARGE!!!"""
 
-    print(f"\nCreating JSON output file...")
-    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1', '--db', 'twitter_db', '--collection', 'tweets', '--type=json', '--pretty', '--out', json_filename], stderr=subprocess.DEVNULL)
+    print(f"Creating JSON output file...")
+    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1',
+                     '--db', 'twitter_db',
+                     '--collection', 'tweets',
+                     '--type=json', '--pretty',
+                     '--out', json_filename],
+                     stdout = open(epicosm_log_filename, 'a+'))
 
 
-def backup_db(mongodump_executable_path, database_dump_path):
+def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filename):
     
     """ Do a full backup of the database into BSON format """
     
-    print(f'\nBacking up the database...')
-    subprocess.call([mongodump_executable_path, '-o', database_dump_path, '--host=127.0.0.1'], stderr=subprocess.DEVNULL)
-    subprocess.call(['chmod', '-R', '0755', database_dump_path]) # hand back permissions to host
+    print(f"Backing up the database...")
+    subprocess.call([mongodump_executable_path, '-o',
+                     database_dump_path, '--host=127.0.0.1'],
+                     stdout = open(epicosm_log_filename, 'a+'))
+    # hand back permissions to host
+    subprocess.call(['chmod', '-R', '0755', database_dump_path]) 
 
 
-def export_latest_tweet(mongoexport_executable_path):
+def export_latest_tweet(mongoexport_executable_path, epicosm_log_filename):
 
     """Export most recent tweet as csv"""
 
-    print(f"\nCreating CSV output file...")
-    subprocess.call(
-        [mongoexport_executable_path, '--host=127.0.0.1', '--db=geotweets', '--collection=geotweets_collection',
-         '--type=csv', '--out=latest_geotweet.csv', '--fields=created_at,geo.coordinates,text', '--sort="{_id:-1}"',
-         '--limit=1'])
+    print(f"Creating CSV output file...")
+    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1',
+                    '--db=geotweets', '--collection=geotweets_collection',
+                    '--type=csv', '--out=latest_geotweet.csv',
+                    '--fields=created_at,geo.coordinates,text',
+                    '--sort="{_id:-1}"', '--limit=1'],
+                    stdout = open(epicosm_log_filename, 'a+'))
 
 
-def import_analysed_tweet(mongoimport_executable_path, latest_tweet):
+def import_analysed_tweet(mongoimport_executable_path, latest_tweet, epicosm_log_filename):
 
     """Import metrics from sentiment analysis into MongoDB"""
 
-    print(f"\nImporting LIWC analysis output...")
-    subprocess.call(
-        [mongoimport_executable_path, '--host=127.0.0.1', '--db=geotweets', '--collection=geotweets_analysed',
-         '--type=csv', '--headerline', '--file=' + latest_tweet])
+    print(f"Importing LIWC analysis output...")
+    subprocess.call([mongoimport_executable_path, '--host=127.0.0.1',
+                    '--db=geotweets', '--collection=geotweets_analysed',
+                    '--type=csv', '--headerline', '--file=' + latest_tweet],
+                    stdout = open(epicosm_log_filename, 'a+'))
+

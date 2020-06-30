@@ -5,11 +5,16 @@ import pymongo
 import tweepy
 
 
+#def mongo_details()
 # Set up some MongoDB server details, Twitter API authentication details.
-client = pymongo.MongoClient('localhost', 27017) # Default local port for MongoDB
-db = client.twitter_db # The name of the database.
-collection = db.tweets # The name of the collection inside that database.
-following_collection = db.following # The collection of user's following list.
+# Default local port for MongoDB
+client = pymongo.MongoClient('localhost', 27017)
+# The name of the database.
+db = client.twitter_db
+# The name of the collection inside that database.
+collection = db.tweets
+# The collection of user's following list.
+following_collection = db.following
 
 
 def get_credentials():
@@ -38,7 +43,7 @@ def get_credentials():
         api.verify_credentials()
         print("Credentials verified by Twitter...")
     except:
-        print("Your credentials were not verified - could you check them?")
+        print("Your credentials were not verified - please check them and retry.")
         sys.exit(0)
     return credentials
 
@@ -64,7 +69,7 @@ def lookup_users(run_folder, screen_names, credentials):
 
     # Write duplicate users to file.
     if len(duplicate_users) > 0:
-        print(f"\nInfo: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
+        print(f"Info: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
         with open(run_folder + "/user_list.duplicates", 'w') as duplicate_file:
             for duplicate in duplicate_users:
                 duplicate_file.write("%s\n" % duplicate)
@@ -80,8 +85,10 @@ def lookup_users(run_folder, screen_names, credentials):
 
     # chunks splits the screen_name list into manageable blocks:
     def chunks(l, n):
-        for i in range(0, len(l), n):     # For item i in a range that is a length of l,
-            yield l[i:i+n]                # Create an index range for l of n items:
+        # For item i in a range that is a length of l,
+        for i in range(0, len(l), n):
+            # Create an index range for l of n items:
+            yield l[i:i+n]
 
     # Query twitter with the comma separated list
     id_list = []        # empty list for id to go into
@@ -107,7 +114,7 @@ def lookup_users(run_folder, screen_names, credentials):
 
     # Write non-found users to file.
     if len(not_found) > 0:
-        print(f"\nInfo: {len(set(not_found))} users were not found (see user_list.not_found)")
+        print(f"Info: {len(set(not_found))} users were not found (see user_list.not_found)")
         with open(run_folder + "/user_list.not_found", 'w') as not_found_file:
             for not_found_user in not_found:
                 not_found_file.write("%s\n" % not_found_user)
@@ -178,7 +185,7 @@ def get_following(run_folder, credentials):
     auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"])
     auth.set_access_token(credentials["ACCESS_TOKEN"], credentials["ACCESS_TOKEN_SECRET"])
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=0)
-    print(f"\nGetting following lists of users...")
+    print(f"Getting following lists of users...")
     following_list = []
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "/user_list.ids")]
     for twitter_id in users_to_follow:
@@ -203,20 +210,20 @@ def harvest(run_folder, credentials):
     private_users = []
     users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "/user_list.ids")]
     now = datetime.datetime.now()
-    print(f"\nStarting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
+    print(f"Starting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
     try: ## iterate through this list of ids.
         for twitter_id in users_to_follow:
             alltweets = get_tweets(run_folder, twitter_id, empty_users, private_users, credentials)
             insert_to_mongodb(alltweets)
 
         if len(empty_users) > 0: # if users are empty, put into empty users file
-            print(f"\nInfo: {len(empty_users)} users have empty accounts (see user_list.empty)")
+            print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")
             with open(run_folder + "/user_list.empty", 'w') as empty_user_file:
                 for empty_user in empty_users:
                     empty_user_file.write("%s\n" % empty_user)    # write to empty user file
 
         if len(private_users) > 0: # if users are private found, put into private user file
-            print(f"\nInfo: {len(private_users)} users have private accounts (see user_list.private)")
+            print(f"Info: {len(private_users)} users have private accounts (see user_list.private)")
             with open(run_folder + "/user_list.private", 'w') as private_user_file:
                 for private_user in private_users:
                     private_user_file.write("%s\n" % private_user)    # write to private user file

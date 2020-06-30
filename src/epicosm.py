@@ -27,7 +27,7 @@ def signal_handler(sig, frame):
     so Mongo is asked to stop
     """
     status_file = env.status_file
-    print(f"\n\nJust a second while I try to exit gracefully...")
+    print(f"Just a second while I try to exit gracefully...")
     with open(status_file, 'w+') as status:
         status.write(f"Epicosm is currently idle, but was interruped by user on last run.\nThe most recent harvest\
  was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
@@ -68,13 +68,11 @@ credentials = twitter_ops.get_credentials()
     
 # Check or make directory structure
 if not os.path.exists(env.run_folder + '/db'):
-    print(f"MongoDB database folder seems absent, creating folder...")
+    print(f"Looks like your first run here: making folders.")
     os.makedirs(env.run_folder + '/db')
 if not os.path.exists(env.run_folder + '/db_logs'):
-    print(f"DB log folder seems absent, creating folder...")
     os.makedirs(env.run_folder + '/db_logs')
 if not os.path.exists(env.run_folder + '/epicosm_logs'):
-    print(f"Epicosm log folder seems absent, creating folder...")
     os.makedirs(env.run_folder + '/epicosm_logs')
 
 
@@ -89,7 +87,8 @@ def main():
     # start mongodb
     mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
-                          env.db_log_filename)
+                          env.db_log_filename,
+                          env.epicosm_log_filename)
     # modify status file
     epicosm_meta.status_up(env.status_file)
     # tidy up the database for better efficiency
@@ -101,21 +100,27 @@ def main():
     # if user wants the friend list, make it
     # !!! this is very slow, so is an option
     if '--get_following' in sys.argv:
-        twitter_ops.get_following(env.run_folder, credentials)
+        twitter_ops.get_following(env.run_folder, credentials, env.epicosm_log_filename)
     # create CSV file
-    mongo_ops.export_csv(mongoexport_executable_path, env.csv_filename)
+    mongo_ops.export_csv(mongoexport_executable_path,
+                         env.csv_filename,
+                         env.epicosm_log_filename)
     # create JSON file
     # !!! this is big, slow and fields cannot be specified, so an option
     if '--json' in sys.argv:
-        mongo_ops.export_json(mongoexport_executable_path, env.json_filename)
+        mongo_ops.export_json(mongoexport_executable_path,
+                              env.json_filename,
+                              env.epicosm_log_filename)
     # backup database into BSON
-    mongo_ops.backup_db(mongodump_executable_path, env.database_dump_path)
+    mongo_ops.backup_db(mongodump_executable_path,
+                        env.database_dump_path,
+                        env.epicosm_log_filename)
     # modify status file
     epicosm_meta.status_down(env.status_file, env.run_folder)
     # shut down mongodb
     mongo_ops.stop_mongo()
 
-    print(f"\nScheduled task finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}. Epicosm has been up for about {int(round((time.time() - start)) / 3600 )} hours.")
+    print(f"Scheduled task finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}. Epicosm has been up for about {int(round((time.time() - start)) / 86400 )} days.")
 
 
 if __name__ == '__main__':

@@ -5,6 +5,9 @@ import time
 import psutil
 import pymongo
 
+client = pymongo.MongoClient('localhost', 27017)
+db = client.twitter_db
+collection = db.tweets
 
 def mongo_checks():
 
@@ -72,7 +75,6 @@ def stop_mongo():
     pkill -15 is a standard way of ending mongod, which will close connections
     cleanly. """
 
-    client = pymongo.MongoClient('localhost', 27017)
     print(f"Asking MongoDB to close...")
     client.close()
     subprocess.call(['pkill', '-15', 'mongod'])
@@ -93,8 +95,6 @@ def index_mongo(run_folder):
 
     """Tidy up the database so that upsert operations are faster."""
 
-    client = pymongo.MongoClient('localhost', 27017)
-    db = client.twitter_db
     if not os.path.isfile(run_folder + '/db/WiredTiger'):
         return
     print(f"Indexing MongoDB...")

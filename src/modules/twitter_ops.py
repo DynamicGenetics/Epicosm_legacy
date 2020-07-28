@@ -5,15 +5,9 @@ import pymongo
 import tweepy
 
 
-#def mongo_details()
-# Set up some MongoDB server details, Twitter API authentication details.
-# Default local port for MongoDB
 client = pymongo.MongoClient('localhost', 27017)
-# The name of the database.
 db = client.twitter_db
-# The name of the collection inside that database.
 collection = db.tweets
-# The collection of user's following list.
 following_collection = db.following
 
 
@@ -98,14 +92,9 @@ def lookup_users(run_folder, screen_names, credentials):
             try:
                 user = api.get_user(screen_name = user) ## this is the problem
                 id_list.append(user.id) # get the id and put it in the id_list
-                if "--log" not in sys.argv:
-                     print('.', end='', flush=True)
     
             except tweepy.error.TweepError as e:
                 not_found.append(user) # if not found, put user in not found list
-        if "--log" not in sys.argv:
-            print(f"")
-
 
     # Write user codes to file.
     with open(run_folder + "/user_list.ids", 'w') as id_file:

@@ -5,6 +5,11 @@ import sys
 import logging
 
 
+client = pymongo.MongoClient('localhost', 27017)
+db = client.twitter_db
+collection = db.tweets
+
+
 def logger_setup(epicosm_log_filename):
     ## Set up logging
     class StreamToLogger(object):
@@ -48,9 +53,6 @@ def status_up(status_file):
     Does a quick count of the current database,
     and rewrite the STATUS file to say that process is in progress."""
     
-    client = pymongo.MongoClient('localhost', 27017)
-    db = client.twitter_db
-    collection = db.tweets
     tweet_count = collection.count_documents({})
     with open(status_file, 'w+') as status:
         status.write(f"Epicosm is currently running.\nThis process started at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
@@ -65,11 +67,8 @@ def status_down(status_file, run_folder):
     Does a quick count of the current database,
     and rewrite the STATUS file to say that process is in progress."""
 
-    client = pymongo.MongoClient('localhost', 27017)
-    db = client.twitter_db
-    collection = db.tweets
     tweet_count = collection.count_documents({})
     with open(status_file, 'w+') as status:
-        next_harvest = (datetime.datetime.now() + datetime.timedelta(hours = 72)).strftime('%H:%M:%S_%d-%m-%Y')
+        next_harvest = (datetime.datetime.now() + datetime.timedelta(hours = 72)).strftime("06:00:00" + '_%d-%m-%Y')
         status.write(f"Epicosm is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nNext harvest is scheduled for {next_harvest}\nThe database currently contains {tweet_count} tweets.\n")
 

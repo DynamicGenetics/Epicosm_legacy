@@ -28,9 +28,6 @@ def signal_handler(sig, frame):
     """
     status_file = env.status_file
     print(f"Just a second while I try to exit gracefully...")
-    with open(status_file, 'w+') as status:
-        status.write(f"Epicosm is currently idle, but was interruped by user on last run.\nThe most recent harvest\
- was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
     mongo_ops.stop_mongo()
     sys.exit()
 
@@ -63,9 +60,10 @@ if not os.path.exists(env.run_folder + '/user_list'):
 number_of_users_provided = sum(1 for line_exists in open(env.run_folder + '/user_list') if line_exists)
 screen_names = list(dict.fromkeys(line.strip() for line in open(env.run_folder + '/user_list'))) # remove duplicates
 screen_names = [name for name in screen_names if name] # remove empty lines
-# Check credentials exit
+
+# Check credentials exist
 credentials = twitter_ops.get_credentials()
-    
+
 # Check or make directory structure
 if not os.path.exists(env.run_folder + '/db'):
     print(f"Looks like your first run here: making folders.")
@@ -124,8 +122,13 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-    schedule.every(3).days.at("06:00").do(main)
-    while True:
-        schedule.run_pending()
-        time.sleep(15)
+
+    if ("--once" in sys.argv):
+        main()
+    else:
+        main()
+        schedule.every(3).days.at("06:00").do(main)
+        while True:
+            schedule.run_pending()
+            time.sleep(15)
+

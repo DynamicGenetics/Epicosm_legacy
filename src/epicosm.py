@@ -98,7 +98,7 @@ def main():
     # if user wants the friend list, make it
     # !!! this is very slow, so is an option
     if '--get_following' in sys.argv:
-        twitter_ops.get_following(env.run_folder, credentials, env.epicosm_log_filename)
+        twitter_ops.get_following(env.run_folder, credentials)
     # create CSV file
     mongo_ops.export_csv(mongoexport_executable_path,
                          env.csv_filename,

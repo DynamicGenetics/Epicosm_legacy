@@ -183,6 +183,8 @@ def get_following(run_folder, credentials):
                 following_list.extend(following) # put followings into a list
         except tweepy.RateLimitError as rateerror:
             print(f"Rate limit reached, waiting for cooldown... {rateerror}")
+        except tweepy.TweepError as not_authorised:
+            print(f"Private account: {not_authorised}")
         try:
             for person in following_list:     # insert those into a mongodb collection called "following"
                 following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)

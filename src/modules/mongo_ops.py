@@ -50,7 +50,6 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_fi
 
     def mongo_go():
         print(f"Starting the MongoDB daemon...")
-        print(db_path)
         try:
             subprocess.Popen([mongod_executable_path, '--dbpath',
                               db_path, '--logpath', db_log_filename], stdout = open(epicosm_log_filename, 'a+'))
@@ -92,6 +91,7 @@ def stop_mongo(dbpath):
     if timeout == 0: # wait 1 minutes, then let it go...
         print(f"MongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
     return
+
 
 def index_mongo(run_folder):
 

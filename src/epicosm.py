@@ -37,22 +37,18 @@ def signal_handler(sig, frame):
 # Check if this is being run as native or compiled python
 def native_or_compiled():
 
-    run_method = 'native python'
+    run_method = "native python"
 
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # we are running in a bundle
-        run_method = 'compiled python'
+        run_method = "compiled python"
         bundle_dir = sys._MEIPASS
 
     else:
         # we are running native python
         bundle_dir = os.path.dirname(os.path.abspath(__file__))
 
-    print( 'Running as', run_method)
-    print( 'bundle dir is', bundle_dir )
-    print( 'sys.argv[0] is', sys.argv[0] )
-    print( 'sys.executable is', sys.executable )
-    print( 'os.getcwd is', os.getcwd() )                     
+    print("Epicosm unning as", run_method)
 
 
 ############

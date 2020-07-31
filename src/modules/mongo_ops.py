@@ -50,6 +50,7 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_fi
 
     def mongo_go():
         print(f"Starting the MongoDB daemon...")
+        print(db_path)
         try:
             subprocess.Popen([mongod_executable_path, '--dbpath',
                               db_path, '--logpath', db_log_filename], stdout = open(epicosm_log_filename, 'a+'))
@@ -68,7 +69,7 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_fi
         mongo_go()
 
 
-def stop_mongo():
+def stop_mongo(dbpath):
 
     """ Gracefully close the mongo daemon.
     
@@ -78,6 +79,7 @@ def stop_mongo():
     print(f"Asking MongoDB to close...")
     client.close()
     subprocess.call(['pkill', '-15', 'mongod'])
+
     timeout = 60
     while timeout > 0: # wait one minute for mongod to close
         try:
@@ -87,9 +89,9 @@ def stop_mongo():
             break
         time.sleep(1)
         timeout -= 1
-    if timeout == 0: # this has never happened...
+    if timeout == 0: # wait 1 minutes, then let it go...
         print(f"MongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
-
+    return
 
 def index_mongo(run_folder):
 

@@ -19,6 +19,8 @@ now = datetime.datetime.now()
 # Set paths as instance of EnvironmentConfig
 env = env_config.EnvironmentConfig()
 
+
+# Catch ctrl-c signals (and kill -15 signals)
 def signal_handler(sig, frame):
 
     """Handle interrupt signals, eg ctrl-c (and other kill signals).
@@ -28,50 +30,29 @@ def signal_handler(sig, frame):
     """
     status_file = env.status_file
     print(f"Just a second while I try to exit gracefully...")
-    mongo_ops.stop_mongo()
+    mongo_ops.stop_mongo(env.db_path)
     sys.exit()
 
-                     
-# setup signal handler
-signal.signal(signal.SIGINT, signal_handler)
 
+# Check if this is being run as native or compiled python
+def native_or_compiled():
 
-# check if MongoDB is present and correct
-try:
-    mongod_executable_path = subprocess.check_output(['which', 'mongod']).decode('utf-8').strip()
-except:
-    print(f"You don't seem to have MongoDB installed. Stopping.")
-    sys.exit()
-try:
-    mongoexport_executable_path = subprocess.check_output(['which', 'mongoexport']).decode('utf-8').strip()
-except:
-    print(f"Mongoexport seems missing... stopping.")
-    sys.exit()
-try:
-    mongodump_executable_path = subprocess.check_output(['which', 'mongodump']).decode('utf-8').strip()
-except:
-    print(f"Mongodump seems missing... stopping.")
-    sys.exit()
+    run_method = 'native python'
 
-# Check user list exists and get it
-if not os.path.exists(env.run_folder + '/user_list'):
-    print(f"USAGE: please provide a list of users to follow, named 'user_list'. Stopping.")
-    sys.exit()
-number_of_users_provided = sum(1 for line_exists in open(env.run_folder + '/user_list') if line_exists)
-screen_names = list(dict.fromkeys(line.strip() for line in open(env.run_folder + '/user_list'))) # remove duplicates
-screen_names = [name for name in screen_names if name] # remove empty lines
+    if getattr(sys, 'frozen', False):
+        # we are running in a bundle
+        run_method = 'compiled python'
+        bundle_dir = sys._MEIPASS
 
-# Check credentials exist
-credentials = twitter_ops.get_credentials()
+    else:
+        # we are running native python
+        bundle_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Check or make directory structure
-if not os.path.exists(env.run_folder + '/db'):
-    print(f"Looks like your first run here: making folders.")
-    os.makedirs(env.run_folder + '/db')
-if not os.path.exists(env.run_folder + '/db_logs'):
-    os.makedirs(env.run_folder + '/db_logs')
-if not os.path.exists(env.run_folder + '/epicosm_logs'):
-    os.makedirs(env.run_folder + '/epicosm_logs')
+    print( 'Running as', run_method)
+    print( 'bundle dir is', bundle_dir )
+    print( 'sys.argv[0] is', sys.argv[0] )
+    print( 'sys.executable is', sys.executable )
+    print( 'os.getcwd is', os.getcwd() )                     
 
 
 ############
@@ -80,8 +61,18 @@ if not os.path.exists(env.run_folder + '/epicosm_logs'):
 
 def main():
 
+
+    # check running method
+    native_or_compiled()
+    # check environment
+    mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, screen_names = epicosm_meta.check_env()
+    epicosm_meta.check_env()
     # set up logging
     epicosm_meta.logger_setup(env.epicosm_log_filename)
+    # setup signal handler
+    signal.signal(signal.SIGINT, signal_handler)
+    # verify credentials
+    credentials = twitter_ops.get_credentials()
     # start mongodb
     mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
@@ -116,19 +107,19 @@ def main():
     # modify status file
     epicosm_meta.status_down(env.status_file, env.run_folder)
     # shut down mongodb
-    mongo_ops.stop_mongo()
+    mongo_ops.stop_mongo(env.db_path)
 
     print(f"Scheduled task finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}. Epicosm has been up for about {int(round((time.time() - start)) / 86400 )} days.")
 
 
 if __name__ == '__main__':
 
-    if ("--once" in sys.argv):
-        main()
-    else:
+    if ("--repeat" in sys.argv):
         main()
         schedule.every(3).days.at("06:00").do(main)
         while True:
             schedule.run_pending()
             time.sleep(15)
+    else:
+        main()
 

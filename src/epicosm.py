@@ -48,7 +48,7 @@ def native_or_compiled():
         # we are running native python
         bundle_dir = os.path.dirname(os.path.abspath(__file__))
 
-    print("Epicosm unning as", run_method)
+    print("Epicosm launching as", run_method)
 
 
 ############
@@ -56,7 +56,6 @@ def native_or_compiled():
 ############
 
 def main():
-
 
     # check running method
     native_or_compiled()
@@ -83,16 +82,17 @@ def main():
     # get tweets for each user and archive in mongodb
     twitter_ops.harvest(env.run_folder, credentials)
     # if user wants the friend list, make it
-    # !!! this is very slow, so is an option
-    if '--get_following' in sys.argv:
+    # !!! this is very slow
+    if "--get_following" in sys.argv:
         twitter_ops.get_following(env.run_folder, credentials)
+        sys.argv.remove("--get_following") # we only want to do this once
     # create CSV file
     mongo_ops.export_csv(mongoexport_executable_path,
                          env.csv_filename,
                          env.epicosm_log_filename)
     # create JSON file
-    # !!! this is big, slow and fields cannot be specified, so an option
-    if '--json' in sys.argv:
+    # !!! this is big, slow and fields cannot be specified
+    if "--json" in sys.argv:
         mongo_ops.export_json(mongoexport_executable_path,
                               env.json_filename,
                               env.epicosm_log_filename)
@@ -105,14 +105,15 @@ def main():
     # shut down mongodb
     mongo_ops.stop_mongo(env.db_path)
 
-    print(f"Scheduled task finished at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}. Epicosm has been up for about {int(round((time.time() - start)) / 86400 )} days.")
+    print(f"Scheduled task finished at {datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}. Epicosm has been up for about {int(round((time.time() - start)) / 86400 )} days.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     if ("--repeat" in sys.argv):
         main()
-        schedule.every(3).days.at("06:00").do(main)
+#        schedule.every(3).days.at("06:00").do(main)
+        schedule.every(30).seconds.do(main)
         while True:
             schedule.run_pending()
             time.sleep(15)

@@ -5,12 +5,11 @@ import sys
 import logging
 import subprocess
 
-# local
+# local imports
 from modules import env_config
 
 
 env = env_config.EnvironmentConfig()
-
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
@@ -36,9 +35,6 @@ def logger_setup(epicosm_log_filename):
         def flush(self):
             pass
 
-#    if '--log' in sys.argv:
-        # if --log given as argument, create a logfile for this run
-        # a log will always be made if run inside docker container
     print("Epicosm running, the logfile for this run is:\n", epicosm_log_filename)
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
@@ -61,7 +57,7 @@ def status_up(status_file):
     
     tweet_count = collection.count_documents({})
     with open(status_file, 'w+') as status:
-        status.write(f"Epicosm is currently running.\nThis process started at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\n")
+        status.write(f"Epicosm is currently running.\nThis process started at {datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}\n")
         if tweet_count > 0:
             status.write(f"The database currently contains {tweet_count} tweets.\n")
 
@@ -75,8 +71,8 @@ def status_down(status_file, run_folder):
 
     tweet_count = collection.count_documents({})
     with open(status_file, 'w+') as status:
-        next_harvest = (datetime.datetime.now() + datetime.timedelta(hours = 72)).strftime("06:00:00" + '_%d-%m-%Y')
-        status.write(f"Epicosm is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%H:%M:%S_%d-%m-%Y')}\nNext harvest is scheduled for {next_harvest}\nThe database currently contains {tweet_count} tweets.\n")
+        next_harvest = (datetime.datetime.now() + datetime.timedelta(hours = 72)).strftime('%Y-%m-%d_' + "06:00:00")
+        status.write(f"Epicosm is currently idle.\nThe most recent harvest was at {datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}\nThe database currently contains {tweet_count} tweets.\n")
 
 
 def check_env():

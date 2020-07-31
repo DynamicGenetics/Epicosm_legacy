@@ -92,7 +92,6 @@ def stop_mongo(dbpath):
         print(f"MongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
     return
 
-
 def index_mongo(run_folder):
 
     """Tidy up the database so that upsert operations are faster."""

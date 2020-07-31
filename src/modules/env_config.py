@@ -19,7 +19,7 @@ class EnvironmentConfig:
 
     @property
     def logfilename(self):
-        return '{}.log'.format(self._current_time.strftime('%H:%M:%S_%d-%m-%Y'))
+        return '{}.log'.format(self._current_time.strftime('%Y-%m-%d_%H:%M:%S'))
 
     @property
     def run_folder(self):

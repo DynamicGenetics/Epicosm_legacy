@@ -5,7 +5,7 @@ import pymongo
 import tweepy
 
 
-client = pymongo.MongoClient('localhost', 27017)
+client = pymongo.MongoClient("localhost", 27017)
 db = client.twitter_db
 collection = db.tweets
 following_collection = db.following
@@ -52,7 +52,7 @@ def lookup_users(run_folder, screen_names, credentials):
     duplicate_users = []
     not_found = []
 
-    if '--refresh' not in sys.argv and os.path.exists(run_folder + "/user_list.ids"):
+    if "--refresh" not in sys.argv and os.path.exists(run_folder + "/user_list.ids"):
         return
     with open(run_folder + "/user_list") as file:
         lines = [x.strip() for x in file.readlines()]
@@ -133,13 +133,13 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users, credentials):
             print(f"User {twitter_id} is new, deep acquisition cycle...")
             alltweets = [] # IS BELOW REDUNDANT?
             new_tweets = api.user_timeline(id=twitter_id, count=200,
-                                           tweet_mode='extended', exclude_replies=True)
+                                           tweet_mode="extended", exclude_replies=True)
             alltweets.extend(new_tweets) # this gets the first 200 (maximum per request)
             try:
                 oldest = alltweets[-1].id - 1 # this is now the oldest tweet
                 while len(new_tweets) > 0: # so we do it again, going back another 200 tweets
                     new_tweets = api.user_timeline(id=twitter_id, count=200, max_id=oldest,
-                                                   tweet_mode='extended', exclude_replies=True)
+                                                   tweet_mode="extended", exclude_replies=True)
                     alltweets.extend(new_tweets)
                     oldest = alltweets[-1].id - 1 # this is now the oldest tweet
             except IndexError: # Index error means it is an empty account.
@@ -160,7 +160,7 @@ def insert_to_mongodb(alltweets):
     for tweet in alltweets:
             try:
                 try:
-                    collection.insert_one(tweet._json, {'$set': tweet._json})
+                    collection.insert_one(tweet._json, {"$set": tweet._json})
                 except pymongo.errors.DuplicateKeyError:
                     pass # denies duplicates being added
             except IndexError:
@@ -176,7 +176,7 @@ def get_following(run_folder, credentials):
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=0)
     print(f"Getting following lists of users...")
     following_list = []
-    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "/user_list.ids")]
+    users_to_follow = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
     for twitter_id in users_to_follow:
         try:
             for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 200).pages():
@@ -199,9 +199,9 @@ def harvest(run_folder, credentials):
 
     empty_users = []
     private_users = []
-    users_to_follow = [int(line.rstrip('\n')) for line in open(run_folder + "/user_list.ids")]
+    users_to_follow = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
     now = datetime.datetime.now()
-    print(f"Starting tweet harvest at {now.strftime('%H:%M:%S_%d-%m-%Y')} ...")
+    print(f"Starting tweet harvest at {now.strftime('%Y-%m-%d_%H:%M:%S')} ...")
     try: ## iterate through this list of ids.
         for twitter_id in users_to_follow:
             alltweets = get_tweets(run_folder, twitter_id, empty_users, private_users, credentials)
@@ -209,13 +209,13 @@ def harvest(run_folder, credentials):
 
         if len(empty_users) > 0: # if users are empty, put into empty users file
             print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")
-            with open(run_folder + "/user_list.empty", 'w') as empty_user_file:
+            with open(run_folder + "/user_list.empty", "w") as empty_user_file:
                 for empty_user in empty_users:
                     empty_user_file.write("%s\n" % empty_user)    # write to empty user file
 
         if len(private_users) > 0: # if users are private found, put into private user file
             print(f"Info: {len(private_users)} users have private accounts (see user_list.private)")
-            with open(run_folder + "/user_list.private", 'w') as private_user_file:
+            with open(run_folder + "/user_list.private", "w") as private_user_file:
                 for private_user in private_users:
                     private_user_file.write("%s\n" % private_user)    # write to private user file
 

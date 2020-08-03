@@ -95,7 +95,7 @@ def check_env():
 
     # Check user list exists and get it
     if not os.path.exists(env.run_folder + '/user_list'):
-        print(f"USAGE: please provide a list of users to follow, named 'user_list'. Stopping.")
+        print(f"Please provide a list of users to follow, named 'user_list'.")
         sys.exit()
 
     number_of_users_provided = sum(1 for line_exists in open(env.run_folder + '/user_list') if line_exists)

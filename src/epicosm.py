@@ -90,11 +90,8 @@ def native_or_compiled():
 
 def main():
 
-    # print some guidance if no/wrong args provided
-#    if len(sys.argv) < 2 or not any(arg in sys.argv[1:] for arg in valid_args):
-    if len(sys.argv) < 2 or not any(arg in sys.argv[1:] for arg in valid_args):
-
-        print(sys.argv[1:])
+    # print help message if no/wrong args provided
+    if len(sys.argv) < 2 or not all(arg in valid_args for arg in sys.argv[1:]):
         print(*usage)
         sys.exit(0)
 

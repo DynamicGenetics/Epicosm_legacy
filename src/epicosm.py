@@ -11,6 +11,39 @@ import schedule
 # from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config
 
+valid_args = ["--user_harvest", "--id_harvest", "--get_following",
+              "--repeat", "--refresh", "--geo_harvest", "--sentiment_analysis"]
+
+usage = ["Epicosm usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" + 
+         "Please provide flags:\n\n" +
+         "--user_harvest        Harvest tweets from all users from a file called user_list\n" +
+         "                      (provided by you) with a single user per line.\n\n" + 
+         "--id_harvest          Harvest tweets from all users from a file called user_list.ids\n" + 
+         "                      with one Twitter account ID number per line.\n" +
+         "                      (Epicosm can produce this after running with a user_list).\n\n" + 
+         "--get_following       Create a database of the users that are\n" + 
+         "                      being followed by the accounts in your user_list.\n" + 
+         "                      (This process can be very slow, especially if\n" + 
+         "                      your users are prolific followers.)\n" + 
+         "                      If using with --repeat, will only be gathered once.\n\n" + 
+         "--repeat              Iterate the user harvest every 3 days. This process will need to\n" 
+         "                      be put to the background to free your terminal prompt,\n" + 
+         "                      or to leave running while logged out.\n" + 
+         "                      For example: nohup ./epicosm --user_harvest --repeat\n" +
+         "                      (see documentation for more examples of running Epicosm.)\n\n" +  
+         "--refresh             If you have a new user_list, this will tell Epicosm to\n" + 
+         "                      take use this file as your updated user list.\n" + 
+         "                      If using with --repeat, will only be gathered once.\n\n" + 
+         "--geo_harvest         Launch a stream-listener, gathering tweets from a defined\n" + 
+         "                      location file called \"geo_boxes.py\".\n" + 
+         "                      This process will need be put to the background to free\n" + 
+         "                      your terminal prompt or to leave running while logged out.\n" + 
+         "                      (see documenation for examples and details.)\n\n" + 
+         "--sentiment_analysis  Carry out a sentiment analysis on an existing\n" + 
+         "                      database of tweets. See documentation for details.\n\n" + 
+         "Typical example of an ongoing harvest:\n" + 
+         "./epicosm --user_harvest --repeat\n\n"]
+
 
 # Check the time
 start = time.time()
@@ -57,6 +90,14 @@ def native_or_compiled():
 
 def main():
 
+    # print some guidance if no/wrong args provided
+#    if len(sys.argv) < 2 or not any(arg in sys.argv[1:] for arg in valid_args):
+    if len(sys.argv) < 2 or not any(arg in sys.argv[1:] for arg in valid_args):
+
+        print(sys.argv[1:])
+        print(*usage)
+        sys.exit(0)
+
     # check running method
     native_or_compiled()
     # check environment
@@ -80,9 +121,9 @@ def main():
     # get persistent user ids from screen names
     twitter_ops.lookup_users(env.run_folder, screen_names, credentials)
     # get tweets for each user and archive in mongodb
-    twitter_ops.harvest(env.run_folder, credentials)
+    if "--user_harvest" in sys.argv:
+        twitter_ops.harvest(env.run_folder, credentials)
     # if user wants the friend list, make it
-    # !!! this is very slow
     if "--get_following" in sys.argv:
         twitter_ops.get_following(env.run_folder, credentials)
         sys.argv.remove("--get_following") # we only want to do this once

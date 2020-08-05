@@ -122,13 +122,13 @@ Please also see these further requirements.
 
 or you can install each item yourself if you like pip:
 
-`pip3 install psutil
-pip3 install tweepy
-pip3 install pymongo
-pip3 install schedule
-pip3 install tqdm
-pip3 install labMTsimple
-pip3 install jinja2`
+`pip3 install psutil`
+`pip3 install tweepy`
+`pip3 install pymongo`
+`pip3 install schedule`
+`pip3 install tqdm`
+`pip3 install labMTsimple`
+`pip3 install jinja2`
 
 <p align="center"> ••• </p>
 

@@ -17,11 +17,11 @@ Epicosm: Epidemiology of Cohort Social Media.
 Epicosm is a suite of tools for working with social media data in the context of
 epidemiological research. It is aimed for use by epidemiologists who wish to gather, analyse
 and integrate social media data with existing longitudinal and cohort-study research.
-The tools here include:
+The tools can:
 * Harvest ongoing and retrospective Tweets from a list of users.
-* Real-time Twitter stream-listening from geographic locations.
-* Sentiment analysis of Tweets using labMT, Vader and LIWC (dictionary required for the latter).
-* [in development] Benchmarking of sentiment analysis algorithms against ground truth validations.
+* Real-time Twitter stream-listen from geographic locations, and collate into a database.
+* Sentiment analysis of Tweets using labMT, Vader and LIWC (dictionary required for LIWC).
+* [in development] Validation of sentiment analysis algorithms against groundtruth.
 
 ## Instructions in a nutshell
 #### 1. [Download the Epicosm repository](https://github.com/DynamicGenetics/Epicosm/archive/master.zip)

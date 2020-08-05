@@ -103,7 +103,7 @@ To view and interact with the database using a GUI, you will need MongoDB instal
 
 See the source file in `/src` and run it with
 
-`python3 epicosm.py`
+`python3 epicosm.py [your run flag]`
 
 You must provide 2 files:
 1. a list of user screen names in a file called `user_list`. The user list must be a plain text file, with a single username (twitter screen name) per line.  
@@ -116,7 +116,7 @@ Please also see these further requirements.
 
 `apt install mongodb` (or `yum`, `brew` or other package manager as appropriate)
 
-3. The following Python3 dependencies will need to be installed from the `requirements.txt` file if you run 
+3. The following Python3 dependencies will need to be installed from the `src/requirements.txt` file if you run 
 
 `pip3 install -r requirements.txt`
 

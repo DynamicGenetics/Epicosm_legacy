@@ -29,12 +29,13 @@ total_records = db[collection_name].estimated_document_count()
 
 def main():
 
-    mongo_insert_groundtruth(db)
     mongo_vader(db)
     mongo_labMT(db)
     mongo_liwc(db)
-    mongo_nlp_example(db)
-    # mongo_groundtruth_delta(db, senti_method)
+    # in development :)
+    #mongo_nlp_example(db)
+    #mongo_insert_groundtruth(db)
+    #mongo_groundtruth_delta(db, senti_method)
 
 
 def tweet_or_retweet(db_document_dict):
@@ -290,23 +291,23 @@ def mongo_nlp_example(db):
     print(f"OK - e_ratio analysis applied to {index + 1} records.")
 
 
-# def mongo_groundtruth_delta(db, candidate_inference):
-#
-#     """
-#     This is a placeholder for ascertaining how well a candidate analysis
-#     algorithm is correlating with groundtruth
-#     """
-#
-#     with tqdm(total=total_records, file=sys.stdout) as pbar:
-#
-#         for index, tweet_text in enumerate(db[collection_name].find({}, {"id_str": 1, interest_field: 1})):
-#
-#             groundtruth_delta = groundtruthfield - candidate_inference_output_field
-#
-#             db[collection_name].update_one({"id_str": tweet_text["id_str"]}, {"$set": {
-#                 "epicosm." + candidate_inference + ".groundtruth_delta": format(groundtruth_delta, '.4f')
-#
-#         pbar.update(1)
+def mongo_groundtruth_delta(db, candidate_inference):
+
+     """
+     This is a placeholder for ascertaining how well a candidate analysis
+     algorithm is correlating with groundtruth
+     """
+
+     with tqdm(total=total_records, file=sys.stdout) as pbar:
+
+         for index, tweet_text in enumerate(db[collection_name].find({}, {"id_str": 1, interest_field: 1})):
+
+             groundtruth_delta = groundtruthfield - candidate_inference_output_field
+
+             db[collection_name].update_one({"id_str": tweet_text["id_str"]}, {"$set": {
+                 "epicosm." + candidate_inference + ".groundtruth_delta": format(groundtruth_delta, '.4f')
+
+         pbar.update(1)
 
 
 if __name__ == "__main__":

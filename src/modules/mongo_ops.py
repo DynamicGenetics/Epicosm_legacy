@@ -5,6 +5,7 @@ import time
 import psutil
 import pymongo
 
+#import mongodb_config
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets

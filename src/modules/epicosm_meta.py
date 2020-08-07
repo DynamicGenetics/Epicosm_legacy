@@ -6,13 +6,43 @@ import logging
 import subprocess
 
 # local imports
-from modules import env_config
+from modules import env_config, mongo_ops
 
 
 env = env_config.EnvironmentConfig()
 client = pymongo.MongoClient('localhost', 27017)
 db = client.twitter_db
 collection = db.tweets
+
+
+# Catch ctrl-c signals (and kill -15 signals)
+def signal_handler(sig, frame):
+
+    """Handle interrupt signals, eg ctrl-c (and other kill signals).
+
+    Exiting more abruptly can leave MongoDB running, which can cause issues,
+    so Mongo is asked to stop
+    """
+    status_file = env.status_file
+    print(f"Just a second while I try to exit gracefully...")
+    mongo_ops.stop_mongo(env.db_path)
+    sys.exit()
+
+# Check if this is being run as native or compiled python
+def native_or_compiled():
+
+    run_method = "native python"
+
+    if getattr(sys, "frozen", False):
+        # we are running in a bundle
+        run_method = "compiled python"
+        bundle_dir = sys._MEIPASS
+
+    else:
+        # we are running native python
+        bundle_dir = os.path.dirname(os.path.abspath(__file__))
+
+    print("Epicosm launching as", run_method)
 
 
 def logger_setup(epicosm_log_filename):
@@ -95,7 +125,7 @@ def check_env():
 
     # Check user list exists and get it
     if not os.path.exists(env.run_folder + '/user_list'):
-        print(f"Please provide a list of users to follow, named 'user_list'.")
+        print(f"USAGE: please provide a list of users to follow, named 'user_list'. Stopping.")
         sys.exit()
 
     number_of_users_provided = sum(1 for line_exists in open(env.run_folder + '/user_list') if line_exists)

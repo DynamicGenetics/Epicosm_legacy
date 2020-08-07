@@ -5,12 +5,6 @@ import pymongo
 import tweepy
 
 
-client = pymongo.MongoClient("localhost", 27017)
-db = client.twitter_db
-collection = db.tweets
-following_collection = db.following
-
-
 def get_credentials():
 
     credentials = {}
@@ -39,16 +33,13 @@ def get_credentials():
     except:
         print("Your credentials were not verified - please check them and retry.")
         sys.exit(0)
-    return credentials
+    return credentials, auth, api
 
 
-def lookup_users(run_folder, screen_names, credentials):
+def lookup_users(run_folder, screen_names, credentials, auth, api):
 
     """convert twitter screen names into persistent id numbers"""
 
-    auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"])
-    auth.set_access_token(credentials["ACCESS_TOKEN"], credentials["ACCESS_TOKEN_SECRET"])
-    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=1)
     duplicate_users = []
     not_found = []
 
@@ -109,12 +100,11 @@ def lookup_users(run_folder, screen_names, credentials):
                 not_found_file.write("%s\n" % not_found_user)
 
 
-def get_tweets(run_folder, twitter_id, empty_users, private_users, credentials):
+def get_tweets(run_folder, twitter_id, empty_users, private_users,
+               credentials, auth, api, client, db, collection):
 
     """acquire tweets from each user id number and store them in MongoDB"""
 
-    auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"]) # Auth from credentials.py
-    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=0)
     # check if this user history has been acquired
     if db.tweets.count_documents({"user.id": twitter_id}) > 0:
         # we already have this user's timeline, just get recent tweets
@@ -154,7 +144,7 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users, credentials):
     return alltweets
 
 
-def insert_to_mongodb(alltweets):
+def insert_to_mongodb(alltweets, collection):
 
     # update the database with the acquired tweets for this user
     for tweet in alltweets:
@@ -167,13 +157,10 @@ def insert_to_mongodb(alltweets):
                 print(f"User {twitter_id} has no tweets to insert.")
 
 
-def get_following(run_folder, credentials):
+def get_following(run_folder, credentials, auth, api, following_collection):
 
     """Get the following list and put it in MongoDB"""
 
-    auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"])
-    auth.set_access_token(credentials["ACCESS_TOKEN"], credentials["ACCESS_TOKEN_SECRET"])
-    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=0)
     print(f"Getting following lists of users...")
     following_list = []
     users_to_follow = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
@@ -193,7 +180,7 @@ def get_following(run_folder, credentials):
             print(e)
 
 
-def harvest(run_folder, credentials):
+def harvest(run_folder, credentials, auth, api, client, db, collection):
 
     """Get tweet timelines and insert new tweets into MongoDB"""
 
@@ -204,8 +191,9 @@ def harvest(run_folder, credentials):
     print(f"Starting tweet harvest at {now.strftime('%Y-%m-%d_%H:%M:%S')} ...")
     try: ## iterate through this list of ids.
         for twitter_id in users_to_follow:
-            alltweets = get_tweets(run_folder, twitter_id, empty_users, private_users, credentials)
-            insert_to_mongodb(alltweets)
+            alltweets = get_tweets(run_folder, twitter_id, empty_users, private_users,
+                                   credentials, auth, api, client, db, collection)
+            insert_to_mongodb(alltweets, collection)
 
         if len(empty_users) > 0: # if users are empty, put into empty users file
             print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")

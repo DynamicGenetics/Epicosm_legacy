@@ -62,7 +62,7 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_fi
     try:
         if 'mongod' in (p.name() for p in psutil.process_iter()):
             print(f"MongoDB daemon appears to be already running. This could cause conflicts... continuing for now.")
-            print(f"(You can do this with the command: pkill -15 mongod)\n")
+            print(f"(You can do this with the command: pkill -15 mongod)")
         else:
             mongo_go()
     except psutil.ZombieProcess:

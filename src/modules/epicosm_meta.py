@@ -28,6 +28,7 @@ def signal_handler(sig, frame):
     mongo_ops.stop_mongo(env.db_path)
     sys.exit()
 
+
 # Check if this is being run as native or compiled python
 def native_or_compiled():
 
@@ -44,9 +45,13 @@ def native_or_compiled():
 
     print("Epicosm launching as", run_method)
 
+    return bundle_dir
+
 
 def logger_setup(epicosm_log_filename):
-    ## Set up logging
+
+    """ General logging of print statements"""
+
     class StreamToLogger(object):
         
         """

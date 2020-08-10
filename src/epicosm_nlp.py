@@ -15,7 +15,7 @@ valid_args = ["--vader", "--labmt", "--liwc", "--insert_groundtruth"]
 
 
 usage = ["Epicosm Natural Language Processing: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" +
-         "Please provide flags:\n\n" + # FIX THIS STUFF!
+         "Please provide flags:\n\n" +
          "--insert_groundtruth  Provide a file of groundtruth values called\n" +
          "                      'groundtruth.csv' and insert these into the local database.\n\n" +
          "--liwc                Apply LIWC (Pennebaker 2015) analysis and append values\n" +
@@ -34,7 +34,6 @@ usage = ["Epicosm Natural Language Processing: usage (full details: dynamicgenet
          "./epicosm_nlp_linux --liwc LIWC.dic\n\n" +
          "All sentiment analysis metrics are stored in the final field of each record,\n" +
          "under the 'epicosm' block.\n\n"]
-
 
 
 def main():

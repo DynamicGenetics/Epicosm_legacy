@@ -14,21 +14,27 @@ from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_co
 valid_args = ["--vader", "--labmt", "--liwc", "--insert_groundtruth"]
 
 
-usage = ["Epicosm NLP usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" +
+usage = ["Epicosm Natural Language Processing: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" +
          "Please provide flags:\n\n" + # FIX THIS STUFF!
-         "--vader               Harvest tweets from all users from a file called user_list\n" +
-         "                      (provided by you) with a single user per line.\n\n" +
-         "--id_harvest          Harvest tweets from all users from a file called user_list.ids\n" +
-         "                      with one Twitter account ID number per line.\n" +
-         "                      (Epicosm can produce this after running with a user_list).\n\n" +
-         "--get_following       Create a database of the users that are\n" +
-         "                      being followed by the accounts in your user_list.\n" +
-         "                      (This process can be very slow, especially if\n" +
-         "                      your users are prolific followers.)\n" +
-         "                      If using with --repeat, will only be gathered once.\n\n" +
-         "--repeat              Iterate the user harvest every 3 days. This process will need to\n"
-         "                      be put to the background to free your terminal prompt,\n" +
-         "                      or to leave running while logged out.\n\n"]
+         "--insert_groundtruth  Provide a file of groundtruth values called\n" +
+         "                      'groundtruth.csv' and insert these into the local database.\n\n" +
+         "--liwc                Apply LIWC (Pennebaker 2015) analysis and append values\n" +
+         "                      to the local database. You must have a LIWC dictionary int the\n" +
+         "                      run folder, and provide this file's name as a flag.\n\n" +
+         "--labmt               Apply labMT (Dodds & Danforth 2011) analysis and append values\n" +
+         "                      to the local database.\n\n" +
+         "--vader               Apply VADER (Hutto & Gilbert 2014) analysis and append values\n" +
+         "                      to the local database.\n\n" +
+         "--extract_emoji       [in development]\n\n" +
+         "--groundtruth_delta   [in development]\n\n" +
+         "--time_of_day         [in development]\n\n" +
+         "Example of VADER analysis:\n" +
+         "./epicosm_nlp_linux --vader\n\n" +
+         "Example of LIWC analysis:\n" +
+         "./epicosm_nlp_linux --liwc LIWC.dic\n\n" +
+         "All sentiment analysis metrics are stored in the final field of each record,\n" +
+         "under the 'epicosm' block.\n\n"]
+
 
 
 def main():

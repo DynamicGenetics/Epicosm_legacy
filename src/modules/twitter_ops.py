@@ -3,7 +3,7 @@ import os
 import sys
 import pymongo
 import tweepy
-
+import time
 
 def get_credentials():
 
@@ -162,14 +162,26 @@ def get_following(run_folder, credentials, auth, api, following_collection):
     """Get the following list and put it in MongoDB"""
 
     print(f"Getting following lists of users...")
-    following_list = []
-    users_to_follow = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
-    for twitter_id in users_to_follow:
+
+
+    def ask_api_for_following_list():
+
+        for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000).pages():
+                                       following_list.extend(following) 
+
+
+    users_to_get_following = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
+
+    for twitter_id in users_to_get_following:
+        following_list = []
         try:
-            for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 200).pages():
-                following_list.extend(following) # put followings into a list
+            ask_api_for_following_list()
+    
         except tweepy.RateLimitError as rateerror:
             print(f"Rate limit reached, waiting for cooldown... {rateerror}")
+            time.sleep(905)
+            ask_api_for_following_list()
+    
         except tweepy.TweepError as not_authorised:
             print(f"Private account: {not_authorised}")
         try:

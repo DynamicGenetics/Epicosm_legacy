@@ -12,7 +12,7 @@ import schedule
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
 
 valid_args = ["--user_harvest", "--id_harvest", "--get_following",
-              "--repeat", "--refresh"]
+              "--repeat", "--refresh", "--csv_snapshots"]
 
 usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" + 
          "Please provide flags:\n\n" +
@@ -31,8 +31,11 @@ usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n"
          "                      or to leave running while logged out.\n\n" + 
          "--refresh             If you have a new user_list, this will tell Epicosm to\n" + 
          "                      take use this file as your updated user list.\n\n" + 
-         "Example of single harvest:\n" + 
-         "./epicosm --user_harvest\n\n" + 
+         "--csv_snapshots       Make a CSV formatted snapshot of selected fields from every harvest.\n" +
+         "                      See documentation for the format and fields of this CSV.\n" +
+         "                      Be aware that this may take up disk space - see ./output/csv\n\n" +
+         "Example of single harvest:\n" +
+         "./epicosm --user_harvest\n\n" +
          "Example iterated harvest in background, with a renewed user_list:\n" + 
          "nohup ./epicosm --user_harvest --refresh --repeat &\n"]
 
@@ -98,9 +101,10 @@ def main():
         sys.argv.remove("--get_following") # we only want to do this once
 
     # create CSV file
-    mongo_ops.export_csv(mongoexport_executable_path,
-                         env.csv_filename,
-                         env.epicosm_log_filename)
+    if "--csv_snapshots" in sys.argv:
+        mongo_ops.export_csv(mongoexport_executable_path,
+                             env.csv_filename,
+                             env.epicosm_log_filename)
 
     # create JSON file
     if "--json" in sys.argv:
@@ -128,7 +132,7 @@ if __name__ == "__main__":
     if ("--repeat" in sys.argv):
         main()
 #        schedule.every(3).days.at("06:00").do(main)
-        schedule.every(30).seconds.do(main)
+        schedule.every(45).seconds.do(main)
         while True:
             schedule.run_pending()
             time.sleep(15)

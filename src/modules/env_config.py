@@ -22,6 +22,10 @@ class EnvironmentConfig:
         return '{}.log'.format(self._current_time.strftime('%Y-%m-%d_%H:%M:%S'))
 
     @property
+    def csvfile(self):
+        return '{}.csv'.format(self._current_time.strftime('%Y-%m-%d_%H:%M:%S'))
+
+    @property
     def run_folder(self):
         return self._runfolder
 
@@ -45,7 +49,7 @@ class EnvironmentConfig:
 
     @property
     def csv_filename(self):
-        return os.path.join(self.run_folder, 'output', 'csv', self.logfilename)
+        return os.path.join(self.run_folder, 'output', 'csv', self.csvfile)
 
     @property
     def epicosm_log_filename(self):

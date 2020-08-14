@@ -127,7 +127,8 @@ def main():
     # backup database into BSON
     mongo_ops.backup_db(mongodump_executable_path,
                         env.database_dump_path,
-                        env.epicosm_log_filename)
+                        env.epicosm_log_filename,
+                        env.processtime)
 
     # modify status file
     epicosm_meta.status_down(env.status_file, env.run_folder)

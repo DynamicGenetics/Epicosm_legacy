@@ -18,8 +18,8 @@ class EnvironmentConfig:
         self._current_time = datetime.now()
 
     @property
-    def logfilename(self):
-        return '{}.log'.format(self._current_time.strftime('%Y-%m-%d_%H:%M:%S'))
+    def processtime(self):
+        return '{}'.format(self._current_time.strftime('%Y-%m-%d_%H:%M:%S'))
 
     @property
     def csvfile(self):
@@ -39,7 +39,7 @@ class EnvironmentConfig:
 
     @property
     def db_log_filename(self):
-        return os.path.join(self.run_folder, 'db_logs', self.logfilename)
+        return os.path.join(self.run_folder, 'db_logs', self.processtime + ".log")
 
     @property
     def db_path(self):
@@ -53,7 +53,11 @@ class EnvironmentConfig:
 
     @property
     def epicosm_log_filename(self):
-        return os.path.join(self.run_folder, 'epicosm_logs', self.logfilename)
+        return os.path.join(self.run_folder, 'epicosm_logs', self.processtime + ".log")
+
+    @property
+    def bson_backup_filename(self):
+        return os.path.join(self.run_folder, "output", "twitter_db", self.processtime + ".bson")
 
     @property
     def database_dump_path(self):

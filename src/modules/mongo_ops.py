@@ -6,7 +6,7 @@ import psutil
 import pymongo
 
 #import mongodb_config
-client = pymongo.MongoClient('localhost', 27017)
+client = pymongo.MongoClient("localhost", 27017)
 db = client.twitter_db
 collection = db.tweets
 
@@ -16,22 +16,22 @@ def mongo_checks():
     assign them to variables"""
 
     try:
-        mongod_executable_path = subprocess.check_output(['which', 'mongod']).decode('utf-8').strip()
+        mongod_executable_path = subprocess.check_output(["which", "mongod"]).decode("utf-8").strip()
     except:
         print(f"You don't seem to have MongoDB installed. Stopping.")
         sys.exit()
     try:
-        mongoexport_executable_path = subprocess.check_output(['which', 'mongoexport']).decode('utf-8').strip()
+        mongoexport_executable_path = subprocess.check_output(["which", "mongoexport"]).decode("utf-8").strip()
     except:
         print(f"Mongoexport seems missing... stopping.")
         sys.exit()
     try:
-        mongodump_executable_path = subprocess.check_output(['which', 'mongodump']).decode('utf-8').strip()
+        mongodump_executable_path = subprocess.check_output(["which", "mongodump"]).decode("utf-8").strip()
     except:
         print(f"Mongodump seems missing... stopping.")
         sys.exit()
     try:
-        mongoimport_executable_path = subprocess.check_output(['which', 'mongoimport']).decode('utf-8').strip()
+        mongoimport_executable_path = subprocess.check_output(["which", "mongoimport"]).decode("utf-8").strip()
     except:
         print(f"Mongoimport seems missing... stopping.")
         sys.exit()
@@ -52,15 +52,15 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_fi
     def mongo_go():
         print(f"Starting the MongoDB daemon...")
         try:
-            subprocess.Popen([mongod_executable_path, '--dbpath',
-                              db_path, '--logpath', db_log_filename], stdout = open(epicosm_log_filename, 'a+'))
+            subprocess.Popen([mongod_executable_path, "--dbpath",
+                              db_path, "--logpath", db_log_filename], stdout = open(epicosm_log_filename, "a+"))
             time.sleep(1)
         except subprocess.CalledProcessError as e:
             print(f"There is a problem opening the MonogoDB daemon... stopping.", e.output)
             sys.exit()
 
     try:
-        if 'mongod' in (p.name() for p in psutil.process_iter()):
+        if "mongod" in (p.name() for p in psutil.process_iter()):
             print(f"MongoDB daemon appears to be already running. This could cause conflicts... continuing for now.")
             print(f"(You can do this with the command: pkill -15 mongod)")
         else:
@@ -132,15 +132,20 @@ def export_json(mongoexport_executable_path, json_filename, epicosm_log_filename
                      stdout = open(epicosm_log_filename, "a+"))
 
 
-def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filename):
+def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filename, processtime):
     
     """ Do a full backup of the database into BSON format """
     
     print(f"Backing up the database...")
+    print(database_dump_path) ###
     subprocess.call([mongodump_executable_path, "-o",
                      database_dump_path, "--host=127.0.0.1"],
                      stdout = open(epicosm_log_filename, "a+"),
                      stderr = open(epicosm_log_filename, "a+"))
+    subprocess.call(["mv", database_dump_path + "/twitter_db/tweets.bson",
+                     database_dump_path + "/twitter_db/tweets" + processtime + ".bson"])
+    subprocess.call(["mv", database_dump_path + "/twitter_db/tweets.metadata.json",
+                     database_dump_path + "/twitter_db/tweets" + processtime + ".metadata.json"])
 
 
 def export_latest_tweet(mongoexport_executable_path, epicosm_log_filename):

@@ -12,7 +12,7 @@ import schedule
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
 
 valid_args = ["--user_harvest", "--id_harvest", "--get_following",
-              "--repeat", "--refresh", "--csv_snapshots"]
+              "--repeat", "--refresh", "--csv_snapshots", "--stop"]
 
 usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" + 
          "Please provide flags:\n\n" +
@@ -33,7 +33,8 @@ usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n"
          "                      take use this file as your updated user list.\n\n" + 
          "--csv_snapshots       Make a CSV formatted snapshot of selected fields from every harvest.\n" +
          "                      See documentation for the format and fields of this CSV.\n" +
-         "                      Be aware that this may take up disk space - see ./output/csv\n\n" +
+         "                      Be aware that this will use more disk space - see ./output/csv\n\n" +
+         "--stop                End an iterating Epicosm that is in the background.\n\n" +
          "Example of single harvest:\n" +
          "./epicosm --user_harvest\n\n" +
          "Example iterated harvest in background, with a renewed user_list:\n" + 
@@ -58,6 +59,16 @@ def main():
         print(*usage)
         sys.exit(0)
 
+    # stop background processes on --stop
+    if "--stop" in sys.argv:
+        print(f"OK just stopping things.")
+        try:
+            subprocess.call(["pkill", "-15",  "mongod"])
+            subprocess.call(["pkill", "-15", "-f", "epicosm"])
+        except Exception as e:
+            print(f"There was an issue shutting Epicosm down...")
+            sys.exit(0)
+    
     # check running method
     epicosm_meta.native_or_compiled()
 

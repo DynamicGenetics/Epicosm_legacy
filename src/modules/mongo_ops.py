@@ -78,12 +78,12 @@ def stop_mongo(dbpath):
 
     print(f"Asking MongoDB to close...")
     client.close()
-    subprocess.call(['pkill', '-15', 'mongod'])
+    subprocess.call(["pkill", "-15", "mongod"])
 
     timeout = 60
     while timeout > 0: # wait one minute for mongod to close
         try:
-            subprocess.check_output(['pgrep', 'mongod'])
+            subprocess.check_output(["pgrep", "mongod"])
         except subprocess.CalledProcessError:
             print(f"OK, MongoDB daemon closed.")
             break

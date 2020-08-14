@@ -137,11 +137,11 @@ def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filenam
     """ Do a full backup of the database into BSON format """
     
     print(f"Backing up the database...")
-    print(database_dump_path) ###
     subprocess.call([mongodump_executable_path, "-o",
                      database_dump_path, "--host=127.0.0.1"],
                      stdout = open(epicosm_log_filename, "a+"),
                      stderr = open(epicosm_log_filename, "a+"))
+    # mongodb doesn't give a naming option(?), so rename with the timestamp
     subprocess.call(["mv", database_dump_path + "/twitter_db/tweets.bson",
                      database_dump_path + "/twitter_db/tweets" + processtime + ".bson"])
     subprocess.call(["mv", database_dump_path + "/twitter_db/tweets.metadata.json",

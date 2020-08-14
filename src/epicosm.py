@@ -66,6 +66,7 @@ def main():
         try:
             subprocess.call(["pkill", "-15",  "mongod"])
             subprocess.call(["pkill", "-15", "-f", "epicosm"])
+            sys.exit(0)
         except Exception as e:
             print(f"There was an issue shutting Epicosm down...")
             sys.exit(0)
@@ -156,8 +157,7 @@ if __name__ == "__main__":
 
     if ("--repeat" in sys.argv):
         main()
-#        schedule.every(3).days.at("06:00").do(main)
-        schedule.every(45).seconds.do(main)
+        schedule.every(3).days.at("06:00").do(main)
         while True:
             schedule.run_pending()
             time.sleep(15)

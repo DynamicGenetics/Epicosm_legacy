@@ -130,6 +130,18 @@ def main():
                         env.epicosm_log_filename,
                         env.processtime)
 
+    # rotate backups - if there are more than 3, remove the oldest one
+    current_backup_count = len([name for name in os.listdir(env.database_dump_path + "/twitter_db") if os.path.isfile(os.path.join(env.database_dump_path + "/twitter_db", name))])
+    # each backup is one bson and one json of metadata, so 6 = 3 backups.
+    if current_backup_count > 6:
+        print("Rotating backups.")
+        import glob
+        bu_list = glob.glob(env.database_dump_path + "/twitter_db/*")
+        bu_list.sort()
+        # remove the oldest two, a bson and a json 
+        subprocess.call(["rm", bu_list[0]])
+        subprocess.call(["rm", bu_list[1]])
+
     # modify status file
     epicosm_meta.status_down(env.status_file, env.run_folder)
 

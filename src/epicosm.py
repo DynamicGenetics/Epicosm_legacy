@@ -34,7 +34,8 @@ usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n"
          "--csv_snapshots       Make a CSV formatted snapshot of selected fields from every harvest.\n" +
          "                      See documentation for the format and fields of this CSV.\n" +
          "                      Be aware that this will use more disk space - see ./output/csv\n\n" +
-         "--stop                End an iterating Epicosm that is in the background.\n\n" +
+         "--stop                Stop all Epicosm processes (useful if you have a\n" +
+         "                      repeating process running in the background).\n\n" +
          "Example of single harvest:\n" +
          "./epicosm --user_harvest\n\n" +
          "Example iterated harvest in background, with a renewed user_list:\n" + 

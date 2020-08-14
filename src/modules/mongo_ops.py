@@ -97,10 +97,10 @@ def index_mongo(run_folder):
 
     """Tidy up the database so that upsert operations are faster."""
 
-    if not os.path.isfile(run_folder + '/db/WiredTiger'):
+    if not os.path.isfile(run_folder + "/db/WiredTiger"):
         return
     print(f"Indexing MongoDB...")
-    db.tweets.create_index([('id_str', pymongo.ASCENDING)],
+    db.tweets.create_index([("id_str", pymongo.ASCENDING)],
                            unique=True, dropDups=True)
 
 
@@ -110,13 +110,13 @@ def export_csv(mongoexport_executable_path, csv_filename, epicosm_log_filename):
 
     # export selected fields (specified after --fields) into csv
     print(f"Creating CSV output file...")
-    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1',
-                     '--db', 'twitter_db',
-                     '--collection', 'tweets',
-                     '--type=csv',
-                     '--out', csv_filename,
-                     '--fields', 'user.id_str,id_str,created_at,full_text,retweeted_status.full_text'],
-                     stdout = open(epicosm_log_filename, 'a+'))
+    subprocess.call([mongoexport_executable_path, "--host=127.0.0.1",
+                     "--db", "twitter_db",
+                     "--collection", "tweets",
+                     "--type=csv",
+                     "--out", csv_filename,
+                     "--fields", "user.id_str,id_str,created_at,full_text,retweeted_status.full_text"],
+                     stdout = open(epicosm_log_filename, "a+"))
 
 def export_json(mongoexport_executable_path, json_filename, epicosm_log_filename):
 
@@ -124,12 +124,12 @@ def export_json(mongoexport_executable_path, json_filename, epicosm_log_filename
     THIS WILL BE A LARGE FILE, AND TAKE A LONG TIME IF THE DB IS LARGE!!!"""
 
     print(f"Creating JSON output file...")
-    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1',
-                     '--db', 'twitter_db',
-                     '--collection', 'tweets',
-                     '--type=json', '--pretty',
-                     '--out', json_filename],
-                     stdout = open(epicosm_log_filename, 'a+'))
+    subprocess.call([mongoexport_executable_path, "--host=127.0.0.1",
+                     "--db", "twitter_db",
+                     "--collection", "tweets",
+                     "--type=json", "--pretty",
+                     "--out", json_filename],
+                     stdout = open(epicosm_log_filename, "a+"))
 
 
 def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filename):
@@ -137,11 +137,10 @@ def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filenam
     """ Do a full backup of the database into BSON format """
     
     print(f"Backing up the database...")
-    subprocess.call([mongodump_executable_path, '-o',
-                     database_dump_path, '--host=127.0.0.1'],
-                     stdout = open(epicosm_log_filename, 'a+'))
-    # hand back permissions to host
-    subprocess.call(['chmod', '-R', '0755', database_dump_path]) 
+    subprocess.call([mongodump_executable_path, "-o",
+                     database_dump_path, "--host=127.0.0.1"],
+                     stdout = open(epicosm_log_filename, "a+"),
+                     stderr = open(epicosm_log_filename, "a+"))
 
 
 def export_latest_tweet(mongoexport_executable_path, epicosm_log_filename):
@@ -149,12 +148,12 @@ def export_latest_tweet(mongoexport_executable_path, epicosm_log_filename):
     """Export most recent tweet as csv"""
 
     print(f"Creating CSV output file...")
-    subprocess.call([mongoexport_executable_path, '--host=127.0.0.1',
-                    '--db=geotweets', '--collection=geotweets_collection',
-                    '--type=csv', '--out=latest_geotweet.csv',
-                    '--fields=created_at,geo.coordinates,text',
-                    '--sort="{_id:-1}"', '--limit=1'],
-                    stdout = open(epicosm_log_filename, 'a+'))
+    subprocess.call([mongoexport_executable_path, "--host=127.0.0.1",
+                    "--db=geotweets", "--collection=geotweets_collection",
+                    "--type=csv", "--out=latest_geotweet.csv",
+                    "--fields=created_at,geo.coordinates,text",
+                    '--sort="{_id:-1}"', "--limit=1"],
+                    stdout = open(epicosm_log_filename, "a+"))
 
 
 def import_analysed_tweet(mongoimport_executable_path, latest_tweet, epicosm_log_filename):
@@ -162,8 +161,8 @@ def import_analysed_tweet(mongoimport_executable_path, latest_tweet, epicosm_log
     """Import metrics from sentiment analysis into MongoDB"""
 
     print(f"Importing LIWC analysis output...")
-    subprocess.call([mongoimport_executable_path, '--host=127.0.0.1',
-                    '--db=geotweets', '--collection=geotweets_analysed',
-                    '--type=csv', '--headerline', '--file=' + latest_tweet],
-                    stdout = open(epicosm_log_filename, 'a+'))
+    subprocess.call([mongoimport_executable_path, "--host=127.0.0.1",
+                    "--db=geotweets", "--collection=geotweets_analysed",
+                    "--type=csv", "--headerline", "--file=" + latest_tweet],
+                    stdout = open(epicosm_log_filename, "a+"))
 

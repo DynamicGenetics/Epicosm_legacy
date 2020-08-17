@@ -112,12 +112,16 @@ def main():
         twitter_ops.get_following(env.run_folder, credentials, auth,
                                   api, mongodb_config.following_collection)
         sys.argv.remove("--get_following") # we only want to do this once
+        # create CSV file of users' followings list.
+        mongo_ops.export_csv_following(mongoexport_executable_path,
+                                       env.csv_following_filename,
+                                       env.epicosm_log_filename)
 
-    # create CSV file
+    # create CSV file of tweets
     if "--csv_snapshots" in sys.argv:
-        mongo_ops.export_csv(mongoexport_executable_path,
-                             env.csv_filename,
-                             env.epicosm_log_filename)
+        mongo_ops.export_csv_tweets(mongoexport_executable_path,
+                                    env.csv_tweets_filename,
+                                    env.epicosm_log_filename)
 
     # create JSON file
     if "--json" in sys.argv:
@@ -137,7 +141,7 @@ def main():
     if current_backup_count > 6:
         print("Rotating backups.")
         import glob
-        bu_list = glob.glob(env.database_dump_path + "/twitter_db/*")
+        bu_list = glob.glob(env.database_dump_path + "/twitter_db/tweets*")
         bu_list.sort()
         # remove the oldest two, a bson and a json 
         subprocess.call(["rm", bu_list[0]])
@@ -157,7 +161,8 @@ if __name__ == "__main__":
 
     if ("--repeat" in sys.argv):
         main()
-        schedule.every(3).days.at("06:00").do(main)
+#        schedule.every(3).days.at("06:00").do(main)
+        schedule.every(30).seconds.do(main)
         while True:
             schedule.run_pending()
             time.sleep(15)

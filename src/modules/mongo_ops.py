@@ -104,7 +104,9 @@ def index_mongo(run_folder):
                            unique=True, dropDups=True)
 
 
-def export_csv(mongoexport_executable_path, csv_filename, epicosm_log_filename):
+def export_csv_tweets(mongoexport_executable_path,
+                     csv_tweets_filename,
+                     epicosm_log_filename):
 
     """Export some fields from the tweets in MongoDB into a CSV file."""
 
@@ -114,22 +116,28 @@ def export_csv(mongoexport_executable_path, csv_filename, epicosm_log_filename):
                      "--db", "twitter_db",
                      "--collection", "tweets",
                      "--type=csv",
-                     "--out", csv_filename,
+                     "--out", csv_tweets_filename,
                      "--fields", "user.id_str,id_str,created_at,full_text,retweeted_status.full_text"],
-                     stdout = open(epicosm_log_filename, "a+"))
+                     stdout = open(epicosm_log_filename, "a+"),
+                     stderr = open(epicosm_log_filename, "a+"))
 
-def export_json(mongoexport_executable_path, json_filename, epicosm_log_filename):
 
-    """Export ALL fields (json export cannot currently specify fields) into JSON file
-    THIS WILL BE A LARGE FILE, AND TAKE A LONG TIME IF THE DB IS LARGE!!!"""
+def export_csv_following(mongoexport_executable_path,
+                         csv_following_filename,
+                         epicosm_log_filename):
 
-    print(f"Creating JSON output file...")
+    """Export some fields from the tweets in MongoDB into a CSV file."""
+
+    # export selected fields (specified after --fields) into csv
+    print(f"Creating CSV output file...")
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1",
                      "--db", "twitter_db",
-                     "--collection", "tweets",
-                     "--type=json", "--pretty",
-                     "--out", json_filename],
-                     stdout = open(epicosm_log_filename, "a+"))
+                     "--collection", "following",
+                     "--type=csv",
+                     "--out", csv_following_filename,
+                     "--fields", "user,following"],
+                     stdout = open(epicosm_log_filename, "a+"),
+                     stderr = open(epicosm_log_filename, "a+"))
 
 
 def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filename, processtime):

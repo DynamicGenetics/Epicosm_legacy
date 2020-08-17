@@ -22,10 +22,6 @@ class EnvironmentConfig:
         return '{}'.format(self._current_time.strftime('%Y-%m-%d_%H:%M:%S'))
 
     @property
-    def csvfile(self):
-        return '{}.csv'.format(self._current_time.strftime('%Y-%m-%d_%H:%M:%S'))
-
-    @property
     def run_folder(self):
         return self._runfolder
 
@@ -48,8 +44,12 @@ class EnvironmentConfig:
         return db_path
 
     @property
-    def csv_filename(self):
-        return os.path.join(self.run_folder, 'output', 'csv', self.csvfile)
+    def csv_tweets_filename(self):
+        return os.path.join(self.run_folder, 'output', 'csv', self.processtime + ".csv")
+
+    @property
+    def csv_following_filename(self):
+        return os.path.join(self.run_folder, 'output', 'csv', "following" + self.processtime + ".csv")
 
     @property
     def epicosm_log_filename(self):

@@ -161,8 +161,7 @@ if __name__ == "__main__":
 
     if ("--repeat" in sys.argv):
         main()
-#        schedule.every(3).days.at("06:00").do(main)
-        schedule.every(30).seconds.do(main)
+        schedule.every(3).days.at("06:00").do(main)
         while True:
             schedule.run_pending()
             time.sleep(15)

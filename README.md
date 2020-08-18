@@ -77,8 +77,6 @@ Then you can run the suitable executable,
 
 <p align="center"> ••• </p>
 
-<p align="center"> ••• </p>
-
 ### 3 Optional parameters
 `--user_harvest`        Harvest tweets from all users from a file called user_list
                       (provided by you) with a single user per line.
@@ -112,6 +110,8 @@ Example of single harvest:
 
 Example iterated harvest in background, with a renewed user_list and taking CSV snapshots:
 `nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`### 3 Output and data
+
+<p align="center"> ••• </p>
 
 ### 4 Data and other outputs
 The processed output is a a database of tweets from the users in your `user_list`, and a CSV file, in the folder `./output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.

@@ -59,7 +59,7 @@ Epicosm uses [MongoDB](https://www.mongodb.com/) for data management, and this m
 
 Epicosm can be run in two ways. It can be run using the compiled python executables provided, `epicosm_mac` or `epicosm_linux`. If there are any issues with your input files (your `user_list` and your `credentials.txt`) Epicosm will try to help you. Alternatively, Epicosm can be run by Python version 3+; details are in section 4.
 
-You will need Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this.
+You will need Twitter API credentials by having a developer account authorised by Twitter. Please see our [guide to getting an authorised account](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) for how to do this. As of August 2020, Twitter are usually rapid in authorising for academic purposes, although this can of course change. **You will find many guides for getting authorisation which are out of date!**
 
 <p align="center"> ••• </p>
 

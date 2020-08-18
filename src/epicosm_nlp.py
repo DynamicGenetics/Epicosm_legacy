@@ -6,24 +6,27 @@ import sys
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from labMTsimple.storyLab import *
 import liwc
+from textblob import TextBlob
 import signal
 
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
 
 
-valid_args = ["--vader", "--labmt", "--liwc", "--insert_groundtruth"]
+valid_args = ["--vader", "--labmt", "--textblob", "--liwc", "--insert_groundtruth"]
 
 
 usage = ["Epicosm Natural Language Processing: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" +
          "Please provide flags:\n\n" +
          "--insert_groundtruth  Provide a file of groundtruth values called\n" +
          "                      'groundtruth.csv' and insert these into the local database.\n\n" +
-         "--liwc                Apply LIWC (Pennebaker 2015) analysis and append values\n" +
+         "--liwc                Apply LIWC (Pennebaker et al 2015) analysis and append values\n" +
          "                      to the local database. You must have a LIWC dictionary int the\n" +
          "                      run folder, and provide this file's name as a flag.\n\n" +
          "--labmt               Apply labMT (Dodds & Danforth 2011) analysis and append values\n" +
          "                      to the local database.\n\n" +
          "--vader               Apply VADER (Hutto & Gilbert 2014) analysis and append values\n" +
+         "                      to the local database.\n\n" +
+         "--textblob            Apply TextBlob (github: @sloria) analysis and append values\n" +
          "                      to the local database.\n\n" +
          "--extract_emoji       [in development]\n\n" +
          "--groundtruth_delta   [in development]\n\n" +
@@ -71,9 +74,13 @@ def main():
     if "--labmt" in sys.argv:
         mongo_labMT(mongodb_config.db, total_records)
     
+    if "--textblob" in sys.argv:
+        mongo_textblob(mongodb_config.db, total_records)
+
     if "--liwc" in sys.argv:
         mongo_liwc(mongodb_config.db, total_records)
     
+
     # in development :)
     #mongo_nlp_example(mongodb_config.db, total_records)
     #mongo_insert_groundtruth(mongodb_config.db, total_records)
@@ -239,6 +246,33 @@ def mongo_labMT(db, total_records):
             pbar.update(1)
 
     print(f"OK - labMT sentiment analysis applied to {index + 1} records.")
+
+
+def mongo_textblob(db, total_records):
+
+    print(f"TextBlob sentiment, analysing...")
+
+    with tqdm(total=total_records, file=sys.stdout) as pbar:
+
+        for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
+
+            # decide if it is a tweet or retweet and assign relevant field
+            full_text_field = eval(tweet_or_retweet(db_document_dict))
+
+            # we want textblob to ignore sentences and take tweets as a whole
+            text_clean = full_text_field.replace(".", " ")
+
+            blob = TextBlob(text_clean)
+            blob.tags
+            blob.noun_phrases
+
+            for sentence in blob.sentences:
+                mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]},
+                                                     {"$set": {"epicosm.textblob":
+                                                      float(format(sentence.sentiment.polarity, '.4f'))}})
+            pbar.update(1)
+ 
+    print(f"OK - TextBlob sentiment analysis applied to {index + 1} records.")
 
 
 def mongo_liwc(db, total_records):

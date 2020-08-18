@@ -42,9 +42,9 @@ The tools can:
 ## More detail
 #### 1 What does it do?  
 #### 2 Running Epicosm
-#### 3 Output and other data
-#### 4 Running python scripts
-#### 5 Optional parameters
+#### 3 Optional parameters
+#### 4 Output and other data
+#### 5 Running python scripts
 #### 6 License
 
 <p align="center"> ••• </p>
@@ -77,62 +77,9 @@ Then you can run the suitable executable,
 
 <p align="center"> ••• </p>
 
-### 3 Output and data
-
-The processed output is a a database of tweets from the users in your `user_list`, and a CSV file, in the folder `./output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
-
-Log files detailing what Epicosm has done is in `/epicosm_logs/`.
-
-Full tweet content and metadata of all tweets is stored in [MongoDB](https://www.mongodb.com/) in a format which is closely aligned with JSON. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
-
-A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed, this can be restored with the command
-
-`mongorestore [your name given to the database] [the path to the mongodump bson file]`
-
-for example:
-
-`mongoresotore -d twitter_db ./output/twitter_db/tweets.bson`
-
-(However, please check [MongoDB documentation](https://docs.mongodb.com/manual/) as commands can change)
-
-To view and interact with the database using a GUI, you will need MongoDB installed, and a database viewer. Of open source options, we find that [Robo 3T](https://robomongo.org/) works very well.
-
 <p align="center"> ••• </p>
 
-### 4 Running the python script manually
-
-See the source file in `/src` and run it with
-
-`python3 epicosm.py [your run flag]`
-
-You must provide 2 files:
-1. a list of user screen names in a file called `user_list`. The user list must be a plain text file, with a single username (twitter screen name) per line.  
-2. Twitter API credentials will need to be supplied, by editing the file `credentials.py` (further instructions inside file). You will need your own Twitter API credentials by having a developer account authorised by Twitter, and generating the required codes. Please see [our guide](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) on how to do this.
-
-Please also see these further requirements.
-
-1. Put all repository files and your user list into their own folder. The python script must be run from the folder it is in.
-2. MongoDB version 4 or higher will need to be installed. It does not need to be running, the script will check MongoDB's status, and start it if it is not running. The working database will be stored in the folder where you place your local copy of this repository (not the default location of /data/db). For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
-
-`apt install mongodb` (or `yum`, `brew` or other package manager as appropriate)
-
-3. The following Python3 dependencies will need to be installed from the `src/requirements.txt` file if you run 
-
-`pip3 install -r requirements.txt`
-
-or you can install each item yourself if you like pip:
-
-`pip3 install psutil`
-`pip3 install tweepy`
-`pip3 install pymongo`
-`pip3 install schedule`
-`pip3 install tqdm`
-`pip3 install labMTsimple`
-`pip3 install jinja2`
-
-<p align="center"> ••• </p>
-
-### 5 Optional parameters
+### 3 Optional parameters
 `--user_harvest`        Harvest tweets from all users from a file called user_list
                       (provided by you) with a single user per line.
 
@@ -164,7 +111,59 @@ Example of single harvest:
 `./epicosm --user_harvest`
 
 Example iterated harvest in background, with a renewed user_list and taking CSV snapshots:
-`nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`
+`nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`### 3 Output and data
+
+### 4 Data and other outputs
+The processed output is a a database of tweets from the users in your `user_list`, and a CSV file, in the folder `./output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
+
+Log files detailing what Epicosm has done is in `/epicosm_logs/`.
+
+Full tweet content and metadata of all tweets is stored in [MongoDB](https://www.mongodb.com/) in a format which is closely aligned with JSON. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
+
+A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed, this can be restored with the command
+
+`mongorestore [your name given to the database] [the path to the mongodump bson file]`
+
+for example:
+
+`mongoresotore -d twitter_db ./output/twitter_db/tweets.bson`
+
+(However, please check [MongoDB documentation](https://docs.mongodb.com/manual/) as commands can change)
+
+To view and interact with the database using a GUI, you will need MongoDB installed, and a database viewer. Of open source options, we find that [Robo 3T](https://robomongo.org/) works very well.
+
+<p align="center"> ••• </p>
+
+### 5 Running the python script manually
+
+See the source file in `/src` and run it with
+
+`python3 epicosm.py [your run flag]`
+
+You must provide 2 files:
+1. a list of user screen names in a file called `user_list`. The user list must be a plain text file, with a single username (twitter screen name) per line.  
+2. Twitter API credentials will need to be supplied, by editing the file `credentials.py` (further instructions inside file). You will need your own Twitter API credentials by having a developer account authorised by Twitter, and generating the required codes. Please see [our guide](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf), and there are further details on [Twitter documentation](developer.twitter.com/en/apply-for-access.html) on how to do this.
+
+Please also see these further requirements.
+
+1. Put all repository files and your user list into their own folder. The python script must be run from the folder it is in.
+2. MongoDB version 4 or higher will need to be installed. It does not need to be running, the script will check MongoDB's status, and start it if it is not running. The working database will be stored in the folder where you place your local copy of this repository (not the default location of /data/db). For Linux and MacOS, use your package manager (eg. apt, yum, yast), for example:
+
+`apt install mongodb` (or `yum`, `brew` or other package manager as appropriate)
+
+3. The following Python3 dependencies will need to be installed from the `src/requirements.txt` file if you run 
+
+`pip3 install -r requirements.txt`
+
+or you can install each item yourself if you like pip:
+
+`pip3 install psutil`
+`pip3 install tweepy`
+`pip3 install pymongo`
+`pip3 install schedule`
+`pip3 install tqdm`
+`pip3 install labMTsimple`
+`pip3 install jinja2`
 
 <p align="center"> ••• </p>
 

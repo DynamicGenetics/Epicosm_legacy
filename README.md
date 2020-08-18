@@ -34,7 +34,7 @@ The tools can:
   * and your `user_list` (supplied by you: one screen name per line, plain text file).
 
 #### 4. Run Epicosm from your command line, including your run flags
-  * Epicosm will provide some help if it doesn't understand you. See below for more details, but for example a typical harvest can be started with
+  * Epicosm will provide some help if it doesn't understand you, just type `./epicosm_linux` or `./epicosm_mac`. See below for more details, but for example a typical harvest can be started with
 `./epicosm_linux --user_harvest`
 
 <p align="center"> ••• </p>
@@ -132,13 +132,39 @@ or you can install each item yourself if you like pip:
 
 <p align="center"> ••• </p>
 
-### 5 Optional parameters  
-The following arguments can be appended:  
-`--log`              Create a logfile of all output from the harvest run, in `/epicosm_logs`.
+### 5 Optional parameters
+`--user_harvest`        Harvest tweets from all users from a file called user_list
+                      (provided by you) with a single user per line.
 
-`--refresh`          Refresh the user list (if you want to modify the list of users to harvest from, replace your file `user_list`, and run with `--refresh` so that this is refreshed).
+`--id_harvest`          Harvest tweets from all users from a file called user_list.ids
+                      with one Twitter account ID number per line. The database will be
+                      backed up on every harvest, with a rotating backup of the last three
+                      harvests. These can be imported into another instance of MongoDB
+                      with `mongoimport`, see MongoDB documentation for details.
 
-`--get_following`    Gather friend list. This list will go into the MongoDB collection `following`, in the database `twitter_db`. This is normally disabled because API following requests are severely rate-limited.
+`--get_following`       Create a database of the users that are
+                      being followed by the accounts in your user_list.
+                      (This process can be very slow, especially if
+                      your users are prolific followers.) You will also get
+                      a CSV of users and who they are following, in `/output/csv`
+                      If using with --repeat, will only be gathered once.
+
+`--repeat`              Iterate the user harvest every 3 days. This process will need to
+                      be put to the background to free your terminal prompt,
+                      or to leave running while logged out.
+
+`--refresh`             If you have a new user_list, this will tell Epicosm to
+                      take use this file as your updated user list.
+
+`--csv_snapshots`       Make a CSV formatted snapshot of selected fields from every harvest.
+                      See documentation for the format and fields of this CSV.
+                      Be aware that this may take up disk space - see ./output/csv
+
+Example of single harvest:
+`./epicosm --user_harvest`
+
+Example iterated harvest in background, with a renewed user_list and taking CSV snapshots:
+`nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`
 
 <p align="center"> ••• </p>
 

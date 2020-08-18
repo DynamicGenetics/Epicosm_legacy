@@ -78,6 +78,7 @@ Then you can run the suitable executable,
 <p align="center"> ••• </p>
 
 ### 3 Optional parameters
+When running the harvester, please specify what you want Epicosm to do:
 `--user_harvest`        Harvest tweets from all users from a file called user_list
                       (provided by you) with a single user per line.
 
@@ -110,6 +111,14 @@ Example of single harvest:
 
 Example iterated harvest in background, with a renewed user_list and taking CSV snapshots:
 `nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`### 3 Output and data
+
+If you are running sentiment analysis with `epicosm_nlp`, please specify with the following flags:
+`--insert_groundtruth` Provide a file of groundtruth values called 'groundtruth.csv' and insert these into the local database.
+`--liwc` Apply LIWC (Pennebaker et al 2015) analysis and append values to the local database. You must have a LIWC dictionary in therun folder, named "LIWC.dic". LIWC has around 70 categories (including posemo and negemo), but many of these will return no value because tweets are too short to provide information. Empty categories are not appended to the database.
+`--labmt` Apply labMT (Dodds & Danforth 2011) analysis and append values to the local database. LabMT provides a single positive - negative metric, ranging from -1 to 1 (1 being positive sentiment, 0 being neutral, -1 being negative).
+`--vader` Apply VADER (Hutto & Gilbert 2014) analysis and append values to the local database. VADER returns 4 metrics: positive, neutral, negative and compound. See their documentation for details. 
+`--textblob` Apply TextBlob (github: @sloria) analysis and append values to the local database. TextBlob provides a single positive - negative metric, ranging from -1 to 1 (1 being positive sentiment, 0 being neutral, -1 being negative).
+The results of these analyses will be appended to each tweet's record, under the field "epicosm", and stored in MongoDB.
 
 <p align="center"> ••• </p>
 

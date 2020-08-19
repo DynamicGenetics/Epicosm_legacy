@@ -174,22 +174,26 @@ def get_following(run_folder, credentials, auth, api, following_collection):
 
     for twitter_id in users_to_get_following:
         following_list = []
+    
+        # ask for following list    
         try:
             ask_api_for_following_list()
     
-        except tweepy.RateLimitError as rateerror:
-            print(f"Rate limit reached, waiting for cooldown... {rateerror}")
+        except tweepy.RateLimitError as e:
+            print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
             time.sleep(905)
             ask_api_for_following_list()
-    
-        except tweepy.TweepError as not_authorised:
-            print(f"Private account: {not_authorised}")
+        except tweepy.TweepError as e:
+            print(f"{twitter_id} is a private account.")
+            break
+        
+        # insert to MongoDB
         try:
             for person in following_list:     # insert those into a mongodb collection called "following"
                 following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
+            print(f"Following list of {twitter_id} acquired.")
         except Exception as e: # make this more specific?
-            print(f"Problem putting following list into MongoDB...")
-            print(e)
+            print(f"Problem putting following list into MongoDB: {e}")
 
 
 def harvest(run_folder, credentials, auth, api, client, db, collection):

@@ -7,7 +7,8 @@
    <a href="https://www.docker.com/"><img src="img/dynamicgenetics_roundsqua.png" width="100" height="80" /></a> 
    <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 
 </p>
-  [![GitHub version](https://img.shields.io/badge/release-1.0-green.svg)]
+
+  ![release](https://img.shields.io/badge/release-1.0-green)
   [![GPLv3 license](https://img.shields.io/badge/licence-GPL_v3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 

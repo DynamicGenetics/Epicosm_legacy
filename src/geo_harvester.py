@@ -11,12 +11,7 @@ import pymongo
 from urllib3.exceptions import ProtocolError
 
 # local imports
-try:
-    import credentials
-except:
-    print(f"Your credentials.py file doesn't seem to be here... stopping.")
-    sys.exit(0)
-from modules import mongo_ops, geo_boxes, env_config, csv2liwc, df_cleaning_functions
+from modules import mongo_ops, geo_boxes, env_config, csv2liwc, df_cleaning_functions, twitter_ops
 
 
 def signal_handler(signal, frame):
@@ -25,7 +20,7 @@ def signal_handler(signal, frame):
 
     if signal == 2:
         print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
-    mongo_ops.stop_mongo()
+    mongo_ops.stop_mongo(env.db_path)
     sys.exit(0)
 
 
@@ -82,7 +77,7 @@ class StreamListener(tweepy.StreamListener):
         db.geotweets_collection.insert_one(datajson)
 
         # export the most recent tweet as csv so it can be sentiment analysed
-        mongo_ops.export_latest_tweet(mongoexport_executable_path)
+        mongo_ops.export_latest_tweet(mongoexport_executable_path, env.epicosm_log_filename)
 
         # turn most recent tweet into sentiment metrics
         # !! --- here we need latest_tweet > vader
@@ -92,7 +87,7 @@ class StreamListener(tweepy.StreamListener):
         csv2liwc.liwc_analysis(env.latest_geotweet, category_names, parse)
 
         # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
-        mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC')
+        mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC', env.epicosm_log_filename)
 
 
 if __name__ == "__main__":
@@ -102,6 +97,9 @@ if __name__ == "__main__":
 
     ## Set up environment paths
     env = env_config.EnvironmentConfig()
+
+    # verify credentials
+    credentials, auth, api = twitter_ops.get_credentials()
 
     ## assign dictionary
     if len(sys.argv) != 2:
@@ -125,11 +123,10 @@ if __name__ == "__main__":
     ## Spin up a MongoDB server
     mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
-                          env.db_log_filename)
+                          env.db_log_filename,
+                          env.epicosm_log_filename)
 
     ## Start instance of stream listener
-    auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
-    auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
     client = MongoClient()
@@ -141,7 +138,7 @@ if __name__ == "__main__":
             print("Protocol/Attribute error, ignoring:", e)
         except (pymongo.errors.ServerSelectionTimeoutError, pymongo.errors.AutoReconnect) as e:
             print("Is MongoDB down? trying to restart it...", e)
-            mongo_ops.stop_mongo() # refresh
+            mongo_ops.stop_mongo(env.db_path) # refresh
             mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
                           env.db_log_filename)
@@ -151,4 +148,3 @@ if __name__ == "__main__":
             print("Tweepy:", e) # catches rate limits and timeouts
         except Exception as e:
             print("Something went wrong there:", e)
-

@@ -4,7 +4,7 @@
 </p>
 <p align="center">
    <a href="https://www.python.org/"><img src="img/python_logo.png" width="100" height="80" /></a> 
-   <a href="https://www.docker.com/"><img src="img/docker_logo.png" width="100" height="80" /></a> 
+   <a href="https://www.docker.com/"><img src="img/dynamicgenetics_roundsqua.png" width="100" height="80" /></a> 
    <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 
 </p>
 

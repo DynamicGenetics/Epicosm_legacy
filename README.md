@@ -8,7 +8,7 @@
    <a href="https://www.mongodb.com/"><img src="img/mongo_logo.png" width="100" height="80" /></a> 
 </p>
 
-  ![release](https://img.shields.io/badge/release-1.0-green)
+  ![release](https://img.shields.io/badge/release-1.1-brightgreen)
   [![GPLv3 license](https://img.shields.io/badge/licence-GPL_v3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
   ![DOI](https://img.shields.io/badge/DOI-TBC-blue.svg)
 

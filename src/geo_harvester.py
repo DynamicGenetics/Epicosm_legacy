@@ -62,32 +62,8 @@ class StreamListener(tweepy.StreamListener):
         # Deal with the incoming json
         datajson = json.loads(data)
 
-        # LIWC doesn't like tweets which are just numbers (bots tweet this sometimes?)
-        # so, here we skip tweets with no letters in
-        if not any(tweettext.isalpha() for tweettext in datajson.get('text')):
-            print("This tweet didn't contain letters - skipping.")
-            return
-
-        # True or False look like booleans to liwc
-        if datajson.get('text') in ("True", "False"):
-            print("Boolean misinterpretation... ignoring")
-            return
-
-        # put raw tweet into 'geotweets_collection' of the 'geotweets' database.
+        # insert new tweet from stream into database
         db.geotweets_collection.insert_one(datajson)
-
-        # export the most recent tweet as csv so it can be sentiment analysed
-        mongo_ops.export_latest_tweet(mongoexport_executable_path, env.epicosm_log_filename)
-
-        # turn most recent tweet into sentiment metrics
-        # !! --- here we need latest_tweet > vader
-        # !! csv > df
-        # !! df appending with vader scores
-        # !! df > geojson
-        csv2liwc.liwc_analysis(env.latest_geotweet, category_names, parse)
-
-        # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
-        mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC', env.epicosm_log_filename)
 
 
 if __name__ == "__main__":
@@ -100,14 +76,6 @@ if __name__ == "__main__":
 
     # verify credentials
     credentials, auth, api = twitter_ops.get_credentials()
-
-    ## assign dictionary
-    if len(sys.argv) != 2:
-        print(f'Please assign your dictionary for sentiment analysis.')
-        print(f'eg: python geo_harvester.py LIWC.dic')
-        exit(0)
-    dictionary = sys.argv[1]
-    parse, category_names = csv2liwc.load_dictionary(dictionary)
 
     ## See if the Mongo environment looks right
     mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, mongoimport_executable_path = mongo_ops.mongo_checks()
@@ -140,10 +108,10 @@ if __name__ == "__main__":
             print("Is MongoDB down? trying to restart it...", e)
             mongo_ops.stop_mongo(env.db_path) # refresh
             mongo_ops.start_mongo(mongod_executable_path,
-                          env.db_path,
-                          env.db_log_filename)
+                                  env.db_path,
+                                  env.db_log_filename)
         except TypeError as e:
-            print("There was a TypeError, very strange...", e)
+            print("There was a TypeError:", e)
         except tweepy.error.TweepError as e:
             print("Tweepy:", e) # catches rate limits and timeouts
         except Exception as e:

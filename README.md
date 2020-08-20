@@ -41,11 +41,13 @@ The tools can:
 
 ## More detail
 #### 1 What does it do?  
-#### 2 Running Epicosm
+#### 2 Running Epicosm from compiled python executable
 #### 3 Optional parameters
-#### 4 Output and other data
-#### 5 Running python scripts
-#### 6 License
+#### 4 Natural Language Processing (Sentiment analysis)
+#### 5 Geoharvester
+#### 6 Data and other outputs
+#### 7 Running the python script manually
+#### 8 Licence
 
 <p align="center"> ••• </p>
 
@@ -178,7 +180,7 @@ Please also see these further requirements.
 
 <p align="center"> ••• </p>
 
-### 8 License
+### 8 Licence
 DynamicGenetics/Epicosm is licensed under the GNU General Public License v3.0. For full details, please see our [license](https://github.com/DynamicGenetics/Epicosm/blob/master/LICENSE) file. 
 
 Epicosm is written and maintained by [Alastair Tanner](https://github.com/altanner), University of Bristol, Integrative Epidemiology Unit.

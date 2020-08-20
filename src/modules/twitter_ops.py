@@ -12,7 +12,7 @@ def get_credentials():
         with open("credentials.txt") as file:
             for line in file:
                 line = line.strip()  # remove errant whitespace
-                if line and not line.startswith("#"):
+                if line and not line.startswith("#"): # take the non-commented lines
                     try:
                         key, val = line.split()
                         if val:
@@ -114,8 +114,8 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
             new_tweets = api.user_timeline(id=twitter_id, count=200,
                                            tweet_mode='extended', exclude_replies=True)
             alltweets.extend(new_tweets)
-        except tweepy.TweepError as tweeperror:
-            print(f"Not possible to acquire timeline of {twitter_id} : {tweeperror}")
+        except tweepy.TweepError as e:
+            print(f"Not possible to acquire timeline of {twitter_id} : {e}")
             private_users.append(twitter_id)
     else:
         # this user isn't in database: get <3200 tweets if possible
@@ -132,13 +132,13 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
                                                    tweet_mode="extended", exclude_replies=True)
                     alltweets.extend(new_tweets)
                     oldest = alltweets[-1].id - 1 # this is now the oldest tweet
-            except IndexError: # Index error means it is an empty account.
+            except IndexError: # Index error indicates an empty account.
                 print(f"Empty timeline for user {twitter_id} : skipping.")
                 empty_users.append(twitter_id)
-        except tweepy.TweepError as tweeperror: # Tweep error is access denied
-            print(f"Not possible to acquire timeline of {twitter_id} : {tweeperror}")
+        except tweepy.TweepError as e: # Tweep error is access denied
+            print(f"Not possible to acquire timeline of {twitter_id} : {e}")
             private_users.append(twitter_id) # Make a record of private account
-        except tweepy.RateLimitError as rateerror: # Twitter telling us to chill out
+        except tweepy.RateLimitError as e: # Twitter telling us to chill out
             print(f"Rate limit reached, waiting for cooldown...")
 
     return alltweets
@@ -165,33 +165,33 @@ def get_following(run_folder, credentials, auth, api, following_collection):
 
 
     def ask_api_for_following_list():
-
-        for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000).pages():
-                                       following_list.extend(following) 
+        try:
+            for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000).pages():
+                                           following_list.extend(following)
+            print(f"Following list of {twitter_id} acquired.") 
+        except tweepy.RateLimitError as e:
+            print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
+            if try_count < 4:
+                time.sleep(905)
+                ask_api_for_following_list()
+                try_count += 1
+            else:
+                print(f"Three attempts failed on {twitter_id}, moving on.")
+        except tweepy.TweepError as e:
+            print(f"{twitter_id} is a private account.")
 
 
     users_to_get_following = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
 
     for twitter_id in users_to_get_following:
+        try_count = 0
         following_list = []
-    
-        # ask for following list    
-        try:
-            ask_api_for_following_list()
-    
-        except tweepy.RateLimitError as e:
-            print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
-            time.sleep(905)
-            ask_api_for_following_list()
-        except tweepy.TweepError as e:
-            print(f"{twitter_id} is a private account.")
-            break
+        ask_api_for_following_list()
         
         # insert to MongoDB
         try:
             for person in following_list:     # insert those into a mongodb collection called "following"
                 following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
-            print(f"Following list of {twitter_id} acquired.")
         except Exception as e: # make this more specific?
             print(f"Problem putting following list into MongoDB: {e}")
 
@@ -211,18 +211,18 @@ def harvest(run_folder, credentials, auth, api, client, db, collection):
                                    credentials, auth, api, client, db, collection)
             insert_to_mongodb(alltweets, collection)
 
-        if len(empty_users) > 0: # if users are empty, put into empty users file
+        if len(empty_users) > 0: # if empty accounts, put into empty users file
             print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")
             with open(run_folder + "/user_list.empty", "w") as empty_user_file:
                 for empty_user in empty_users:
                     empty_user_file.write("%s\n" % empty_user)    # write to empty user file
 
-        if len(private_users) > 0: # if users are private found, put into private user file
+        if len(private_users) > 0: # if private accounts found, put into private user file
             print(f"Info: {len(private_users)} users have private accounts (see user_list.private)")
             with open(run_folder + "/user_list.private", "w") as private_user_file:
                 for private_user in private_users:
                     private_user_file.write("%s\n" % private_user)    # write to private user file
 
     except Exception as e:
-        print(f"{e}")
+        print(f"Something went wrong during harvest: {e}")
 

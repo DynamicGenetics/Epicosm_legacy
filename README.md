@@ -110,7 +110,11 @@ Example of single harvest:
 Example iterated harvest in background, with a renewed user_list and taking CSV snapshots:
 `nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`
 
-Once you have a database with tweets, you can apply sentiment analysis to each document and insert the result into MongoDB. If you are running sentiment analysis with `epicosm_nlp` executables or `epicosm_nlp.py`, please specify the following flags:
+### 4 Natural Language Processing (Sentiment analysis)
+
+Once you have a database with tweets, you can apply sentiment analysis to each document and insert the result into MongoDB. You will need to run `epicosm_nlp.py` (if you have dependencies errors, please install them with `pip3 install -r requirements.txt`).
+
+To run, specify from the following flags:
 
 `--insert_groundtruth` Provide a file of groundtruth values called 'groundtruth.csv' and insert these into the local database.
 
@@ -126,11 +130,11 @@ The results of these analyses will be appended to each tweet's record, under the
 
 <p align="center"> ••• </p>
 
-### 4 Geoharvester
+### 5 Geoharvester
 
 The python script `geoharvester.py` can launch a Twitter stream listener by geographic location, as defined by one or more latitude/longitude boxes. Please see the example `geoboxes.py` for the format of this file. As above, you will need to provide your `credentials.txt` to gain access to the Twitter streaming API. All tweets are stored in MongoDB under the database `geotweets` and the collection `geotweets_collection`. To sentiment analyse these, please see the section below on NLP. Few Tweets (historically, less than 2%) have geotags, but Twitter will try to assign a rough location based on city or country. As of 2020, Twitter is reporting they will phase out geotagging, since few people authorise Twitter to geotag their tweets. 
 
-### 5 Data and other outputs
+### 6 Data and other outputs
 The processed output is a a database of tweets from the users in your `user_list`, and a CSV file, in the folder `./output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
 
 Log files detailing what Epicosm has done is in `/epicosm_logs/`.
@@ -151,7 +155,7 @@ To view and interact with the database using a GUI, you will need MongoDB instal
 
 <p align="center"> ••• </p>
 
-### 5 Running the python script manually
+### 7 Running the python script manually
 
 See the source file in `/src` and run it with
 
@@ -174,7 +178,7 @@ Please also see these further requirements.
 
 <p align="center"> ••• </p>
 
-### 6 License
+### 8 License
 DynamicGenetics/Epicosm is licensed under the GNU General Public License v3.0. For full details, please see our [license](https://github.com/DynamicGenetics/Epicosm/blob/master/LICENSE) file. 
 
 Epicosm is written and maintained by [Alastair Tanner](https://github.com/altanner), University of Bristol, Integrative Epidemiology Unit.

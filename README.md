@@ -79,14 +79,9 @@ Then you can run the python executable, for example
 
 ### 3 Optional parameters
 When running the harvester, please specify what you want Epicosm to do:
+
 `--user_harvest`        Harvest tweets from all users from a file called user_list
                       (provided by you) with a single user per line. The database will be
-                      backed up on every harvest, with a rotating backup of the last three
-                      harvests. These can be imported into another instance of MongoDB
-                      with `mongoimport`, see MongoDB documentation for details.
-
-`--id_harvest`          Harvest tweets from all users from a file called user_list.ids
-                      with one Twitter account ID number per line. The database will be
                       backed up on every harvest, with a rotating backup of the last three
                       harvests. These can be imported into another instance of MongoDB
                       with `mongoimport`, see MongoDB documentation for details.
@@ -113,9 +108,9 @@ Example of single harvest:
 `./epicosm --user_harvest`
 
 Example iterated harvest in background, with a renewed user_list and taking CSV snapshots:
-`nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`### 3 Output and data
+`nohup ./epicosm --user_harvest --refresh --csv_snapshots --repeat &`
 
-If you are running sentiment analysis with `epicosm_nlp`, please specify with the following flags:
+Once you have a database with tweets, you can apply sentiment analysis to each document and insert the result into MongoDB. If you are running sentiment analysis with `epicosm_nlp` executables or `epicosm_nlp.py`, please specify the following flags:
 
 `--insert_groundtruth` Provide a file of groundtruth values called 'groundtruth.csv' and insert these into the local database.
 

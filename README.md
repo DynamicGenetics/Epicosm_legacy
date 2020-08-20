@@ -126,7 +126,11 @@ The results of these analyses will be appended to each tweet's record, under the
 
 <p align="center"> ••• </p>
 
-### 4 Data and other outputs
+### 4 Geoharvester
+
+The python script `geoharvester.py` can launch a Twitter stream listener by geographic location, as defined by one or more latitude/longitude boxes. Please see the example `geoboxes.py` for the format of this file. As above, you will need to provide your `credentials.txt` to gain access to the Twitter streaming API. All tweets are stored in MongoDB under the database `geotweets` and the collection `geotweets_collection`. To sentiment analyse these, please see the section below on NLP. Few Tweets (historically, less than 2%) have geotags, but Twitter will try to assign a rough location based on city or country. As of 2020, Twitter is reporting they will phase out geotagging, since few people authorise Twitter to geotag their tweets. 
+
+### 5 Data and other outputs
 The processed output is a a database of tweets from the users in your `user_list`, and a CSV file, in the folder `./output/csv/`, which by default has the fields: [1] the ID of the tweeter, [2] the id of the tweet, [3] the time and date of the tweet, and [4] the tweet content.
 
 Log files detailing what Epicosm has done is in `/epicosm_logs/`.

@@ -25,9 +25,11 @@ The tools can:
 
 ## Instructions in a nutshell
 #### 1. [Download the Epicosm repository](https://github.com/DynamicGenetics/Epicosm/archive/master.zip)
+
 #### 2. Install [MongoDB](https://www.mongodb.com/) version 4 or higher:
   * In a Mac terminal `brew install mongodb`
   * In a Linux terminal `apt install mongodb`
+
 #### 3. Put these three files into a folder:
   * `epicosm_mac` OR `epicosm_linux`, as downloaded from the repository in step `1`,
   * `credentials.txt` file (provided here, but complete with [your own Twitter access keys](https://github.com/DynamicGenetics/Epicosm/blob/master/Twitter_Authorisation.pdf)),  

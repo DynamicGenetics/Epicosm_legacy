@@ -7,4 +7,4 @@ tqdm
 labMTsimple
 jinja2
 vaderSentiment
-collections
+nltk

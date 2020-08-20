@@ -67,6 +67,10 @@ def main():
 
     # check size of collection
     total_records = mongodb_config.collection.estimated_document_count()
+    if total_records == 0:
+        print(f"The database seems empty. Nothing to do.")
+        mongo_ops.stop_mongo(env.db_path)
+        sys.exit(0)
     
     if "--vader" in sys.argv:
         mongo_vader(mongodb_config.db, total_records)

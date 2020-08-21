@@ -55,7 +55,7 @@ The tools can:
 
 ### 1 What does it do?
 
-Epicosm is a social media harvester, data manager and sentiment analyser. Currently, the platform uses Twitter as the data source and the sentiment analysis methods available are VADER, labMT and LIWC (you will need an LIWC dictionary for this). You provide  a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content. Epicosm can also harvest the following list of users (ie, *the accounts that the user sees in their feed, not those following the user*).
+Epicosm is a social media harvester, data manager and sentiment analyser. Currently, the platform uses Twitter as the data source and the sentiment analysis methods available are VADER, labMT and LIWC (you will need an LIWC dictionary for this). You provide  a list of users, and it will gather and store all tweets and metadata (going back a maximum of 3240 tweets) for each user. Images, videos and other attachments are stored as URLs. All information is stored by MongoDB. Harvesting can be iterated, for example once a week it can gather new tweets and add them to the database. As well as the full database, output includes a comma-separated-values (.csv) file, with the default fields being the user id number, the tweet id number, time and date, and the tweet content. Epicosm can also harvest the friends of users (ie, *the accounts that the user is following, not the followers of the user*).
 
 Epicosm uses [MongoDB](https://www.mongodb.com/) for data management, and this must be installed before being running Epicosm. This can be done through downloading and installing from the MongoDB website, or it can be done in a Terminal window with the commands
 `brew install mongodb` on a Mac
@@ -90,7 +90,7 @@ When running the harvester, please specify what you want Epicosm to do:
                       harvests. These can be imported into another instance of MongoDB
                       with `mongoimport`, see MongoDB documentation for details.
 
-`--get_following`       Create a database of the users that are
+`--get_friends`.        Create a database of the users that are
                       being followed by the accounts in your user_list.
                       (This process can be very slow, especially if
                       your users are prolific followers.) You will also get

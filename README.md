@@ -143,7 +143,7 @@ The processed output is a a database of tweets from the users in your `user_list
 
 Log files detailing what Epicosm has done is in `/epicosm_logs/`.
 
-Full tweet content and metadata of all tweets is stored in [MongoDB](https://www.mongodb.com/) in a format which is closely aligned with JSON. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `following` which contains a list of all users that each user in your list are following. The `following` collection will only be made if you ask for following lists to be gathered. *Currently, gathering following list causes the process to be heavily rate limited by Twitter! [solution in progress]*
+Full tweet content and metadata of all tweets is stored in [MongoDB](https://www.mongodb.com/) in a format which is closely aligned with JSON. To work with full raw data, you will need MongoDB installed. The tweet database is named `twitter_db`, with two collections `tweets`, and `friends` which contains a list of all users that each user in your list are following. The `friends` collection will only be made if you ask for friends lists to be gathered. *Currently, gathering friends list causes the process to be heavily rate limited by Twitter! [solution in progress]*
 
 A backup of the entire database is stored in `/output/twitter_db/`. If you have MongoDB installed, this can be restored with the command
 

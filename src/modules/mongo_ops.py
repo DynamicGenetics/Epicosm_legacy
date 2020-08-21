@@ -105,8 +105,8 @@ def index_mongo(run_folder):
 
 
 def export_csv_tweets(mongoexport_executable_path,
-                     csv_tweets_filename,
-                     epicosm_log_filename):
+                      csv_tweets_filename,
+                      epicosm_log_filename):
 
     """Export some fields from the tweets in MongoDB into a CSV file."""
 
@@ -122,20 +122,20 @@ def export_csv_tweets(mongoexport_executable_path,
                      stderr = open(epicosm_log_filename, "a+"))
 
 
-def export_csv_following(mongoexport_executable_path,
-                         csv_following_filename,
-                         epicosm_log_filename):
+def export_csv_friends(mongoexport_executable_path,
+                       csv_friends_filename,
+                       epicosm_log_filename):
 
-    """Export some fields from the tweets in MongoDB into a CSV file."""
+    """Export all friends of users MongoDB into a CSV file."""
 
     # export selected fields (specified after --fields) into csv
     print(f"Creating CSV output file...")
     subprocess.call([mongoexport_executable_path, "--host=127.0.0.1",
                      "--db", "twitter_db",
-                     "--collection", "following",
+                     "--collection", "friends",
                      "--type=csv",
-                     "--out", csv_following_filename,
-                     "--fields", "user,following"],
+                     "--out", csv_friends_filename,
+                     "--fields", "user_id,friends"],
                      stdout = open(epicosm_log_filename, "a+"),
                      stderr = open(epicosm_log_filename, "a+"))
 

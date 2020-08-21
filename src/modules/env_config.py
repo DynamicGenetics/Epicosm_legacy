@@ -48,8 +48,8 @@ class EnvironmentConfig:
         return os.path.join(self.run_folder, 'output', 'csv', self.processtime + ".csv")
 
     @property
-    def csv_following_filename(self):
-        return os.path.join(self.run_folder, 'output', 'csv', "following" + self.processtime + ".csv")
+    def csv_friends_filename(self):
+        return os.path.join(self.run_folder, 'output', 'csv', "friends" + self.processtime + ".csv")
 
     @property
     def epicosm_log_filename(self):

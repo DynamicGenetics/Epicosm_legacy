@@ -157,23 +157,23 @@ def insert_to_mongodb(alltweets, collection):
                 print(f"User {twitter_id} has no tweets to insert.")
 
 
-def get_following(run_folder, credentials, auth, api, following_collection):
+def get_friends(run_folder, credentials, auth, api, friend_collection):
 
-    """Get the following list and put it in MongoDB"""
+    """Get the friend list and put it in MongoDB"""
 
-    print(f"Getting following lists of users...")
+    print(f"Getting friend lists of users...")
 
 
-    def ask_api_for_following_list():
+    def ask_api_for_friend_list():
         try:
-            for following in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000).pages():
-                                           following_list.extend(following)
+            for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000).pages():
+                                           friend_list.extend(friend)
             print(f"Following list of {twitter_id} acquired.") 
         except tweepy.RateLimitError as e:
             print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
             if try_count < 4:
                 time.sleep(905)
-                ask_api_for_following_list()
+                ask_api_for_friend_list()
                 try_count += 1
             else:
                 print(f"Three attempts failed on {twitter_id}, moving on.")
@@ -181,19 +181,19 @@ def get_following(run_folder, credentials, auth, api, following_collection):
             print(f"{twitter_id} is a private account.")
 
 
-    users_to_get_following = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
+    users_to_get_friends = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
 
-    for twitter_id in users_to_get_following:
+    for twitter_id in users_to_get_friends:
         try_count = 0
-        following_list = []
-        ask_api_for_following_list()
+        friend_list = []
+        ask_api_for_friend_list()
         
         # insert to MongoDB
         try:
-            for person in following_list:     # insert those into a mongodb collection called "following"
-                following_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"following": [person]}}, upsert=True)
+            for friend in friend_list:     # insert those into a mongodb collection called "friend"
+                friend_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"friends": [friend]}}, upsert=True)
         except Exception as e: # make this more specific?
-            print(f"Problem putting following list into MongoDB: {e}")
+            print(f"Problem putting friend list into MongoDB: {e}")
 
 
 def harvest(run_folder, credentials, auth, api, client, db, collection):

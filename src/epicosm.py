@@ -11,7 +11,7 @@ import schedule
 # from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
 
-valid_args = ["--user_harvest", "--id_harvest", "--get_following",
+valid_args = ["--user_harvest", "--id_harvest", "--get_friends",
               "--repeat", "--refresh", "--csv_snapshots", "--stop"]
 
 usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" + 
@@ -21,7 +21,7 @@ usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n"
          "--id_harvest          Harvest tweets from all users from a file called user_list.ids\n" + 
          "                      with one Twitter account ID number per line.\n" +
          "                      (Epicosm can produce this after running with a user_list).\n\n" + 
-         "--get_following       Create a database of the users that are\n" + 
+         "--get_friends         Create a database of the users that are\n" + 
          "                      being followed by the accounts in your user_list.\n" + 
          "                      (This process can be very slow, especially if\n" + 
          "                      your users are prolific followers.)\n" + 
@@ -108,14 +108,14 @@ def main():
                             mongodb_config.client, mongodb_config.db, mongodb_config.collection)
 
     # if user wants the friend list, make it
-    if "--get_following" in sys.argv:
-        twitter_ops.get_following(env.run_folder, credentials, auth,
-                                  api, mongodb_config.following_collection)
-        sys.argv.remove("--get_following") # we only want to do this once
-        # create CSV file of users' followings list.
-        mongo_ops.export_csv_following(mongoexport_executable_path,
-                                       env.csv_following_filename,
-                                       env.epicosm_log_filename)
+    if "--get_friends" in sys.argv:
+        twitter_ops.get_friends(env.run_folder, credentials, auth,
+                                api, mongodb_config.friends_collection)
+        sys.argv.remove("--get_friends") # we only want to do this once
+        # create CSV file of users' friends list.
+        mongo_ops.export_csv_friends(mongoexport_executable_path,
+                                     env.csv_friends_filename,
+                                     env.epicosm_log_filename)
 
     # create CSV file of tweets
     if "--csv_snapshots" in sys.argv:

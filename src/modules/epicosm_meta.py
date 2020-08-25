@@ -133,6 +133,24 @@ def check_env():
         print(f"USAGE: please provide a list of users to follow, named 'user_list'. Stopping.")
         sys.exit()
 
+    # Check credentials is present and correct
+    credentials = {}
+    try:
+        with open("credentials.txt") as file:
+            for line in file:
+                line = line.strip()  # remove errant whitespace
+                if line and not line.startswith("#"): # take the non-commented lines
+                    try:
+                        key, val = line.split()
+                        if val:
+                            credentials[key.upper()] = val
+                    except ValueError: # users might have forgotten to update the credentials template file
+                        print("Your credentials.txt file doesn't look complete.")
+                        sys.exit()
+    except FileNotFoundError:
+        print("Your credentials.txt file doesn't seem to exist here.")
+        sys.exit()
+
     number_of_users_provided = sum(1 for line_exists in open(env.run_folder + '/user_list') if line_exists)
     screen_names = list(dict.fromkeys(line.strip() for line in open(env.run_folder + '/user_list'))) # remove duplicates
     screen_names = [name for name in screen_names if name] # remove empty lines

@@ -5,6 +5,7 @@ import pymongo
 import tweepy
 import time
 
+
 def get_credentials():
 
     credentials = {}
@@ -81,7 +82,7 @@ def lookup_users(run_folder, screen_names, credentials, auth, api):
         comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
         for user in chunk:
             try:
-                user = api.get_user(screen_name = user) ## this is the problem
+                user = api.get_user(screen_name = user) 
                 id_list.append(user.id) # get the id and put it in the id_list
     
             except tweepy.error.TweepError as e:

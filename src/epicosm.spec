@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['epicosm.py'],
-             pathex=['/Users/at9362/git/Epicosm/src'],
+             pathex=['/home/at9362/git/Epicosm/src'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -31,7 +31,3 @@ exe = EXE(pyz,
           upx_exclude=[],
           runtime_tmpdir=None,
           console=False )
-app = BUNDLE(exe,
-             name='epicosm.app',
-             icon=None,
-             bundle_identifier=None)

@@ -11,16 +11,13 @@ import schedule
 # from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
 
-valid_args = ["--user_harvest", "--id_harvest", "--get_friends",
+valid_args = ["--user_harvest", "--get_friends",
               "--repeat", "--refresh", "--csv_snapshots", "--stop"]
 
 usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" + 
          "Please provide flags:\n\n" +
          "--user_harvest        Harvest tweets from all users from a file called user_list\n" +
          "                      (provided by you) with a single user per line.\n\n" + 
-         "--id_harvest          Harvest tweets from all users from a file called user_list.ids\n" + 
-         "                      with one Twitter account ID number per line.\n" +
-         "                      (Epicosm can produce this after running with a user_list).\n\n" + 
          "--get_friends         Create a database of the users that are\n" + 
          "                      being followed by the accounts in your user_list.\n" + 
          "                      (This process can be very slow, especially if\n" + 

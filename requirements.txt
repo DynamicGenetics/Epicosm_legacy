@@ -5,6 +5,5 @@ schedule
 jinja2
 tqdm
 labMTsimple
-jinja2
 vaderSentiment
 nltk

@@ -46,6 +46,7 @@ def lookup_users(run_folder, screen_names, credentials, auth, api):
 
     if "--refresh" not in sys.argv and os.path.exists(run_folder + "/user_list.ids"):
         return
+
     with open(run_folder + "/user_list") as file:
         lines = [x.strip() for x in file.readlines()]
         lines = [x for x in lines if x]
@@ -113,7 +114,8 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
             print(f"User {twitter_id} is in the database, normal acquisition cycle...")
             alltweets = []
             new_tweets = api.user_timeline(id=twitter_id, count=200,
-                                           tweet_mode='extended', exclude_replies=True)
+                                           tweet_mode='extended', exclude_replies=True,
+                                           wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
             alltweets.extend(new_tweets)
         except tweepy.TweepError as e:
             print(f"Not possible to acquire timeline of {twitter_id} : {e}")
@@ -124,13 +126,15 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
             print(f"User {twitter_id} is new, deep acquisition cycle...")
             alltweets = [] # IS BELOW REDUNDANT?
             new_tweets = api.user_timeline(id=twitter_id, count=200,
-                                           tweet_mode="extended", exclude_replies=True)
+                                           tweet_mode="extended", exclude_replies=True,
+                                           wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
             alltweets.extend(new_tweets) # this gets the first 200 (maximum per request)
             try:
                 oldest = alltweets[-1].id - 1 # this is now the oldest tweet
                 while len(new_tweets) > 0: # so we do it again, going back another 200 tweets
                     new_tweets = api.user_timeline(id=twitter_id, count=200, max_id=oldest,
-                                                   tweet_mode="extended", exclude_replies=True)
+                                                   tweet_mode="extended", exclude_replies=True,
+                                                   wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
                     alltweets.extend(new_tweets)
                     oldest = alltweets[-1].id - 1 # this is now the oldest tweet
             except IndexError: # Index error indicates an empty account.
@@ -167,19 +171,21 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
 
     def ask_api_for_friend_list():
         try:
-            for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000).pages():
-                                           friend_list.extend(friend)
+            for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000,
+                                        wait_on_rate_limit=True, wait_on_rate_limit_notify=True,
+                                        retry_count = 3, timeout = 30).pages():
+                friend_list.extend(friend)
             print(f"Following list of {twitter_id} acquired.") 
-        except tweepy.RateLimitError as e:
-            print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
-            if try_count < 4:
-                time.sleep(905)
-                ask_api_for_friend_list()
-                try_count += 1
-            else:
-                print(f"Three attempts failed on {twitter_id}, moving on.")
+     #   except tweepy.RateLimitError as e:
+      #      print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
+       #     if try_count < 4:
+        #        time.sleep(905)
+         #       ask_api_for_friend_list()
+          #      try_count += 1
+           # else:
+            #    print(f"Three attempts failed on {twitter_id}, moving on.")
         except tweepy.TweepError as e:
-            print(f"{twitter_id} is a private account.")
+            print(f"There was a problem gathering friends of {twitter_id}: {e}")
 
 
     users_to_get_friends = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]

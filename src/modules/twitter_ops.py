@@ -119,8 +119,6 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
             alltweets.extend(new_tweets)
         except tweepy.TweepError as e:
             print(f"Not possible to acquire timeline of {twitter_id} : {e}")
-            if "Not authorized" in e:
-                private_users.append(twitter_id)
     else:
         # this user isn't in database: get <3200 tweets if possible
         try:
@@ -145,8 +143,6 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
                 empty_users.append(twitter_id)
         except tweepy.TweepError as e:
             print(f"Not possible to acquire timeline of {twitter_id} : {e}")
-            if "Not authorized" in e:
-                private_users.append(twitter_id)            
         except tweepy.ConnectionResetError as e:
             print(f"Connection was reset during tweet harvest on {twitter_id}: {e}")
         except tweepy.RateLimitError as e: # Twitter telling us to chill out
@@ -178,9 +174,7 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
                                         wait_on_rate_limit=True, wait_on_rate_limit_notify=True,
                                         retry_count = 3, timeout = 30).pages():
                 friend_list.extend(friend)
-            print(f"Following list of {twitter_id} acquired.") 
-        except tweepy.ConnectionResetError as e:
-            print(f"There was a connection reset error during friend harvest: {e}")
+            print(f"Friends (following) list of {twitter_id} acquired.") 
         except tweepy.TweepError as e:
             print(f"There was a problem gathering friends of {twitter_id}: {e}")
 
@@ -195,7 +189,7 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
         
         # insert to MongoDB
         try:
-            for friend in friend_list:     # insert those into a mongodb collection called "friend"
+            for friend in friend_list:     # insert those into a mongodb collection called "friends"
                 friend_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"friends": [friend]}}, upsert=True)
         except Exception as e:
             print(f"Problem putting friend list into MongoDB: {e}")

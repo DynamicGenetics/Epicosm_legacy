@@ -119,16 +119,18 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
             alltweets.extend(new_tweets)
         except tweepy.TweepError as e:
             print(f"Not possible to acquire timeline of {twitter_id} : {e}")
-            private_users.append(twitter_id)
+            if "Not authorized" in e:
+                private_users.append(twitter_id)
     else:
         # this user isn't in database: get <3200 tweets if possible
         try:
             print(f"User {twitter_id} is new, deep acquisition cycle...")
-            alltweets = [] # IS BELOW REDUNDANT?
+            alltweets = []
             new_tweets = api.user_timeline(id=twitter_id, count=200,
                                            tweet_mode="extended", exclude_replies=True,
                                            wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
             alltweets.extend(new_tweets) # this gets the first 200 (maximum per request)
+            
             try:
                 oldest = alltweets[-1].id - 1 # this is now the oldest tweet
                 while len(new_tweets) > 0: # so we do it again, going back another 200 tweets
@@ -137,14 +139,18 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
                                                    wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
                     alltweets.extend(new_tweets)
                     oldest = alltweets[-1].id - 1 # this is now the oldest tweet
+            
             except IndexError: # Index error indicates an empty account.
                 print(f"Empty timeline for user {twitter_id} : skipping.")
                 empty_users.append(twitter_id)
-        except tweepy.TweepError as e: # Tweep error is access denied
+        except tweepy.TweepError as e:
             print(f"Not possible to acquire timeline of {twitter_id} : {e}")
-            private_users.append(twitter_id) # Make a record of private account
+            if "Not authorized" in e:
+                private_users.append(twitter_id)            
+        except tweepy.ConnectionResetError as e:
+            print(f"Connection was reset during tweet harvest on {twitter_id}: {e}")
         except tweepy.RateLimitError as e: # Twitter telling us to chill out
-            print(f"Rate limit reached, waiting for cooldown...")
+            print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
 
     return alltweets
 
@@ -166,9 +172,6 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
 
     """Get the friend list and put it in MongoDB"""
 
-    print(f"Getting friend lists of users...")
-
-
     def ask_api_for_friend_list():
         try:
             for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000,
@@ -176,20 +179,15 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
                                         retry_count = 3, timeout = 30).pages():
                 friend_list.extend(friend)
             print(f"Following list of {twitter_id} acquired.") 
-     #   except tweepy.RateLimitError as e:
-      #      print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
-       #     if try_count < 4:
-        #        time.sleep(905)
-         #       ask_api_for_friend_list()
-          #      try_count += 1
-           # else:
-            #    print(f"Three attempts failed on {twitter_id}, moving on.")
+        except tweepy.ConnectionResetError as e:
+            print(f"There was a connection reset error during friend harvest: {e}")
         except tweepy.TweepError as e:
             print(f"There was a problem gathering friends of {twitter_id}: {e}")
 
 
     users_to_get_friends = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
 
+    print(f"Getting friend lists of users...")
     for twitter_id in users_to_get_friends:
         try_count = 0
         friend_list = []
@@ -199,7 +197,7 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
         try:
             for friend in friend_list:     # insert those into a mongodb collection called "friend"
                 friend_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"friends": [friend]}}, upsert=True)
-        except Exception as e: # make this more specific?
+        except Exception as e:
             print(f"Problem putting friend list into MongoDB: {e}")
 
 

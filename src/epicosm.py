@@ -101,8 +101,18 @@ def main():
 
     # get tweets for each user and archive in mongodb
     if "--user_harvest" in sys.argv:
-        twitter_ops.harvest(env.run_folder, credentials, auth, api,
-                            mongodb_config.client, mongodb_config.db, mongodb_config.collection)
+        try:
+            twitter_ops.harvest(env.run_folder, credentials, auth, api,
+                                mongodb_config.client, mongodb_config.db, mongodb_config.collection)
+        except: # catching db down issues
+            print(f"Is the DB down? Trying to restart...")
+            mongo_ops.stop_mongo(env.db_path)
+            mongo_ops.start_mongo(mongod_executable_path,
+                                  env.db_path,
+                                  env.db_log_filename,
+                                  env.epicosm_log_filename)
+            twitter_ops.harvest(env.run_folder, credentials, auth, api,
+                                mongodb_config.client, mongodb_config.db, mongodb_config.collection)
 
     # if user wants the friend list, make it
     if "--get_friends" in sys.argv:

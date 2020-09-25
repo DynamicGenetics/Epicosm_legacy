@@ -76,15 +76,18 @@ def main():
     if "--liwc" in sys.argv:
         nlp_ops.mongo_liwc(mongodb_config.db, total_records)
     
-
     # in development :)
     #nlp_ops.mongo_nlp_example(mongodb_config.db, total_records)
     #nlp_ops.mongo_insert_groundtruth(mongodb_config.db, total_records)
     #nlp_ops.mongo_groundtruth_delta(mongodb_config.db, senti_method)
     
+    # backup database into BSON
+    mongo_ops.backup_db(mongodump_executable_path,
+                        env.database_dump_path,
+                        env.epicosm_log_filename,
+                        env.processtime)
     # shut down mongodb
     mongo_ops.stop_mongo(env.db_path)
-
 
 
 if __name__ == "__main__":

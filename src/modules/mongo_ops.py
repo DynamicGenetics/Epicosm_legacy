@@ -42,31 +42,23 @@ def mongo_checks():
 def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_filename):
 
     """Spin up a MongoDB daemon (mongod) from the shell.
-    
-    The db path is set as suitable to the environment (locally in the 
+
+    The db path is set as suitable to the environment (locally in the
     folder it is run in, but docker in the volumes folder).
     pgrep will look for running mongod processes and inform of conflicts,
     but this might throw an error if it comes across a zombie, in which case
     it ignores it and carries on with starting the daemon."""
 
-    def mongo_go():
-        print(f"Starting the MongoDB daemon...")
-        try:
-            subprocess.Popen([mongod_executable_path, "--dbpath",
-                              db_path, "--logpath", db_log_filename], stdout = open(epicosm_log_filename, "a+"))
-            time.sleep(1)
-        except subprocess.CalledProcessError as e:
-            print(f"There is a problem opening the MonogoDB daemon... stopping.", e.output)
-            sys.exit()
 
+    print(f"Starting the MongoDB daemon...")
     try:
-        if "mongod" in (p.name() for p in psutil.process_iter()):
-            print(f"MongoDB daemon appears to be already running. This could cause conflicts... continuing for now.")
-            print(f"(You can do this with the command: pkill -15 mongod)")
-        else:
-            mongo_go()
-    except psutil.ZombieProcess:
-        mongo_go()
+        subprocess.Popen([mongod_executable_path, "--dbpath",
+                          db_path, "--logpath", db_log_filename],
+                          stdout = open(epicosm_log_filename, "a+"))
+        time.sleep(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Problem starting MongoDB:", e.output)
+        sys.exit()
 
 
 def stop_mongo(dbpath):

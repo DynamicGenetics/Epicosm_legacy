@@ -60,12 +60,14 @@ def main():
     # stop background processes on --stop
     if "--stop" in sys.argv:
         print(f"OK just stopping things.")
+        # shut down mongodb
+        mongo_ops.stop_mongo(env.db_path)
         try:
             subprocess.call(["pkill", "-15",  "mongod"])
             subprocess.call(["pkill", "-15", "-f", "epicosm"])
             sys.exit(0)
         except Exception as e:
-            print(f"There was an issue shutting Epicosm down...")
+            print(f"There was an issue shutting Epicosm down...", e)
             sys.exit(0)
     
     # check running method
@@ -82,7 +84,7 @@ def main():
     signal.signal(signal.SIGINT, epicosm_meta.signal_handler)
 
     # verify credentials
-    credentials, auth, api = twitter_ops.get_credentials() #this doesn't do anything.
+    credentials, auth, api = twitter_ops.get_credentials()
 
     # start mongodb
     mongo_ops.start_mongo(mongod_executable_path,
@@ -157,11 +159,7 @@ def main():
     # modify status file
     epicosm_meta.status_down(env.status_file, env.run_folder)
 
-    # shut down mongodb
-    mongo_ops.stop_mongo(env.db_path)
-
     print(f"Scheduled task finished at {datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.\n")
-    print(f"Epicosm has been up for about {int(round((time.time() - start)) / 86400 )} days.")
 
 
 if __name__ == "__main__":

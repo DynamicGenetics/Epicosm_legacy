@@ -20,7 +20,7 @@ def get_credentials():
                             credentials[key.upper()] = val
                     except ValueError: # users might have forgotten to update the credentials template file
                         print("Your credentials.txt file doesn't look complete.")
-                        sys.exit(0) 
+                        sys.exit(0)
     except FileNotFoundError:
         print("Your credentials.txt file doesn't seem to exist here.")
         sys.exit(0)
@@ -37,14 +37,14 @@ def get_credentials():
     return credentials, auth, api
 
 
-def lookup_users(run_folder, screen_names, credentials, auth, api):
+def lookup_users(run_folder, screen_names, credentials, auth, api, args):
 
     """convert twitter screen names into persistent id numbers"""
 
     duplicate_users = []
     not_found = []
 
-    if "--refresh" not in sys.argv and os.path.exists(run_folder + "/user_list.ids"):
+    if not args.refresh and os.path.exists(run_folder + "/user_list.ids"):
         return
 
     with open(run_folder + "/user_list") as file:
@@ -62,7 +62,7 @@ def lookup_users(run_folder, screen_names, credentials, auth, api):
                 duplicate_file.write("%s\n" % duplicate)
 
     print(f"Converting user screen names to persistent id numbers...")
- 
+
     # Count the number of screen names in the input file
     non_blank_count = 0
     with open(run_folder + "/user_list") as count_file:
@@ -83,9 +83,9 @@ def lookup_users(run_folder, screen_names, credentials, auth, api):
         comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
         for user in chunk:
             try:
-                user = api.get_user(screen_name = user) 
+                user = api.get_user(screen_name = user)
                 id_list.append(user.id) # get the id and put it in the id_list
-    
+
             except tweepy.error.TweepError as e:
                 not_found.append(user) # if not found, put user in not found list
 
@@ -128,7 +128,7 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
                                            tweet_mode="extended", exclude_replies=True,
                                            wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
             alltweets.extend(new_tweets) # this gets the first 200 (maximum per request)
-            
+
             try:
                 oldest = alltweets[-1].id - 1 # this is now the oldest tweet
                 while len(new_tweets) > 0: # so we do it again, going back another 200 tweets
@@ -137,7 +137,7 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
                                                    wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
                     alltweets.extend(new_tweets)
                     oldest = alltweets[-1].id - 1 # this is now the oldest tweet
-            
+
             except IndexError: # Index error indicates an empty account.
                 print(f"Empty timeline for user {twitter_id} : skipping.")
                 empty_users.append(twitter_id)
@@ -174,7 +174,7 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
                                         wait_on_rate_limit=True, wait_on_rate_limit_notify=True,
                                         retry_count = 3, timeout = 30).pages():
                 friend_list.extend(friend)
-            print(f"Friends (following) list of {twitter_id} acquired.") 
+            print(f"Friends (following) list of {twitter_id} acquired.")
         except tweepy.TweepError as e:
             print(f"There was a problem gathering friends of {twitter_id}: {e}")
 
@@ -186,7 +186,7 @@ def get_friends(run_folder, credentials, auth, api, friend_collection):
         try_count = 0
         friend_list = []
         ask_api_for_friend_list()
-        
+
         # insert to MongoDB
         try:
             for friend in friend_list:     # insert those into a mongodb collection called "friends"

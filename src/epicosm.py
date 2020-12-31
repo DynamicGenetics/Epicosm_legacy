@@ -2,6 +2,8 @@
 
 import os
 import sys
+import glob
+import argparse
 import time
 import datetime
 import subprocess
@@ -11,54 +13,37 @@ import schedule
 # from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
 
-valid_args = ["--user_harvest", "--get_friends",
-              "--repeat", "--refresh", "--csv_snapshots", "--stop"]
 
-usage = ["Epicosm: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" + 
-         "Please provide flags:\n\n" +
-         "--user_harvest        Harvest tweets from all users from a file called user_list\n" +
-         "                      (provided by you) with a single user per line.\n\n" + 
-         "--get_friends         Create a database of the users that are\n" + 
-         "                      being followed by the accounts in your user_list.\n" + 
-         "                      (This process can be very slow, especially if\n" + 
-         "                      your users are prolific followers.)\n" + 
-         "                      If using with --repeat, will only be gathered once.\n\n" + 
-         "--repeat              Iterate the user harvest every 3 days. This process will need to\n" 
-         "                      be put to the background to free your terminal prompt,\n" + 
-         "                      or to leave running while logged out.\n\n" + 
-         "--refresh             If you have a new user_list, this will tell Epicosm to\n" + 
-         "                      take use this file as your updated user list.\n\n" + 
-         "--csv_snapshots       Make a CSV formatted snapshot of selected fields from every harvest.\n" +
-         "                      See documentation for the format and fields of this CSV.\n" +
-         "                      Be aware that this will use more disk space - see ./output/csv\n\n" +
-         "--stop                Stop all Epicosm processes (useful if you have a\n" +
-         "                      repeating process running in the background).\n\n" +
-         "Example of single harvest:\n" +
-         "./epicosm --user_harvest\n\n" +
-         "Example iterated harvest in background, with a renewed user_list:\n" + 
-         "nohup ./epicosm --user_harvest --refresh --repeat &\n"]
+def args_setup():
+    parser = argparse.ArgumentParser(description="Epidemiology of Cohort Social Media",
+                                     epilog="Example: python3 epicosm.py --harvest --repeat")
+    parser.add_argument("--harvest", action="store_true",
+      help="Harvest tweets from all users from a file called user_list (provided by you) with a single user per line.")
+    parser.add_argument("--get_friends", action="store_true",
+      help="Create a database of the users that are being followed by the accounts in your user_list. (This process can be very slow, especially if your users are prolific followers.)")
+    parser.add_argument("--repeat", action="store_true",
+      help="Repeat the harvest every 72 hours. This process will need to be put to the background to free your terminal prompt.")
+    parser.add_argument("--refresh", action="store_true",
+      help="If you have a new user_list, this will tell Epicosm to switch to this list.")
+    parser.add_argument("--stop", action="store_true",
+      help="Stop all Epicosm processes (useful if you have a repeating process running in the background).")
+    args = parser.parse_args()
 
+    return parser, args
 
-############
-## run it ##
-############
 
 def main():
-
-    # Check the time
-    start = time.time()
-    now = datetime.datetime.now()
 
     # Set paths as instance of EnvironmentConfig
     env = env_config.EnvironmentConfig()
 
     # print help message if no/wrong args provided
-    if len(sys.argv) < 2 or not all(arg in valid_args for arg in sys.argv[1:]):
-        print(*usage)
+    if len(sys.argv) < 1:
+        parser.print_help()
         sys.exit(0)
 
-    # stop background processes on --stop
-    if "--stop" in sys.argv:
+    #if "--stop" in sys.argv:
+    if args.stop:
         print(f"OK just stopping things.")
         # shut down mongodb
         mongo_ops.stop_mongo(env.db_path)
@@ -69,7 +54,7 @@ def main():
         except Exception as e:
             print(f"There was an issue shutting Epicosm down...", e)
             sys.exit(0)
-    
+
     # check running method
     epicosm_meta.native_or_compiled()
 
@@ -99,10 +84,10 @@ def main():
     mongo_ops.index_mongo(env.run_folder)
 
     # get persistent user ids from screen names
-    twitter_ops.lookup_users(env.run_folder, screen_names, credentials, auth, api)
+    twitter_ops.lookup_users(env.run_folder, screen_names, credentials, auth, api, args)
 
     # get tweets for each user and archive in mongodb
-    if "--user_harvest" in sys.argv:
+    if args.harvest:
         try:
             twitter_ops.harvest(env.run_folder, credentials, auth, api,
                                 mongodb_config.client, mongodb_config.db, mongodb_config.collection)
@@ -117,7 +102,7 @@ def main():
                                 mongodb_config.client, mongodb_config.db, mongodb_config.collection)
 
     # if user wants the friend list, make it
-    if "--get_friends" in sys.argv:
+    if args.get_friends:
         twitter_ops.get_friends(env.run_folder, credentials, auth,
                                 api, mongodb_config.friends_collection)
         sys.argv.remove("--get_friends") # we only want to do this once
@@ -125,18 +110,6 @@ def main():
         mongo_ops.export_csv_friends(mongoexport_executable_path,
                                      env.csv_friends_filename,
                                      env.epicosm_log_filename)
-
-    # create CSV file of tweets
-    if "--csv_snapshots" in sys.argv:
-        mongo_ops.export_csv_tweets(mongoexport_executable_path,
-                                    env.csv_tweets_filename,
-                                    env.epicosm_log_filename)
-
-    # create JSON file
-    if "--json" in sys.argv:
-        mongo_ops.export_json(mongoexport_executable_path,
-                              env.json_filename,
-                              env.epicosm_log_filename)
 
     # backup database into BSON
     mongo_ops.backup_db(mongodump_executable_path,
@@ -149,10 +122,9 @@ def main():
     # each backup is one bson and one json of metadata, so 6 = 3 backups.
     if current_backup_count > 6:
         print("Rotating backups.")
-        import glob
         bu_list = glob.glob(env.database_dump_path + "/twitter_db/tweets*")
         bu_list.sort()
-        # remove the oldest two, a bson and a json 
+        # remove the oldest two, a bson and a json
         subprocess.call(["rm", bu_list[0]])
         subprocess.call(["rm", bu_list[1]])
 
@@ -164,7 +136,9 @@ def main():
 
 if __name__ == "__main__":
 
-    if ("--repeat" in sys.argv):
+    parser, args = args_setup()
+
+    if args.repeat:
         main()
         schedule.every(3).days.at("06:00").do(main)
         while True:

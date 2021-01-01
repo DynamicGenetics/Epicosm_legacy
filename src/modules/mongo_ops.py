@@ -63,8 +63,8 @@ def start_mongo(mongod_executable_path, db_path, db_log_filename, epicosm_log_fi
 
 def stop_mongo(dbpath):
 
-    """ Gracefully close the mongo daemon.
-    
+    """ Gracefully close the MongoDB daemon.
+
     pkill -15 is a standard way of ending mongod, which will close connections
     cleanly. """
 
@@ -84,6 +84,7 @@ def stop_mongo(dbpath):
     if timeout == 0: # wait 1 minutes, then let it go...
         print(f"MongoDB didn't respond to requests to close... be aware that MongoDB is still running.")
     return
+
 
 def index_mongo(run_folder):
 
@@ -133,9 +134,9 @@ def export_csv_friends(mongoexport_executable_path,
 
 
 def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filename, processtime):
-    
+
     """ Do a full backup of the database into BSON format """
-    
+
     print(f"Backing up the database...")
     subprocess.call([mongodump_executable_path, "-o",
                      database_dump_path, "--host=127.0.0.1"],

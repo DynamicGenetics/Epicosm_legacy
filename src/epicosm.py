@@ -25,8 +25,13 @@ def args_setup():
       help="Repeat the harvest every 72 hours. This process will need to be put to the background to free your terminal prompt.")
     parser.add_argument("--refresh", action="store_true",
       help="If you have a new user_list, this will tell Epicosm to switch to this list.")
+    parser.add_argument("--start_db", action="store_true",
+      help="Start the MongoDB daemon in this folder, but don't run any Epicosm processes.")
     parser.add_argument("--stop", action="store_true",
-      help="Stop all Epicosm processes (useful if you have a repeating process running in the background).")
+      help="Stop all Epicosm processes.")
+    parser.add_argument("--shutdown_db", action="store_true",
+      help="Stop all Epicosm processes and shut down MongoDB.")
+
     args = parser.parse_args()
 
     return parser, args
@@ -38,22 +43,18 @@ def main():
     env = env_config.EnvironmentConfig()
 
     # print help message if no/wrong args provided
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(0)
 
-    #if "--stop" in sys.argv:
-    if args.stop:
-        print(f"OK just stopping things.")
-        # shut down mongodb
-        mongo_ops.stop_mongo(env.db_path)
-        try:
-            subprocess.call(["pkill", "-15",  "mongod"])
-            subprocess.call(["pkill", "-15", "-f", "epicosm"])
-            sys.exit(0)
-        except Exception as e:
-            print(f"There was an issue shutting Epicosm down...", e)
-            sys.exit(0)
+    if args.stop or args.shutdown_db:
+
+        if args.shutdown_db:
+            mongo_ops.stop_mongo(env.db_path)
+
+        print(f"OK, stopping Epicosm processes.")
+        subprocess.call(["pkill", "-15", "-f", "epicosm"])
+        sys.exit(0)
 
     # check running method
     epicosm_meta.native_or_compiled()
@@ -76,6 +77,9 @@ def main():
                           env.db_path,
                           env.db_log_filename,
                           env.epicosm_log_filename)
+    if args.start_db:
+        print(f"OK, MongoDB started, but no Epicosm processes.")
+        sys.exit(0)
 
     # modify status file
     epicosm_meta.status_up(env.status_file)

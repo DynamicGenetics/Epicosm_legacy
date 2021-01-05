@@ -1,46 +1,50 @@
 import sys
 import signal
+import argparse
 
 from modules import mongo_ops, epicosm_meta, twitter_ops, nlp_ops, env_config, mongodb_config
 
+def args_setup():
 
-valid_args = ["--vader", "--labmt", "--textblob", "--liwc", "--insert_groundtruth"]
+    parser = argparse.ArgumentParser(description="Epidemiology of Cohort Social Media - Natural Language Processing",
+                                     epilog="Example: python3 epicosm_nlp.py --vader --labmt")
+    parser.add_argument("--vader", action="store_true",
+      help="Harvest tweets from all users from a file called user_list (provided by you) with a single user per line.")
+    parser.add_argument("--labmt", action="store_true",
+      help="Create a database of the users that are being followed by the accounts in your user_list. (This process can be very slow, especially if your users are prolific followers.)")
+    parser.add_argument("--liwc", action="store_true",
+      help="Repeat the harvest every 72 hours. This process will need to be put to the background to free your terminal prompt.")
+    parser.add_argument("--textblob", action="store_true",
+      help="If you have a new user_list, this will tell Epicosm to switch to this list.")
+    parser.add_argument("--insert_groundtruth", action="store_true",
+      help="Start the MongoDB daemon in this folder, but don't run any Epicosm processes.")
+    parser.add_argument("--stop", action="store_true",
+      help="Stop all Epicosm processes.")
+    parser.add_argument("--shutdown_db", action="store_true",
+      help="Stop all Epicosm processes and shut down MongoDB.")
 
+    args = parser.parse_args()
 
-usage = ["Epicosm Natural Language Processing: usage (full details: dynamicgenetics.github.io/Epicosm/)\n\n" +
-         "Please provide flags:\n\n" +
-         "--insert_groundtruth  Provide a file of groundtruth values called\n" +
-         "                      'groundtruth.csv' and insert these into the local database.\n\n" +
-         "--liwc                Apply LIWC (Pennebaker et al 2015) analysis and append values\n" +
-         "                      to the local database. You must have a LIWC dictionary int the\n" +
-         "                      run folder, and provide this file's name as a flag.\n\n" +
-         "--labmt               Apply labMT (Dodds & Danforth 2011) analysis and append values\n" +
-         "                      to the local database.\n\n" +
-         "--vader               Apply VADER (Hutto & Gilbert 2014) analysis and append values\n" +
-         "                      to the local database.\n\n" +
-         "--textblob            Apply TextBlob (github: @sloria) analysis and append values\n" +
-         "                      to the local database.\n\n" +
-         "--extract_emoji       [in development]\n\n" +
-         "--groundtruth_delta   [in development]\n\n" +
-         "--time_of_day         [in development]\n\n" +
-         "Example of VADER analysis:\n" +
-         "./epicosm_nlp_linux --vader\n\n" +
-         "Example of LIWC analysis:\n" +
-         "./epicosm_nlp_linux --liwc LIWC.dic\n\n" +
-         "All sentiment analysis metrics are stored in the final field of each record,\n" +
-         "under the 'epicosm' block.\n\n"]
+    return parser, args
 
 
 def main():
 
-
-    # print help message if no/wrong args provided
-    if len(sys.argv) < 2 or not all(arg in valid_args for arg in sys.argv[1:]):
-        print(*usage)
-        sys.exit(0)
-
     # Set paths as instance of EnvironmentConfig
     env = env_config.EnvironmentConfig()
+
+    if len(sys.argv) < 2:
+            parser.print_help()
+            sys.exit(0)
+
+    if args.stop or args.shutdown_db:
+
+        if args.shutdown_db:
+            mongo_ops.stop_mongo(env.db_path)
+
+        print(f"OK, stopping Epicosm processes.")
+        subprocess.call(["pkill", "-15", "-f", "epicosm"])
+        sys.exit(0)
 
     # check running method
     epicosm_meta.native_or_compiled()
@@ -50,7 +54,7 @@ def main():
 
     # setup signal handler
     signal.signal(signal.SIGINT, epicosm_meta.signal_handler)
- 
+
     # start mongodb
     mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
@@ -63,33 +67,29 @@ def main():
         print(f"The database seems empty. Nothing to do.")
         mongo_ops.stop_mongo(env.db_path)
         sys.exit(0)
-    
-    if "--vader" in sys.argv:
+
+    if args.vader:
         nlp_ops.mongo_vader(mongodb_config.db, total_records)
-    
-    if "--labmt" in sys.argv:
+
+    if args.labmt:
         nlp_ops.mongo_labMT(mongodb_config.db, total_records)
-    
-    if "--textblob" in sys.argv:
+
+    if args.textblob:
         nlp_ops.mongo_textblob(mongodb_config.db, total_records)
 
-    if "--liwc" in sys.argv:
+    if args.liwc:
         nlp_ops.mongo_liwc(mongodb_config.db, total_records)
-    
-    # in development :)
-    #nlp_ops.mongo_nlp_example(mongodb_config.db, total_records)
-    #nlp_ops.mongo_insert_groundtruth(mongodb_config.db, total_records)
-    #nlp_ops.mongo_groundtruth_delta(mongodb_config.db, senti_method)
-    
+
     # backup database into BSON
     mongo_ops.backup_db(mongodump_executable_path,
                         env.database_dump_path,
                         env.epicosm_log_filename,
                         env.processtime)
-    # shut down mongodb
-    mongo_ops.stop_mongo(env.db_path)
 
 
 if __name__ == "__main__":
+
+    parser, args = args_setup()
+
     main()
 

@@ -9,12 +9,14 @@ import datetime
 import subprocess
 import signal
 import schedule
+#import daemon
 
 # from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
 
 
 def args_setup():
+
     parser = argparse.ArgumentParser(description="Epidemiology of Cohort Social Media",
                                      epilog="Example: python3 epicosm.py --harvest --repeat")
     parser.add_argument("--harvest", action="store_true",
@@ -78,7 +80,7 @@ def main():
                           env.db_log_filename,
                           env.epicosm_log_filename)
     if args.start_db:
-        print(f"OK, MongoDB started, but no Epicosm processes.")
+        print(f"OK, MongoDB started, but without Epicosm processes.")
         sys.exit(0)
 
     # modify status file
@@ -88,7 +90,8 @@ def main():
     mongo_ops.index_mongo(env.run_folder)
 
     # get persistent user ids from screen names
-    twitter_ops.lookup_users(env.run_folder, screen_names, credentials, auth, api, args)
+    if args.refresh or not os.path.exists(env.run_folder + "/user_list.ids"):
+        twitter_ops.lookup_users(env.run_folder, screen_names, credentials, auth, api, args)
 
     # get tweets for each user and archive in mongodb
     if args.harvest:

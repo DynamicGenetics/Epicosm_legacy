@@ -19,10 +19,6 @@ def args_setup():
       help="If you have a new user_list, this will tell Epicosm to switch to this list.")
     parser.add_argument("--insert_groundtruth", action="store_true",
       help="Start the MongoDB daemon in this folder, but don't run any Epicosm processes.")
-    parser.add_argument("--stop", action="store_true",
-      help="Stop all Epicosm processes.")
-    parser.add_argument("--shutdown_db", action="store_true",
-      help="Stop all Epicosm processes and shut down MongoDB.")
 
     args = parser.parse_args()
 
@@ -34,18 +30,19 @@ def main():
     # Set paths as instance of EnvironmentConfig
     env = env_config.EnvironmentConfig()
 
+#    print(env.db_path)
+    #if os.path.exists(os.path.join(os.getcwd(), "db"):
+    try:
+        subprocess.check_output(["pgrep", "mongod"])
+        print(f"MongoDB looks up.")
+    except subprocess.CalledProcessError:
+        print(f"MongoDB does not appear to be running here. You can start MongoDB with")
+        print(f"python3 epicosm.py --start_db")
+        sys.exit(0)
+
     if len(sys.argv) < 2:
             parser.print_help()
             sys.exit(0)
-
-    if args.stop or args.shutdown_db:
-
-        if args.shutdown_db:
-            mongo_ops.stop_mongo(env.db_path)
-
-        print(f"OK, stopping Epicosm processes.")
-        subprocess.call(["pkill", "-15", "-f", "epicosm"])
-        sys.exit(0)
 
     # check running method
     epicosm_meta.native_or_compiled()
@@ -66,7 +63,6 @@ def main():
     total_records = mongodb_config.collection.estimated_document_count()
     if total_records == 0:
         print(f"The database seems empty. Nothing to do.")
-        mongo_ops.stop_mongo(env.db_path)
         sys.exit(0)
 
     if args.vader:

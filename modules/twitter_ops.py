@@ -20,20 +20,21 @@ def get_credentials():
                             credentials[key.upper()] = val
                     except ValueError: # users might have forgotten to update the credentials template file
                         print("Your credentials.txt file doesn't look complete.")
-                        sys.exit(0)
+                        sys.exit(1)
     except FileNotFoundError:
         print("Your credentials.txt file doesn't seem to exist here.")
-        sys.exit(0)
+        sys.exit(2)
     # verify the given credentials
     auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"])
     auth.set_access_token(credentials["ACCESS_TOKEN"], credentials["ACCESS_TOKEN_SECRET"])
     api = tweepy.API(auth)
-    try:
-        api.verify_credentials()
-        print("Credentials verified by Twitter...")
-    except:
-        print("Your credentials were not verified - please check them and retry.")
-        sys.exit(0)
+    verify_reply = api.verify_credentials()
+    if verify_reply == False:
+        print("Your Twitter API credentials were rejected - please check them and retry.")
+        sys.exit(129)
+    else:
+        print("Credentials verified by Twitter API.")
+        
     return credentials, auth, api
 
 
@@ -63,6 +64,7 @@ def lookup_users(run_folder, screen_names, credentials, auth, api, args):
     # Count the number of screen names in the input file
     non_blank_count = 0
     with open(run_folder + "/user_list") as count_file:
+        print("3")
         for line in count_file:
             if line.strip():
                 non_blank_count += 1
@@ -84,6 +86,7 @@ def lookup_users(run_folder, screen_names, credentials, auth, api, args):
                 id_list.append(user.id) # get the id and put it in the id_list
 
             except tweepy.error.TweepError as e:
+                print("5", e)
                 not_found.append(user) # if not found, put user in not found list
 
     # Write user codes to file.

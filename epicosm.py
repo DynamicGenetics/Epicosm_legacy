@@ -9,7 +9,6 @@ import datetime
 import subprocess
 import signal
 import schedule
-#import daemon
 
 # from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
@@ -65,15 +64,6 @@ def main():
     (mongod_executable_path, mongoexport_executable_path,
     mongodump_executable_path, screen_names) = epicosm_meta.check_env()
 
-    # set up logging
-    epicosm_meta.logger_setup(env.epicosm_log_filename)
-
-    # setup signal handler
-    signal.signal(signal.SIGINT, epicosm_meta.signal_handler)
-
-    # verify credentials
-    credentials, auth, api = twitter_ops.get_credentials()
-
     # start mongodb
     mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
@@ -82,6 +72,15 @@ def main():
     if args.start_db:
         print(f"OK, MongoDB started, but without Epicosm processes.")
         sys.exit(0)
+
+    # verify credentials
+    credentials, auth, api = twitter_ops.get_credentials()
+
+    # set up logging
+    epicosm_meta.logger_setup(env.epicosm_log_filename)
+
+    # setup signal handler
+    signal.signal(signal.SIGINT, epicosm_meta.signal_handler)
 
     # modify status file
     epicosm_meta.status_up(env.status_file)

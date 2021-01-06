@@ -1,0 +1,15 @@
+urllib3
+requests
+alive_progress
+Jinja2
+liwc
+nltk
+numpy
+pandas
+psutil
+pymongo
+python_dateutil
+schedule
+textblob
+tweepy
+vaderSentiment

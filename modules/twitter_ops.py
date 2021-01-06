@@ -44,9 +44,6 @@ def lookup_users(run_folder, screen_names, credentials, auth, api, args):
     duplicate_users = []
     not_found = []
 
-    if not args.refresh and os.path.exists(run_folder + "/user_list.ids"):
-        return
-
     with open(run_folder + "/user_list") as file:
         lines = [x.strip() for x in file.readlines()]
         lines = [x for x in lines if x]

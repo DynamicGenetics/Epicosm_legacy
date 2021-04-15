@@ -3,6 +3,7 @@
 /credentials.py
 /user_list*
 /*~
+/venv
 db
 db_logs
 epicosm_logs

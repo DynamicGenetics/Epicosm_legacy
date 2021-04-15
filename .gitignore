@@ -1,7 +1,7 @@
-/STATUS
-/.frequency
-/credentials.py
-/user_list*
+STATUS
+.frequency
+credentials*
+user_list*
 /*~
 /venv
 db
@@ -9,3 +9,5 @@ db_logs
 epicosm_logs
 output
 __pycache__
+zzz
+.vscode

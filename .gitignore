@@ -11,3 +11,4 @@ output
 __pycache__
 zzz
 .vscode
+_config.yml

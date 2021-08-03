@@ -1,0 +1,9 @@
+BEARER_TOKEN
+
+# Please complete the line above with your API bearer token,
+# For details of how to obtain API credentials, see our guide
+# https://dynamicgenetics.github.io/Epicosm/
+# For an example, see the line below. (These are not functioning details.)
+
+# BEARER_TOKEN TRedt9JxtrTRRja32SssrhQpA
+

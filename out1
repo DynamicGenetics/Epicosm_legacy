@@ -1,0 +1,32 @@
+200
+{
+    "data": [
+        {
+            "created_at": "2013-12-14T04:35:55.000Z",
+            "description": "The voice of the #TwitterDev team and your official source for updates, news, and events, related to the #TwitterAPI.",
+            "id": "2244994945",
+            "location": "127.0.0.1",
+            "name": "Twitter Dev",
+            "public_metrics": {
+                "followers_count": 517768,
+                "following_count": 2025,
+                "listed_count": 1777,
+                "tweet_count": 3734
+            },
+            "username": "TwitterDev"
+        },
+        {
+            "created_at": "2007-05-23T06:01:13.000Z",
+            "description": "Tweets about changes and service issues. Follow @TwitterDev\u00a0for more.",
+            "id": "6253282",
+            "name": "Twitter API",
+            "public_metrics": {
+                "followers_count": 6023081,
+                "following_count": 38,
+                "listed_count": 12254,
+                "tweet_count": 3709
+            },
+            "username": "TwitterAPI"
+        }
+    ]
+}

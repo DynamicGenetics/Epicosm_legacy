@@ -1,7 +1,12 @@
-# -*- coding: utf-8 -*-
-
+import requests
+from requests.exceptions import *
 import os
 import sys
+import subprocess
+import time
+from retry import retry
+import json
+from alive_progress import alive_bar
 import glob
 import argparse
 import time
@@ -10,9 +15,13 @@ import subprocess
 import signal
 import schedule
 
-# from ./modules
+#~ from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
-
+import v2_twitter_ops
+#~ "bearer_token.py", see readme for details.
+#~ your bearer token will need to be in the local run folder
+import bearer_token
+bearer_token = bearer_token.token
 
 def args_setup():
 
@@ -32,6 +41,8 @@ def args_setup():
       help="Stop all Epicosm processes.")
     parser.add_argument("--shutdown_db", action="store_true",
       help="Stop all Epicosm processes and shut down MongoDB.")
+    parser.add_argument("--no_logging", action="store_true",
+      help="Print progress to terminal rather than log.")
 
     args = parser.parse_args()
 
@@ -62,7 +73,7 @@ def main():
 
     #~ check environment
     (mongod_executable_path, mongoexport_executable_path,
-    mongodump_executable_path, screen_names) = epicosm_meta.check_env()
+    mongodump_executable_path) = epicosm_meta.check_env()
 
     #~ start mongodb daemon
     mongo_ops.start_mongo(mongod_executable_path,
@@ -76,38 +87,45 @@ def main():
     #~ verify credentials
     credentials, auth, api = twitter_ops.get_credentials()
 
-    #~ set up logging
-    epicosm_meta.logger_setup(env.epicosm_log_filename)
+    #~ set up logging (or not)
+    if not args.no_logging:
+        epicosm_meta.logger_setup(env.epicosm_log_filename)
 
-    # setup signal handler
+    #~ setup signal handler
     signal.signal(signal.SIGINT, epicosm_meta.signal_handler)
 
-    # modify status file
+    #~ modify status file
     epicosm_meta.status_up(env.status_file)
 
-    # tidy up the database for better efficiency
+    #~ tidy up the database for better efficiency
     mongo_ops.index_mongo(env.run_folder)
 
-    # get persistent user ids from screen names
-    if args.refresh or not os.path.exists(env.run_folder + "/user_list.ids"):
-        twitter_ops.lookup_users(env.run_folder, screen_names, credentials, auth, api, args)
+    #~ get persistent user ids from screen names
+    # if args.refresh or not os.path.exists(env.run_folder + "/user_list.ids"):
+    if args.refresh or not os.path.exists(env.run_folder + "/user_details.json"):
+        v2_twitter_ops.user_lookup_v2()
+        # twitter_ops.lookup_users(env.run_folder, screen_names, credentials, auth, api, args)
 
-    # get tweets for each user and archive in mongodb
+    #~ get tweets for each user and archive in mongodb
     if args.harvest:
-        try:
-            twitter_ops.harvest(env.run_folder, credentials, auth, api,
-                                mongodb_config.client, mongodb_config.db, mongodb_config.collection)
-        except: # catching db down issues
-            print(f"Is the DB down? Trying to restart...")
-            mongo_ops.stop_mongo(env.db_path)
-            mongo_ops.start_mongo(mongod_executable_path,
-                                  env.db_path,
-                                  env.db_log_filename,
-                                  env.epicosm_log_filename)
-            twitter_ops.harvest(env.run_folder, credentials, auth, api,
-                                mongodb_config.client, mongodb_config.db, mongodb_config.collection)
+        newest_tweet = 1
+        # try:
+        v2_twitter_ops.timeline_harvest_v2(newest_tweet, mongodb_config.collection)
+            # twitter_ops.harvest(env.run_folder, credentials, auth, api,
+                                # mongodb_config.client, mongodb_config.db, mongodb_config.collection)
+        # except: # catching db down issues
+        #     print(f"Is the DB down? Trying to restart...")
+        #     mongo_ops.stop_mongo(env.db_path)
+        #     mongo_ops.start_mongo(mongod_executable_path,
+        #                           env.db_path,
+        #                           env.db_log_filename,
+        #                           env.epicosm_log_filename)
+        #     v2_twitter_ops.timeline_harvest_v2(newest_tweet, mongodb_config.collection)
 
-    # if user wants the friend list, make it
+            # twitter_ops.harvest(env.run_folder, credentials, auth, api,
+                                # mongodb_config.client, mongodb_config.db, mongodb_config.collection)
+
+    #~ if user wants the friend list, make it
     if args.get_friends:
         twitter_ops.get_friends(env.run_folder, credentials, auth,
                                 api, mongodb_config.friends_collection)
@@ -117,7 +135,7 @@ def main():
                                      env.csv_friends_filename,
                                      env.epicosm_log_filename)
 
-    # backup database into BSON
+    #~ backup database into BSON
     mongo_ops.backup_db(mongodump_executable_path,
                         env.database_dump_path,
                         env.epicosm_log_filename,

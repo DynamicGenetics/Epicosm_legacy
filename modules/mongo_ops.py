@@ -93,7 +93,7 @@ def index_mongo(run_folder):
     if not os.path.isfile(run_folder + "/db/WiredTiger"):
         return
     print(f"Indexing MongoDB...")
-    db.tweets.create_index([("id_str", pymongo.ASCENDING)],
+    db.tweets.create_index([("id", pymongo.ASCENDING)],
                            unique=True, dropDups=True)
 
 

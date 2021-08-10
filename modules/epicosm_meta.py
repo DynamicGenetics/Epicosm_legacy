@@ -53,11 +53,11 @@ def logger_setup(epicosm_log_filename):
     """ General logging of print statements"""
 
     class StreamToLogger(object):
-        
+
         """
         Write chatter to logfile.
         """
-        
+
         def __init__(self, logger, log_level=logging.INFO):
             self.logger = logger
             self.log_level = log_level
@@ -84,12 +84,12 @@ def logger_setup(epicosm_log_filename):
 
 
 def status_up(status_file):
-    
+
     """ Update STATUS file in run folder to notify when running.
-    
+
     Does a quick count of the current database,
     and rewrite the STATUS file to say that process is in progress."""
-    
+
     tweet_count = collection.count_documents({})
     with open(status_file, 'w+') as status:
         status.write(f"Epicosm is currently running.\nThis process started at {datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}\n")
@@ -100,7 +100,7 @@ def status_up(status_file):
 def status_down(status_file, run_folder):
 
     """ Update STATUS file in run folder to notify when idle, and next run.
-                     
+
     Does a quick count of the current database,
     and rewrite the STATUS file to say that process is in progress."""
 
@@ -151,17 +151,19 @@ def check_env():
         print("Your credentials.txt file doesn't seem to exist here.")
         sys.exit()
 
-    number_of_users_provided = sum(1 for line_exists in open(env.run_folder + '/user_list') if line_exists)
-    screen_names = list(dict.fromkeys(line.strip() for line in open(env.run_folder + '/user_list'))) # remove duplicates
-    screen_names = [name for name in screen_names if name] # remove empty lines
+    # number_of_users_provided = sum(1 for line_exists in open(env.run_folder + "/user_list") if line_exists)
+    # screen_names = list(dict.fromkeys(line.strip() for line in open(env.run_folder + "/user_list"))) # remove duplicates
+    # screen_names = [name for name in screen_names if name] # remove empty lines
 
     # Check or make directory structure
-    if not os.path.exists(env.run_folder + '/db'):
+    if not os.path.exists(env.run_folder + "/db"):
         print(f"Looks like your first run here: making folders.")
-        os.makedirs(env.run_folder + '/db')
-    if not os.path.exists(env.run_folder + '/db_logs'):
-        os.makedirs(env.run_folder + '/db_logs')
-    if not os.path.exists(env.run_folder + '/epicosm_logs'):
-        os.makedirs(env.run_folder + '/epicosm_logs')
+        os.makedirs(env.run_folder + "/db")
+    if not os.path.exists(env.run_folder + "/db_logs"):
+        os.makedirs(env.run_folder + "/db_logs")
+    if not os.path.exists(env.run_folder + "/epicosm_logs"):
+        os.makedirs(env.run_folder + "/epicosm_logs")
+    if not os.path.exists(env.run_folder + "/jsons"):
+        os.makedirs(env.run_folder + "/jsons")
 
-    return mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, screen_names
+    return mongod_executable_path, mongoexport_executable_path, mongodump_executable_path #screen_names

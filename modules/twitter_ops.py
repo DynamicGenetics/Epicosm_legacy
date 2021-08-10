@@ -103,14 +103,6 @@ def lookup_users(run_folder, screen_names, credentials, auth, api, args):
                 not_found_file.write("%s\n" % not_found_user)
 
 
-def lookup_user_ids_v2(bearer_token, screen_names):
-
-    screen_names = ("TwitterDev,Twitter")
-    user_lookup_endpoint = "https://api.twitter.com/2/users/by\?usernames\="
-    subprocess.call(["curl", user_lookup_endpoint + screen_names, "-H", f"Authorization: Bearer {bearer_token.token}"])
-
-
-
 def get_tweets(run_folder, twitter_id, empty_users, private_users,
                credentials, auth, api, client, db, collection):
 
@@ -158,9 +150,6 @@ def get_tweets(run_folder, twitter_id, empty_users, private_users,
             print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
 
     return alltweets
-
-
-def get_tweets_v2()
 
 
 def insert_to_mongodb(alltweets, collection):

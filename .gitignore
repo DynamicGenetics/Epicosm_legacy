@@ -4,6 +4,7 @@ credentials*
 user_list*
 /*~
 /venv
+/jsons
 db
 db_logs
 epicosm_logs

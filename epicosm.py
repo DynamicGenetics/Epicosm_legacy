@@ -40,10 +40,10 @@ def args_setup():
 
 def main():
 
-    # Set paths as instance of EnvironmentConfig
+    #~ Set paths as instance of EnvironmentConfig
     env = env_config.EnvironmentConfig()
 
-    # print help message if no/wrong args provided
+    #~ print help message if no/wrong args provided
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(0)
@@ -57,14 +57,14 @@ def main():
         subprocess.call(["pkill", "-15", "-f", "epicosm"])
         sys.exit(0)
 
-    # check running method
+    #~ check running method
     epicosm_meta.native_or_compiled()
 
-    # check environment
+    #~ check environment
     (mongod_executable_path, mongoexport_executable_path,
     mongodump_executable_path, screen_names) = epicosm_meta.check_env()
 
-    # start mongodb
+    #~ start mongodb daemon
     mongo_ops.start_mongo(mongod_executable_path,
                           env.db_path,
                           env.db_log_filename,
@@ -73,10 +73,10 @@ def main():
         print(f"OK, MongoDB started, but without Epicosm processes.")
         sys.exit(0)
 
-    # verify credentials
+    #~ verify credentials
     credentials, auth, api = twitter_ops.get_credentials()
 
-    # set up logging
+    #~ set up logging
     epicosm_meta.logger_setup(env.epicosm_log_filename)
 
     # setup signal handler

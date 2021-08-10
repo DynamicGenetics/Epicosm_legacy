@@ -13,3 +13,8 @@ zzz
 .vscode
 _config.yml
 .DS_Store
+bearer_token.py
+*.json
+*users*
+*out*
+user_details

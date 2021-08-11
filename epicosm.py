@@ -41,8 +41,8 @@ def args_setup():
       help="Stop all Epicosm processes.")
     parser.add_argument("--shutdown_db", action="store_true",
       help="Stop all Epicosm processes and shut down MongoDB.")
-    parser.add_argument("--no_logging", action="store_true",
-      help="Print progress to terminal rather than log.")
+    parser.add_argument("--log", action="store_true",
+      help="Create a logfile rather than printing progress to console.")
 
     args = parser.parse_args()
 
@@ -88,7 +88,7 @@ def main():
     credentials, auth, api = twitter_ops.get_credentials()
 
     #~ set up logging (or not)
-    if not args.no_logging:
+    if args.log:
         epicosm_meta.logger_setup(env.epicosm_log_filename)
 
     #~ setup signal handler

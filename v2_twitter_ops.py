@@ -20,7 +20,8 @@ bearer_token = bearer_token.token
 #! (eg, why was it getting 639 when it should be 640 on my own a/c?)
 #! also, check other lost tweets
 #! test oldest tweet, is it really going back to start?
-#! check mongodb for newest tweet, and only harvest from there.
+#! put v2_twitter_ops in the right place. remove redundancy.
+#! >>>>> check mongodb for newest tweet, and only harvest from there <<<<<
 
 
 def bearer_oauth(r):

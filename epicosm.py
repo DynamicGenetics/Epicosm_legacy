@@ -14,6 +14,7 @@ import datetime
 import subprocess
 import signal
 import schedule
+import pymongo
 
 #~ from ./modules
 from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
@@ -22,6 +23,7 @@ import v2_twitter_ops
 #~ your bearer token will need to be in the local run folder
 import bearer_token
 bearer_token = bearer_token.token
+
 
 def args_setup():
 
@@ -47,6 +49,11 @@ def args_setup():
     args = parser.parse_args()
 
     return parser, args
+
+
+client = pymongo.MongoClient("localhost", 27017)
+db = client.twitter_db
+collection = db.tweets
 
 
 def main():
@@ -108,9 +115,9 @@ def main():
 
     #~ get tweets for each user and archive in mongodb
     if args.harvest:
-        newest_tweet = 1
+        # latest_tweet = 1
         # try:
-        v2_twitter_ops.timeline_harvest_v2(newest_tweet, mongodb_config.collection)
+        v2_twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection)
             # twitter_ops.harvest(env.run_folder, credentials, auth, api,
                                 # mongodb_config.client, mongodb_config.db, mongodb_config.collection)
         # except: # catching db down issues
@@ -141,18 +148,18 @@ def main():
                         env.epicosm_log_filename,
                         env.processtime)
 
-    # rotate backups - if there are more than 3, remove the oldest one
+    #~ rotate backups - if there are more than 3, remove the oldest one
     current_backup_count = len([name for name in os.listdir(env.database_dump_path + "/twitter_db") if os.path.isfile(os.path.join(env.database_dump_path + "/twitter_db", name))])
-    # each backup is one bson and one json of metadata, so 6 = 3 backups.
+    #~ each backup is one bson and one json of metadata, so 6 = 3 backups.
     if current_backup_count > 6:
         print("Rotating backups.")
         bu_list = glob.glob(env.database_dump_path + "/twitter_db/tweets*")
         bu_list.sort()
-        # remove the oldest two, a bson and a json
+        #~ remove the oldest two, a bson and a json
         subprocess.call(["rm", bu_list[0]])
         subprocess.call(["rm", bu_list[1]])
 
-    # modify status file
+    #~ modify status file
     epicosm_meta.status_down(env.status_file, env.run_folder)
 
     print(f"Scheduled task finished at {datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.\n")

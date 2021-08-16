@@ -103,6 +103,8 @@ def lookup_users(run_folder, screen_names, credentials, auth, api, args):
                 not_found_file.write("%s\n" % not_found_user)
 
 
+
+
 def get_tweets(run_folder, twitter_id, empty_users, private_users,
                credentials, auth, api, client, db, collection):
 

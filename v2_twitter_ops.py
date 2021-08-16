@@ -19,10 +19,7 @@ bearer_token = bearer_token.token
 #! search to check all are going in
 #! (eg, why was it getting 639 when it should be 640 on my own a/c?)
 #! also, check other lost tweets
-#! test oldest tweet, is it really going back to start?
 #! put v2_twitter_ops in the right place. remove redundancy.
-#! >>>>> check mongodb for newest tweet, and only harvest from there <<<<<
-
 
 def bearer_oauth(r):
 
@@ -111,16 +108,17 @@ def user_lookup_v2():
             outfile.write(json.dumps(json_response, indent=4, sort_keys=True))
 
 
-def timeline_harvest_v2(oldest_tweet, collection):
+def timeline_harvest_v2(db, collection):
 
     """
     Queries the 2/tweets/search/all endpoint for tweets from a user.
     You will need access to the "all" endpoint to use this - ie have
-    an academic approved account.
+    an academic approved account. Be wary of the "id" variables and
+    fields here - they can get confusing.
 
     ARGS: none.
 
-    RETS: none. outputs a json file for each user.
+    RETS: none. Inserts new tweets to DB.
     """
 
     timeline_url = "https://api.twitter.com/2/tweets/search/all"
@@ -134,49 +132,60 @@ def timeline_harvest_v2(oldest_tweet, collection):
 
         #~ loop over each user ID
         for user in user_details["data"]:
-            id = user["id"]
 
-            timeline_params = {"query": f"(from:{id})",
-                            "tweet.fields": "attachments,author_id,created_at,public_metrics",
-                            "max_results": 500,
-                            "since_id": oldest_tweet}
+            twitter_id = user["id"]
+            print(f"Querying {twitter_id}...")
+
+            #~ check if we have this user, or get latest tweet id if we do.
+            print(twitter_id, "tweet count in DB =", collection.count_documents({"author_id": twitter_id}))
+            if collection.count_documents({"author_id": twitter_id}) == 0:
+                latest_tweet = 1 #~ go as far back in time as possible.
+            else:
+                latest_tweet = collection.find_one({"author_id": twitter_id},
+                                                   sort=[("id", pymongo.DESCENDING)])["id"]
+                print("Most recent tweet:", latest_tweet)
+
+            timeline_params = {
+                "query": f"(from:{twitter_id})",
+                "tweet.fields": "attachments,author_id,created_at,public_metrics",
+                "max_results": 500,
+                "since_id": latest_tweet}
 
             #~ send the request for the first 500 tweets
             try:
                 timeline_response = connect_to_endpoint(timeline_url, timeline_params)
+                if timeline_response["meta"]["result_count"] == 0:
+                    continue #~ there are no new tweets to harvest
                 if "errors" in timeline_response:
-                    print(f"Problem on {id} :", timeline_response["title"])
+                    print(f"Problem on {twitter_id} :", timeline_response["title"])
                     continue
             except RequestException:
-                print(f"Hmm, rate limited on {id} even after waiting. Moving on.")
+                print(f"Hmm, rate limited on {twitter_id} even after waiting. Moving on.")
+                continue
+            except Exception as e:
+                print(f"Something went wrong on {twitter_id}: {e}")
                 continue
 
-            with open("jsons/" + id + ".json", "w") as outfile:
+            #~ each subfield in "data" is a tweet.
+            for tweet in timeline_response["data"]:
+                try:
+                    collection.insert_one(tweet)
+                except pymongo.errors.DuplicateKeyError:
+                    pass #~ denies duplicates being added
 
-                outfile.write(json.dumps(timeline_response["data"], indent=4, sort_keys=True))
-                for tweet in timeline_response["data"]:
-                    try:
-                        collection.insert_one(tweet)
-                    except pymongo.errors.DuplicateKeyError:
-                         pass # denies duplicates being added
-
-                #~ repeat asking for 500 more until "next_token" doesn't exist.
-                while "next_token" in timeline_response["meta"]:
-
-                    timeline_params["next_token"] = timeline_response["meta"]["next_token"]
-
-                    try:
-                        timeline_response = connect_to_endpoint(timeline_url, timeline_params)
-                    except RequestException:
-                        print("Hmm, rate limited even after waiting. Moving on.")
-                        continue
-
-                    outfile.write(json.dumps(timeline_response["data"], indent=4, sort_keys=True))
+            #~ we get a "next_token" if there are > 500 tweets.
+            while "next_token" in timeline_response["meta"]:
+                timeline_params["next_token"] = timeline_response["meta"]["next_token"]
+                try:
+                    timeline_response = connect_to_endpoint(timeline_url, timeline_params)
                     for tweet in timeline_response["data"]:
                         try:
                             collection.insert_one(tweet)
                         except pymongo.errors.DuplicateKeyError:
-                            pass # denies duplicates being added
+                            pass #~ denies duplicates being added
+                except RequestException:
+                    print("Hmm, rate limited even after waiting. Moving on.")
+                    continue
 
-    print(f"OK, timelines harvested from {total_users} users.")
+    print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
 

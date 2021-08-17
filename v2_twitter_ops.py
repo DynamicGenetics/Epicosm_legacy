@@ -108,6 +108,36 @@ def user_lookup_v2():
             outfile.write(json.dumps(json_response, indent=4, sort_keys=True))
 
 
+def request_timeline(timeline_url, timeline_params, twitter_id):
+    try:
+        timeline_response = connect_to_endpoint(timeline_url, timeline_params)
+        if timeline_response["meta"]["result_count"] == 0:
+            print(f"No new tweets for {twitter_id}.")
+            return 1 #~ all "return 1"s are triggers to continue the harvest loop
+        if "errors" in timeline_response:
+            print(f"Problem on {twitter_id} :", timeline_response["title"])
+            return 1
+        #~ each subfield in "data" is a tweet.
+        if "data" not in timeline_response:
+            print(f"No data in response: {timeline_response}")
+            return 1
+        return timeline_response
+    except RequestException:
+        print(f"Hmm, rate limited on {twitter_id} even after waiting. Moving on.")
+        return 1
+    except Exception as e:
+        print(f"Something went wrong on {twitter_id}: {e}")
+        return 1
+
+
+def insert_timeline_to_mongodb(timeline_response, collection):
+    for tweet in timeline_response["data"]:
+        try:
+            collection.insert_one(tweet)
+        except pymongo.errors.DuplicateKeyError:
+            pass #~ denies duplicates being added
+
+
 def timeline_harvest_v2(db, collection):
 
     """
@@ -134,58 +164,49 @@ def timeline_harvest_v2(db, collection):
         for user in user_details["data"]:
 
             twitter_id = user["id"]
-            print(f"Querying {twitter_id}...")
 
             #~ check if we have this user, or get latest tweet id if we do.
-            print(twitter_id, "tweet count in DB =", collection.count_documents({"author_id": twitter_id}))
             if collection.count_documents({"author_id": twitter_id}) == 0:
                 latest_tweet = 1 #~ go as far back in time as possible.
             else:
-                latest_tweet = collection.find_one({"author_id": twitter_id},
-                                                   sort=[("id", pymongo.DESCENDING)])["id"]
-                print("Most recent tweet:", latest_tweet)
+                latest_tweet = collection.find_one(
+                    {"author_id": twitter_id},
+                    sort=[("id", pymongo.DESCENDING)])["id"]
 
+            print(f"Requesting {twitter_id} timeline...")
             timeline_params = {
                 "query": f"(from:{twitter_id})",
-                "tweet.fields": "attachments,author_id,created_at,public_metrics",
+                "tweet.fields": "id,author_id,created_at,text,public_metrics,attachments,geo",
                 "max_results": 500,
                 "since_id": latest_tweet}
 
-            #~ send the request for the first 500 tweets
-            try:
-                timeline_response = connect_to_endpoint(timeline_url, timeline_params)
-                if timeline_response["meta"]["result_count"] == 0:
-                    continue #~ there are no new tweets to harvest
-                if "errors" in timeline_response:
-                    print(f"Problem on {twitter_id} :", timeline_response["title"])
-                    continue
-            except RequestException:
-                print(f"Hmm, rate limited on {twitter_id} even after waiting. Moving on.")
-                continue
-            except Exception as e:
-                print(f"Something went wrong on {twitter_id}: {e}")
-                continue
+            #~ send the request for the first 500 tweets and insert to mongodb
 
-            #~ each subfield in "data" is a tweet.
-            for tweet in timeline_response["data"]:
-                try:
-                    collection.insert_one(tweet)
-                except pymongo.errors.DuplicateKeyError:
-                    pass #~ denies duplicates being added
+            timeline_response = request_timeline(timeline_url, timeline_params, twitter_id)
+            if timeline_response == 1:
+                continue
+            else:
+                insert_timeline_to_mongodb(timeline_response, collection)
 
             #~ we get a "next_token" if there are > 500 tweets.
-            while "next_token" in timeline_response["meta"]:
-                timeline_params["next_token"] = timeline_response["meta"]["next_token"]
-                try:
-                    timeline_response = connect_to_endpoint(timeline_url, timeline_params)
-                    for tweet in timeline_response["data"]:
-                        try:
-                            collection.insert_one(tweet)
-                        except pymongo.errors.DuplicateKeyError:
-                            pass #~ denies duplicates being added
-                except RequestException:
-                    print("Hmm, rate limited even after waiting. Moving on.")
-                    continue
+            loop = 1
+            try:
+                while "next_token" in timeline_response["meta"]:
+                    timeline_params["next_token"] = timeline_response["meta"]["next_token"]
+                    print(timeline_params)
+                    # try:
+                    timeline_response = request_timeline(timeline_url, timeline_params, twitter_id)
+                    print(timeline_response["meta"])
+                    if request_timeline(timeline_url, timeline_params, twitter_id) == 1:
+                        continue
+                    else:
+                        insert_timeline_to_mongodb(timeline_response, collection)
+                    print(loop)
+                    loop += 1
+            except TypeError:
+                pass #~ timeline_response return == 1, so all done.
+
+            print(twitter_id, "tweet NOW count in DB =", collection.count_documents({"author_id": twitter_id}))
 
     print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
 

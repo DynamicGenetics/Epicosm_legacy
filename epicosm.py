@@ -108,29 +108,12 @@ def main():
     mongo_ops.index_mongo(env.run_folder)
 
     #~ get persistent user ids from screen names
-    # if args.refresh or not os.path.exists(env.run_folder + "/user_list.ids"):
     if args.refresh or not os.path.exists(env.run_folder + "/user_details.json"):
         v2_twitter_ops.user_lookup_v2()
-        # twitter_ops.lookup_users(env.run_folder, screen_names, credentials, auth, api, args)
 
     #~ get tweets for each user and archive in mongodb
     if args.harvest:
-        # latest_tweet = 1
-        # try:
         v2_twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection)
-            # twitter_ops.harvest(env.run_folder, credentials, auth, api,
-                                # mongodb_config.client, mongodb_config.db, mongodb_config.collection)
-        # except: # catching db down issues
-        #     print(f"Is the DB down? Trying to restart...")
-        #     mongo_ops.stop_mongo(env.db_path)
-        #     mongo_ops.start_mongo(mongod_executable_path,
-        #                           env.db_path,
-        #                           env.db_log_filename,
-        #                           env.epicosm_log_filename)
-        #     v2_twitter_ops.timeline_harvest_v2(newest_tweet, mongodb_config.collection)
-
-            # twitter_ops.harvest(env.run_folder, credentials, auth, api,
-                                # mongodb_config.client, mongodb_config.db, mongodb_config.collection)
 
     #~ if user wants the friend list, make it
     if args.get_friends:

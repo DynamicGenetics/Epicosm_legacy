@@ -27,7 +27,7 @@ def bearer_oauth(r):
     return r
 
 
-@retry(RequestException, tries=6, delay=5, backoff=3)
+@retry(RequestException, tries=4, delay=1, backoff=4)
 def connect_to_endpoint(url, params):
 
     """
@@ -179,7 +179,11 @@ def insert_timeline_to_mongodb(timeline_response, collection):
 def timeline_harvest_v2(db, collection, timeline_url):
 
     """
-    This is the main running function for the harvester.
+    This is the main running function for the harvester,
+    using the Twitter v2 API and the api.twitter.com/2/tweets/search/all
+    endpoint - if you don't have an academic authorised bearer token,
+    this will not work. (Standard level access is to
+    api.twitter.com/2/tweets/search/recent)
 
     1.  Takes the user_details as a list of ids to loop through
     2.  Checks if the DB has this user, or what the newest harvested
@@ -226,31 +230,26 @@ def timeline_harvest_v2(db, collection, timeline_url):
                 "since_id": latest_tweet}
 
             #~ send the request for the first 500 tweets and insert to mongodb
-
             timeline_response = request_timeline(timeline_url, timeline_params, twitter_id)
             if timeline_response == 1:
+                print(twitter_id, "tweet count in DB:", collection.count_documents({"author_id": twitter_id}))
                 continue
             else:
                 insert_timeline_to_mongodb(timeline_response, collection)
 
             #~ we get a "next_token" if there are > 500 tweets.
-            loop = 1
             try:
                 while "next_token" in timeline_response["meta"]:
                     timeline_params["next_token"] = timeline_response["meta"]["next_token"]
-                    print(timeline_params)
                     timeline_response = request_timeline(timeline_url, timeline_params, twitter_id)
-                    print(timeline_response["meta"])
-                    if request_timeline(timeline_url, timeline_params, twitter_id) == 1:
+                    if timeline_response == 1:
                         continue
                     else:
                         insert_timeline_to_mongodb(timeline_response, collection)
-                    print(loop)
-                    loop += 1
             except TypeError:
-                pass #~ timeline_response return == 1, so all done.
+                pass #~ timeline_response returned "1", so all done.
 
-            print(twitter_id, "tweet NOW count in DB =", collection.count_documents({"author_id": twitter_id}))
+            print(twitter_id, "tweet count in DB:", collection.count_documents({"author_id": twitter_id}))
 
     print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
 

@@ -54,7 +54,7 @@ def args_setup():
 client = pymongo.MongoClient("localhost", 27017)
 db = client.twitter_db
 collection = db.tweets
-
+timeline_url = "https://api.twitter.com/2/tweets/search/all"
 
 def main():
 
@@ -113,7 +113,7 @@ def main():
 
     #~ get tweets for each user and archive in mongodb
     if args.harvest:
-        v2_twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection)
+        v2_twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection, timeline_url)
 
     #~ if user wants the friend list, make it
     if args.get_friends:

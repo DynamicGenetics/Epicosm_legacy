@@ -5,6 +5,7 @@ import sys
 import pymongo
 import subprocess
 import time
+import re
 from retry import retry
 import json
 from alive_progress import alive_bar
@@ -14,6 +15,8 @@ from alive_progress import alive_bar
 import bearer_token
 bearer_token = bearer_token.token
 
+#! TODO:    stress test user lookup - what does rate limiting look like there?
+#!          v2 get friends.
 
 def bearer_oauth(r):
 
@@ -33,7 +36,7 @@ def connect_to_endpoint(url, params):
     """
     Make connection to twitter endpoint
 
-    CALLS:  request.request()
+    CALLS:  requests.request()
 
     ARGS:   url: the full URL built by create_url, completed with
             params (usually the fields you want). If you are doing
@@ -65,11 +68,11 @@ def create_url(screen_names):
     """
 
     #~ format the incoming string as URL
-    usernames = "usernames={}".format(screen_names)
+    usernames = f"usernames={screen_names}"
     #~ specify the fields we would like returned
     user_fields = "user.fields=id,username,name,created_at,description,location,pinned_tweet_id,public_metrics"
     #~ stick it all together
-    url = "https://api.twitter.com/2/users/by?{}&{}".format(usernames, user_fields)
+    url = f"https://api.twitter.com/2/users/by?{usernames}&{user_fields}"
 
     return url
 
@@ -95,16 +98,24 @@ def user_lookup_v2():
 
     with open("user_list", "r") as infile:
         users = [x.strip() for x in infile.readlines()]
-        #~ erroneous names > 15 chars needs removing
-        users = [x for x in users if x if len(x) <= 15]
+        original_user_list = len(users)
+        #~ names > 15 chars are an error
+        users = [x for x in users if len(x) <= 15]
+        #~ names with non-standard chars are an error
+        users = [x for x in users if re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
+        clean_user_list = len(users)
+        invalid_users = original_user_list - clean_user_list
+        print(f"{invalid_users} usernames in user_list were invalid.")
 
     with open("user_details.json", "w") as outfile:
-        print(f"Looking up {len(users)} user details")
+        print(f"Looking up {len(users)} user details.")
         for chunk in list(chunks(users, 100)): # split list into manageable chunks of 100
             comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
             url = create_url(comma_separated_string)
             json_response = connect_to_endpoint(url, params="")
             outfile.write(json.dumps(json_response, indent=4, sort_keys=True))
+        not_found = len(json_response["errors"])
+        print(f"{not_found} users not found - see user_details.json.")
 
 
 def request_timeline(timeline_url, timeline_params, twitter_id):
@@ -121,8 +132,8 @@ def request_timeline(timeline_url, timeline_params, twitter_id):
             the ID number for the user.
 
     RETS:   hopefully, the timeline response as a JSON,
-            OR 1 if there was an issue. 1 is used as a trigger
-            for the continue in the loop
+            OR 1 if there was an issue. Return value 1 is
+            used as a trigger for the continue in the loop.
     """
 
     try:
@@ -210,6 +221,9 @@ def timeline_harvest_v2(db, collection, timeline_url):
         print(f"Harvesting from {total_users} users...")
 
         #~ loop over each user ID
+        #! TODO: if there have been errors while looking up
+        #! each chunk of users, there will by multiple "data" and "errors"
+        #! sections, so this breaks! extract just the users, not the errors.
         for user in user_details["data"]:
 
             twitter_id = user["id"]

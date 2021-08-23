@@ -12,7 +12,12 @@ from alive_progress import alive_bar
 
 #~ your bearer token will need to be in the local file
 #~ "bearer_token.py", see readme for details.
-import bearer_token
+try:
+    import bearer_token
+except ModuleNotFoundError as e:
+    print("Your bearer_token.py doesn't seem to be here.")
+    sys.exit(1)
+
 bearer_token = bearer_token.token
 
 #! TODO:    stress test user lookup - what does rate limiting look like there?
@@ -30,7 +35,7 @@ def bearer_oauth(r):
     return r
 
 
-@retry(RequestException, delay=5, backoff=5, max_delay=900)
+@retry(RequestException, delay=1, backoff=5, max_delay=900)
 def connect_to_endpoint(url, params):
 
     """
@@ -112,9 +117,8 @@ def user_lookup_v2():
         print(f"Looking up {len(users)} user details.")
         json_array = []
         json_errors = []
-        for chunk in list(chunks(users, 100)): # split list into manageable chunks of 100
-            print(len(json_array))
-            comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
+        for chunk in list(chunks(users, 100)): #~ split list into manageable chunks of 100
+            comma_separated_string = ",".join(chunk) #~ lookup takes a comma-separated list
             url = create_url(comma_separated_string)
             json_response = connect_to_endpoint(url, params="")
             for result in json_response["data"]: #~ I know this looks a little crazy

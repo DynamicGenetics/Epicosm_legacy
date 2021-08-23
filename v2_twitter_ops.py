@@ -30,7 +30,7 @@ def bearer_oauth(r):
     return r
 
 
-@retry(RequestException, tries=4, delay=1, backoff=4)
+@retry(RequestException, delay=5, backoff=5, max_delay=900)
 def connect_to_endpoint(url, params):
 
     """
@@ -105,17 +105,24 @@ def user_lookup_v2():
         users = [x for x in users if re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
         clean_user_list = len(users)
         invalid_users = original_user_list - clean_user_list
-        print(f"{invalid_users} usernames in user_list were invalid.")
+        if invalid_users > 0:
+            print(f"{invalid_users} usernames in user_list were invalid (too long or non-standard characters).")
 
-    with open("user_details.json", "w") as outfile:
+    with open("user_details.json", "w") as outfile, open("user_errors.json", "w") as errorfile:
         print(f"Looking up {len(users)} user details.")
+        json_array = []
+        json_errors = []
         for chunk in list(chunks(users, 100)): # split list into manageable chunks of 100
+            print(len(json_array))
             comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
             url = create_url(comma_separated_string)
             json_response = connect_to_endpoint(url, params="")
-            outfile.write(json.dumps(json_response, indent=4, sort_keys=True))
-        not_found = len(json_response["errors"])
-        print(f"{not_found} users not found - see user_details.json.")
+            for result in json_response["data"]: #~ I know this looks a little crazy
+                json_array.append(result)  #~ but I couldn't find another way to preserve
+            for no_result in json_response["errors"]: #~ sane json nesting :/
+                json_errors.append(no_result)
+        outfile.write(json.dumps(json_array, indent=4, sort_keys=True))
+        errorfile.write(json.dumps(json_errors, indent=4, sort_keys=True))
 
 
 def request_timeline(timeline_url, timeline_params, twitter_id):
@@ -156,7 +163,7 @@ def request_timeline(timeline_url, timeline_params, twitter_id):
         return timeline_response
 
     except RequestException:
-        print(f"Hmm, rate limited on {twitter_id} even after waiting. Moving on.")
+        print(f"Rate limited even after cooldown on {twitter_id}. Moving on...")
         return 1
 
     except Exception as e:
@@ -217,21 +224,18 @@ def timeline_harvest_v2(db, collection, timeline_url):
         #~ load in the json of users
         user_details = json.load(infile)
 
-        total_users = (len(user_details["data"]))
+        total_users = (len(user_details))
         print(f"Harvesting from {total_users} users...")
 
         #~ loop over each user ID
-        #! TODO: if there have been errors while looking up
-        #! each chunk of users, there will by multiple "data" and "errors"
-        #! sections, so this breaks! extract just the users, not the errors.
-        for user in user_details["data"]:
+        for user in user_details:
 
             twitter_id = user["id"]
 
-            #~ check if we have this user, or get latest tweet id if we do.
+            #~ check if we have this user in DB
             if collection.count_documents({"author_id": twitter_id}) == 0:
                 latest_tweet = 1 #~ go as far back in time as possible.
-            else:
+            else: #~ find latest tweet existing in collection
                 latest_tweet = collection.find_one(
                     {"author_id": twitter_id},
                     sort=[("id", pymongo.DESCENDING)])["id"]

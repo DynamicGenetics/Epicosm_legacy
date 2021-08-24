@@ -93,8 +93,8 @@ def index_mongo(run_folder):
     if not os.path.isfile(run_folder + "/db/WiredTiger"):
         return
     print(f"Indexing MongoDB...")
-    db.tweets.create_index([("id", pymongo.ASCENDING)],
-                           unique=True, dropDups=True)
+    db.tweets.create_index([("author_id", pymongo.ASCENDING)],
+                           unique=False, dropDups=False)
 
 
 def export_csv_tweets(mongoexport_executable_path,

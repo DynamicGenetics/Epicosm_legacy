@@ -101,17 +101,19 @@ def user_lookup_v2():
             connect_to_endpoint()
     """
 
-    with open("user_list", "r") as infile:
+    with open("user_list", "r") as infile: #~ clean up user_list
         users = [x.strip() for x in infile.readlines()]
-        original_user_list = len(users)
+        user_errors = [x for x in users if len(x) < 3]
+        #~ names < 3 chars are an error
+        users = [x for x in users if len(x) > 2]
         #~ names > 15 chars are an error
+        user_errors = user_errors + [x for x in users if len(x) > 15]
         users = [x for x in users if len(x) <= 15]
         #~ names with non-standard chars are an error
+        user_errors = user_errors + [x for x in users if not re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
         users = [x for x in users if re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
-        clean_user_list = len(users)
-        invalid_users = original_user_list - clean_user_list
-        if invalid_users > 0:
-            print(f"{invalid_users} usernames in user_list were invalid (too long or non-standard characters).")
+        if len(user_errors) > 0:
+            print(f"Some usernames in user_list were invalid: {user_errors}.")
 
     with open("user_details.json", "w") as outfile, open("user_errors.json", "w") as errorfile:
         print(f"Looking up {len(users)} user details.")
@@ -123,8 +125,9 @@ def user_lookup_v2():
             json_response = connect_to_endpoint(url, params="")
             for result in json_response["data"]: #~ I know this looks a little crazy
                 json_array.append(result)  #~ but I couldn't find another way to preserve
-            for no_result in json_response["errors"]: #~ sane json nesting :/
-                json_errors.append(no_result)
+            if "errors" in json_response:
+                for no_result in json_response["errors"]: #~ sane json nesting :/
+                    json_errors.append(no_result)
         outfile.write(json.dumps(json_array, indent=4, sort_keys=True))
         errorfile.write(json.dumps(json_errors, indent=4, sort_keys=True))
 

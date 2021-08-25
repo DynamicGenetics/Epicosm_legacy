@@ -1,230 +1,323 @@
-import datetime
+import requests
+from requests.exceptions import *
 import os
 import sys
-import subprocess
 import pymongo
-import tweepy
+import subprocess
 import time
+import re
+from retry import retry
+import json
+from alive_progress import alive_bar
+
+#~ your bearer token will need to be in the local file
+#~ "bearer_token.py", see readme for details.
+try:
+    import bearer_token
+except ModuleNotFoundError as e:
+    print("Your bearer_token.py doesn't seem to be here.")
+    sys.exit(1)
+
+bearer_token = bearer_token.token
 
 
-def get_credentials():
+def bearer_oauth(r):
 
-    credentials = {}
-    try:
-        with open("credentials.txt") as file:
-            for line in file:
-                line = line.strip()  # remove errant whitespace
-                if line and not line.startswith("#"): # take the non-commented lines
-                    try:
-                        key, val = line.split()
-                        if val:
-                            credentials[key.upper()] = val
-                    except ValueError: # users might have forgotten to update the credentials template file
-                        print("Your credentials.txt file doesn't look complete.")
-                        sys.exit(1)
-    except FileNotFoundError:
-        print("Your credentials.txt file doesn't seem to exist here.")
-        sys.exit(2)
-    # verify the given credentials
-    auth = tweepy.OAuthHandler(credentials["CONSUMER_KEY"], credentials["CONSUMER_SECRET"])
-    auth.set_access_token(credentials["ACCESS_TOKEN"], credentials["ACCESS_TOKEN_SECRET"])
-    api = tweepy.API(auth)
-    verify_reply = api.verify_credentials()
-    if verify_reply == False:
-        print("Your Twitter API credentials were rejected - please check them and retry.")
+    """
+    Set up Oauth object.
+    """
+
+    r.headers["Authorization"] = f"Bearer {bearer_token}"
+    r.headers["User-Agent"] = "v2FullArchiveSearchPython"
+
+    return r
+
+
+@retry(RequestException, delay=1, backoff=5, max_delay=900)
+def connect_to_endpoint(url, params):
+
+    """
+    Make connection to twitter endpoint
+
+    CALLS:  requests.request()
+
+    ARGS:   url: the full URL built by create_url, completed with
+            params (usually the fields you want). If you are doing
+            a user lookup, params aren't needed and can be left empty.
+
+    RETS:   response from the endpoint as json
+    """
+
+    response = requests.request("GET", url, auth=bearer_oauth, params=params)
+    if response.status_code == 429:
+        print(f"Rate limited, waiting for cooldown...")
+        raise RequestException
+    if response.status_code == 401:
+        print("Bearer token was not verified. Please check and retry.")
         sys.exit(129)
-    else:
-        print("Credentials verified by Twitter API.")
-
-    return credentials, auth, api
-
-
-def lookup_users(run_folder, screen_names, credentials, auth, api, args):
-
-    """convert twitter screen names into persistent id numbers"""
-
-    duplicate_users = []
-    not_found = []
-
-    with open(run_folder + "/user_list") as file:
-        lines = [x.strip() for x in file.readlines()]
-        lines = [x for x in lines if x]
-        for line in lines:
-            if lines.count(line) > 1:
-                duplicate_users.append(line)
-
-    # Write duplicate users to file.
-    if len(duplicate_users) > 0:
-        print(f"Info: {len(set(duplicate_users))} user names are duplicates (see user_list.duplicates)")
-        with open(run_folder + "/user_list.duplicates", 'w') as duplicate_file:
-            for duplicate in duplicate_users:
-                duplicate_file.write("%s\n" % duplicate)
-
-    print(f"Converting user screen names to persistent id numbers...")
-
-    # Count the number of screen names in the input file
-    non_blank_count = 0
-    with open(run_folder + "/user_list") as count_file:
-        print("3")
-        for line in count_file:
-            if line.strip():
-                non_blank_count += 1
-
-    # chunks splits the screen_name list into manageable blocks:
-    def chunks(l, n):
-        # For item i in a range that is a length of l,
-        for i in range(0, len(l), n):
-            # Create an index range for l of n items:
-            yield l[i:i+n]
-
-    # Query twitter with the comma separated list
-    id_list = []        # empty list for id to go into
-    for chunk in list(chunks(screen_names, 42)): # split list into manageable chunks of 42
-        comma_separated_string = ",".join(chunk) # lookup takes a comma-separated list
-        for user in chunk:
-            try:
-                user = api.get_user(screen_name = user)
-                id_list.append(user.id) # get the id and put it in the id_list
-
-            except tweepy.error.TweepError as e:
-                print("5", e)
-                not_found.append(user) # if not found, put user in not found list
-
-    # Write user codes to file.
-    with open(run_folder + "/user_list.ids", 'w') as id_file:
-        for id in id_list:
-            id_file.write("%s\n" % id)
-
-    # Write non-found users to file.
-    if len(not_found) > 0:
-        print(f"Info: {len(set(not_found))} users were not found (see user_list.not_found)")
-        with open(run_folder + "/user_list.not_found", 'w') as not_found_file:
-            for not_found_user in not_found:
-                not_found_file.write("%s\n" % not_found_user)
+    elif response.status_code != 200:
+        print("Didn't get a 200 response:", response.status_code)
+    return response.json()
 
 
+def create_url(screen_names):
+
+    """
+    Builds the URL for requesting the user details.
+    ARGS: a comma separated string of names, coming from user_list
+    RETS: the formatted complete URL as a query
+    """
+
+    #~ format the incoming string as URL
+    usernames = f"usernames={screen_names}"
+    #~ specify the fields we would like returned
+    user_fields = "user.fields=id,username,name,created_at,description,location,pinned_tweet_id,public_metrics"
+    #~ stick it all together
+    url = f"https://api.twitter.com/2/users/by?{usernames}&{user_fields}"
+
+    return url
 
 
-def get_tweets(run_folder, twitter_id, empty_users, private_users,
-               credentials, auth, api, client, db, collection):
+def chunks(l, n):
 
-    """acquire tweets from each user id number and store them in MongoDB"""
+    """split things into manageable blocks"""
 
-    # check if this user history has been acquired
-    if db.tweets.count_documents({"user.id": twitter_id}) > 0:
-        # we already have this user's timeline, just get recent tweets
-        try:
-            print(f"User {twitter_id} is in the database, normal acquisition cycle...")
-            alltweets = []
-            new_tweets = api.user_timeline(id=twitter_id, count=200,
-                                           tweet_mode='extended', exclude_replies=True,
-                                           wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-            alltweets.extend(new_tweets)
-        except tweepy.TweepError as e:
-            print(f"Not possible to acquire timeline of {twitter_id} : {e}")
-    else:
-        # this user isn't in database: get <3200 tweets if possible
-        try:
-            print(f"User {twitter_id} is new, deep acquisition cycle...")
-            alltweets = []
-            new_tweets = api.user_timeline(id=twitter_id, count=200,
-                                           tweet_mode="extended", exclude_replies=True,
-                                           wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-            alltweets.extend(new_tweets) # this gets the first 200 (maximum per request)
-
-            try:
-                oldest = alltweets[-1].id - 1 # this is now the oldest tweet
-                while len(new_tweets) > 0: # so we do it again, going back another 200 tweets
-                    new_tweets = api.user_timeline(id=twitter_id, count=200, max_id=oldest,
-                                                   tweet_mode="extended", exclude_replies=True,
-                                                   wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-                    alltweets.extend(new_tweets)
-                    oldest = alltweets[-1].id - 1 # this is now the oldest tweet
-
-            except IndexError: # Index error indicates an empty account.
-                print(f"Empty timeline for user {twitter_id} : skipping.")
-                empty_users.append(twitter_id)
-        except tweepy.TweepError as e:
-            print(f"Not possible to acquire timeline of {twitter_id} : {e}")
-        except tweepy.ConnectionResetError as e:
-            print(f"Connection was reset during tweet harvest on {twitter_id}: {e}")
-        except tweepy.RateLimitError as e: # Twitter telling us to chill out
-            print(f"Rate limit reached on {twitter_id}, waiting for cooldown...")
-
-    return alltweets
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
 
 
-def insert_to_mongodb(alltweets, collection):
+def user_lookup_v2():
 
-    # update the database with the acquired tweets for this user
-    for tweet in alltweets:
-            try:
-                try:
-                    collection.insert_one(tweet._json, {"$set": tweet._json})
-                except pymongo.errors.DuplicateKeyError:
-                    pass # denies duplicates being added
-            except IndexError:
-                print(f"User {twitter_id} has no tweets to insert.")
+    """
+    Takes a text file with one twitter username per line,
+    queries twitter with these as blocks of 100 (the maximum),
+    and write out a file of the user details as json.
 
+    CALLS:  create_url()
+            connect_to_endpoint()
+    """
 
-def get_friends(run_folder, credentials, auth, api, friend_collection):
+    with open("user_list", "r") as infile: #~ clean up user_list
+        users = [x.strip() for x in infile.readlines()]
+        user_errors = [x for x in users if len(x) < 3]
+        #~ names < 3 chars are an error
+        users = [x for x in users if len(x) > 2]
+        #~ names > 15 chars are an error
+        user_errors = user_errors + [x for x in users if len(x) > 15]
+        users = [x for x in users if len(x) <= 15]
+        #~ names with non-standard chars are an error
+        user_errors = user_errors + [x for x in users if not re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
+        users = [x for x in users if re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
+        if len(user_errors) > 0:
+            print(f"Some usernames in user_list were invalid: {user_errors}.")
 
-    """Get the friend list and put it in MongoDB"""
-
-    def ask_api_for_friend_list():
-        try:
-            for friend in tweepy.Cursor(api.friends_ids, id = twitter_id, count = 5000,
-                                        wait_on_rate_limit=True, wait_on_rate_limit_notify=True,
-                                        retry_count = 3, timeout = 30).pages():
-                friend_list.extend(friend)
-            print(f"Friends (following) list of {twitter_id} acquired.")
-        except tweepy.TweepError as e:
-            print(f"There was a problem gathering friends of {twitter_id}: {e}")
-
-
-    users_to_get_friends = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
-
-    print(f"Getting friend lists of users...")
-    for twitter_id in users_to_get_friends:
-        try_count = 0
-        friend_list = []
-        ask_api_for_friend_list()
-
-        # insert to MongoDB
-        try:
-            for friend in friend_list:     # insert those into a mongodb collection called "friends"
-                friend_collection.update_one({"user_id": twitter_id}, {"$addToSet": {"friends": [friend]}}, upsert=True)
-        except Exception as e:
-            print(f"Problem putting friend list into MongoDB: {e}")
+    with open("user_details.json", "w") as outfile, open("user_errors.json", "w") as errorfile:
+        print(f"Looking up {len(users)} user details.")
+        json_array = []
+        json_errors = []
+        for chunk in list(chunks(users, 100)): #~ split list into manageable chunks of 100
+            comma_separated_string = ",".join(chunk) #~ lookup takes a comma-separated list
+            url = create_url(comma_separated_string)
+            json_response = connect_to_endpoint(url, params="")
+            for result in json_response["data"]: #~ I know this looks a little crazy
+                json_array.append(result)  #~ but I couldn't find another way to preserve
+            if "errors" in json_response:
+                for no_result in json_response["errors"]: #~ sane json nesting :/
+                    json_errors.append(no_result)
+        outfile.write(json.dumps(json_array, indent=4, sort_keys=True))
+        errorfile.write(json.dumps(json_errors, indent=4, sort_keys=True))
 
 
-def harvest(run_folder, credentials, auth, api, client, db, collection):
+def request_api_response(twitter_id, timeline_url, timeline_params):
 
-    """Get tweet timelines and insert new tweets into MongoDB"""
+    """
+    OK so this function tries to catch lots of things so looks a bit crazy.
+    Using the timeline parameters built by the loop, gets the timeline of
+    a twitter id.
 
-    empty_users = []
-    private_users = []
-    users_to_follow = [int(line.rstrip("\n")) for line in open(run_folder + "/user_list.ids")]
-    now = datetime.datetime.now()
-    print(f"Starting tweet harvest at {now.strftime('%Y-%m-%d_%H:%M:%S')} ...")
-    try: ## iterate through this list of ids.
-        for twitter_id in users_to_follow:
-            alltweets = get_tweets(run_folder, twitter_id, empty_users, private_users,
-                                   credentials, auth, api, client, db, collection)
-            insert_to_mongodb(alltweets, collection)
+    CALLS:  connect_to_endpoint()
 
-        if len(empty_users) > 0: # if empty accounts, put into empty users file
-            print(f"Info: {len(empty_users)} users have empty accounts (see user_list.empty)")
-            with open(run_folder + "/user_list.empty", "w") as empty_user_file:
-                for empty_user in empty_users:
-                    empty_user_file.write("%s\n" % empty_user)    # write to empty user file
+    ARGS:   the built timeline_url for API endpoint,
+            timeline_parameters (what fields, how many, most recent),
+            the ID number for the user.
 
-        if len(private_users) > 0: # if private accounts found, put into private user file
-            print(f"Info: {len(private_users)} users have private accounts (see user_list.private)")
-            with open(run_folder + "/user_list.private", "w") as private_user_file:
-                for private_user in private_users:
-                    private_user_file.write("%s\n" % private_user)    # write to private user file
+    RETS:   hopefully, the timeline response as a JSON,
+            OR 1 if there was an issue. Return value 1 is
+            used as a trigger for the continue in the loop.
+    """
+
+    try:
+
+        timeline_response = connect_to_endpoint(timeline_url, timeline_params)
+
+        if timeline_response["meta"]["result_count"] == 0:
+            print(f"No new tweets for {twitter_id}.")
+            return 1 #~ all "return 1"s are triggers to continue the harvest loop
+
+        if "errors" in timeline_response:
+            print(f"Problem on {twitter_id} :", timeline_response["title"])
+            return 1
+
+        #~ each subfield in "data" is a tweet.
+        if "data" not in timeline_response:
+            print(f"No data in response: {timeline_response}")
+            return 1
+
+        return timeline_response
+
+    except RequestException:
+        print(f"Rate limited even after cooldown on {twitter_id}. Moving on...")
+        return 1
 
     except Exception as e:
-        print(f"Something went wrong during harvest: {e}")
+        print(f"Something went wrong on {twitter_id}: {e}")
+        return 1
 
+
+def following_list_harvest(collection):
+
+    """
+    Builds the URL for requesting the user's following list,
+    and sends it to the Twitter API v2.
+    ARGS: the user's twitter id number
+    """
+
+    with open("user_details.json", "r") as infile:
+        #~ load in the json of users
+        user_details = json.load(infile)
+
+        total_users = (len(user_details))
+        print(f"Harvesting following lists from {total_users} users...")
+
+        #~ loop over each user ID
+        for user in user_details:
+
+            params = {"max_results": 100}
+            twitter_id = user["id"]
+            url = f"https://api.twitter.com/2/users/{twitter_id}/following?"
+            print(f"Requesting {twitter_id} following list...")
+            following_list_response = request_api_response(twitter_id, url, params)
+            if following_list_response == 1:
+                print(twitter_id, "followings count in DB:", collection.count_documents({"author_id": twitter_id}))
+                continue
+            else:
+                # print(following_list_response)
+                insert_to_mongodb(following_list_response, collection)
+            #~ we get a "next_token" if there are > 1000 followings.
+            try:
+                while "next_token" in following_list_response["meta"]:
+                    params["pagination_token"] = following_list_response["meta"]["next_token"]
+                    following_list_response = request_api_response(twitter_id, url, params)
+                    if following_list_response == 1: #~ "1" means "next"
+                        continue
+                    else:
+                        insert_to_mongodb(timeline_response, collection)
+                        # print(following_list_response)
+            except TypeError:
+                pass #~ timeline_response returned "1", so all done.
+
+            print(twitter_id, "followings count in DB:", collection.count_documents({"author_id": twitter_id}))
+
+    print(f"The DB contains a total of {collection.count()} followings from {total_users} users.")
+
+
+
+def timeline_harvest_v2(db, collection, timeline_url):
+
+    """
+    This is the main running function for the harvester,
+    using the Twitter v2 API and the api.twitter.com/2/tweets/search/all
+    endpoint - if you don't have an academic authorised bearer token,
+    this will not work. (Standard level access is to
+    api.twitter.com/2/tweets/search/recent)
+
+    1.  Takes the user_details as a list of ids to loop through
+    2.  Checks if the DB has this user, or what the newest harvested
+        tweet ID is.
+    3.  Harvests from the newest tweet, or as old as possible if new.
+    4.  Inserts the response from the API to the DB, in batches of 500.
+
+    CALLS:  request_api_response()
+            insert_to_mongodb()
+            json.load()
+            collection.count_documents()
+            collection.find_one()
+
+    ARGS:   db name (set in epicosm.py, just as local defaults)
+            collection name (set in epicosm.py)
+            timeline_url (this is the base URL that gets appended to)
+    """
+
+    with open("user_details.json", "r") as infile:
+        #~ load in the json of users
+        user_details = json.load(infile)
+
+        total_users = (len(user_details))
+        print(f"Harvesting timelines from {total_users} users...")
+
+        #~ loop over each user ID
+        for user in user_details:
+
+            twitter_id = user["id"]
+
+            #~ check if we have this user in DB
+            if collection.count_documents({"author_id": twitter_id}) == 0:
+                latest_tweet = 1 #~ go as far back in time as possible.
+            else: #~ find latest tweet existing in collection
+                latest_tweet = collection.find_one(
+                    {"author_id": twitter_id},
+                    sort=[("id", pymongo.DESCENDING)])["id"]
+
+            print(f"Requesting {twitter_id} timeline...")
+            timeline_params = {
+                "query": f"(from:{twitter_id})",
+                "tweet.fields": "id,author_id,created_at,text,public_metrics,attachments,geo",
+                "max_results": 500,
+                "since_id": latest_tweet}
+
+            #~ send the request for the first 500 tweets and insert to mongodb
+            timeline_response = request_api_response(twitter_id, timeline_url, timeline_params)
+            if timeline_response == 1:
+                print(twitter_id, "tweet count in DB:", collection.count_documents({"author_id": twitter_id}))
+                continue
+            else:
+                insert_to_mongodb(timeline_response, collection)
+
+            #~ we get a "next_token" if there are > 500 tweets.
+            try:
+                while "next_token" in timeline_response["meta"]:
+                    timeline_params["next_token"] = timeline_response["meta"]["next_token"]
+                    timeline_response = request_api_response(twitter_id, timeline_url, timeline_params)
+                    if timeline_response == 1: #~ "1" means "next"
+                        continue
+                    else:
+                        insert_to_mongodb(timeline_response, collection)
+            except TypeError:
+                pass #~ timeline_response returned "1", so all done.
+
+            print(twitter_id, "tweet count in DB:", collection.count_documents({"author_id": twitter_id}))
+
+    print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
+
+
+def insert_to_mongodb(timeline_response, collection):
+
+    """
+    Puts tweets into the MongoDB database collection. I'm not sure if I am doing
+    this right, as "insert_one" loop seems silly? But I can't get "insert many"
+    to work.
+
+    CALLS:  collection.insert_one()
+
+    ARGS:   Stuff that the API sent back after query,
+            the name of the collection.
+
+    RETS:   Nothing, puts things into DB.
+    """
+
+    for tweet in timeline_response["data"]:
+
+        try:
+            collection.insert_one(tweet)
+        except pymongo.errors.DuplicateKeyError:
+            pass #~ denies duplicates being added

@@ -15,7 +15,7 @@ db = client.twitter_db
 collection = db.tweets
 
 
-# Catch ctrl-c signals (and kill -15 signals)
+#~ Catch ctrl-c signals (and kill -15 signals)
 def signal_handler(sig, frame):
 
     """Handle interrupt signals, eg ctrl-c (and other kill signals).
@@ -29,7 +29,7 @@ def signal_handler(sig, frame):
     sys.exit()
 
 
-# Check if this is being run as native or compiled python
+#~ Check if this is being run as native or compiled python
 def native_or_compiled():
 
     run_method = "native python"
@@ -40,7 +40,7 @@ def native_or_compiled():
         bundle_dir = sys._MEIPASS
 
     else:
-        # we are running native python
+        #~ we are running native python
         bundle_dir = os.path.dirname(os.path.abspath(__file__))
 
     print("Epicosm launching as", run_method)
@@ -111,7 +111,7 @@ def status_down(status_file, run_folder):
 
 
 def check_env():
-    # check if MongoDB is present and correct
+    #~ check if MongoDB is present and correct
     try:
         mongod_executable_path = subprocess.check_output(['which', 'mongod']).decode('utf-8').strip()
     except:
@@ -128,34 +128,12 @@ def check_env():
         print(f"Mongodump seems missing... stopping.")
         sys.exit()
 
-    # Check user list exists and get it
+    #~ Check user list exists and get it
     if not os.path.exists(env.run_folder + '/user_list'):
         print(f"USAGE: please provide a list of users to follow, named 'user_list'. Stopping.")
         sys.exit()
 
-    # Check credentials is present and correct
-    credentials = {}
-    try:
-        with open("credentials.txt") as file:
-            for line in file:
-                line = line.strip()  # remove errant whitespace
-                if line and not line.startswith("#"): # take the non-commented lines
-                    try:
-                        key, val = line.split()
-                        if val:
-                            credentials[key.upper()] = val
-                    except ValueError: # users might have forgotten to update the credentials template file
-                        print("Your credentials.txt file doesn't look complete.")
-                        sys.exit()
-    except FileNotFoundError:
-        print("Your credentials.txt file doesn't seem to exist here.")
-        sys.exit()
-
-    # number_of_users_provided = sum(1 for line_exists in open(env.run_folder + "/user_list") if line_exists)
-    # screen_names = list(dict.fromkeys(line.strip() for line in open(env.run_folder + "/user_list"))) # remove duplicates
-    # screen_names = [name for name in screen_names if name] # remove empty lines
-
-    # Check or make directory structure
+    #~ Check or make directory structure
     if not os.path.exists(env.run_folder + "/db"):
         print(f"Looks like your first run here: making folders.")
         os.makedirs(env.run_folder + "/db")
@@ -166,4 +144,4 @@ def check_env():
     if not os.path.exists(env.run_folder + "/jsons"):
         os.makedirs(env.run_folder + "/jsons")
 
-    return mongod_executable_path, mongoexport_executable_path, mongodump_executable_path #screen_names
+    return mongod_executable_path, mongoexport_executable_path, mongodump_executable_path

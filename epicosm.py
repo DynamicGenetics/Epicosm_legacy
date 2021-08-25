@@ -17,8 +17,13 @@ import schedule
 import pymongo
 
 #~ from ./modules
-from modules import mongo_ops, epicosm_meta, twitter_ops, env_config, mongodb_config
-import v2_twitter_ops
+from modules import (
+    mongo_ops,
+    epicosm_meta,
+    twitter_ops,
+    env_config,
+    mongodb_config)
+
 #~ "bearer_token.py", see readme for details.
 #~ your bearer token will need to be in the local run folder
 import bearer_token
@@ -31,7 +36,7 @@ def args_setup():
                                      epilog="Example: python3 epicosm.py --harvest --repeat")
     parser.add_argument("--harvest", action="store_true",
       help="Harvest tweets from all users from a file called user_list (provided by you) with a single user per line.")
-    parser.add_argument("--get_friends", action="store_true",
+    parser.add_argument("--get_following", action="store_true",
       help="Create a database of the users that are being followed by the accounts in your user_list. (This process can be very slow, especially if your users are prolific followers.)")
     parser.add_argument("--repeat", action="store_true",
       help="Repeat the harvest every 72 hours. This process will need to be put to the background to free your terminal prompt.")
@@ -91,9 +96,6 @@ def main():
         print(f"OK, MongoDB started, but without Epicosm processes.")
         sys.exit(0)
 
-    #~ verify credentials
-    credentials, auth, api = twitter_ops.get_credentials()
-
     #~ set up logging (or not)
     if args.log:
         epicosm_meta.logger_setup(env.epicosm_log_filename)
@@ -109,21 +111,23 @@ def main():
 
     #~ get persistent user ids from screen names
     if args.refresh or not os.path.exists(env.run_folder + "/user_details.json"):
-        v2_twitter_ops.user_lookup_v2()
+        twitter_ops.user_lookup_v2()
 
     #~ get tweets for each user and archive in mongodb
     if args.harvest:
-        v2_twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection, timeline_url)
+        twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection, timeline_url)
 
-    #~ if user wants the friend list, make it
-    if args.get_friends:
-        twitter_ops.get_friends(env.run_folder, credentials, auth,
-                                api, mongodb_config.friends_collection)
-        sys.argv.remove("--get_friends") # we only want to do this once
-        # create CSV file of users' friends list.
-        mongo_ops.export_csv_friends(mongoexport_executable_path,
-                                     env.csv_friends_filename,
-                                     env.epicosm_log_filename)
+    #~ if user wants the following list, make it
+    if args.get_following:
+        twitter_ops.following_list_harvest(mongodb_config.following_collection)
+
+            # env.run_folder, credentials, auth,
+            #                     api, mongodb_config.friends_collection)
+        sys.argv.remove("--get_following") #~ we only want to do this once
+        #~ create CSV file of users' friends list.
+        # mongo_ops.export_csv_friends(mongoexport_executable_path,
+        #                              env.csv_friends_filename,
+        #                              env.epicosm_log_filename)
 
     #~ backup database into BSON
     mongo_ops.backup_db(mongodump_executable_path,

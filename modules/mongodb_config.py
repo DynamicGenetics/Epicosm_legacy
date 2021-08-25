@@ -3,7 +3,7 @@ import pymongo
 client = pymongo.MongoClient("localhost", 27017)
 db = client.twitter_db
 collection = db.tweets
-friends_collection = db.friends
+following_collection = db.following
 
 #db_name = "twitter_db"
 #collection_name = "tweets"

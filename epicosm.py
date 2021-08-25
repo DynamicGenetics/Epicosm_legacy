@@ -119,7 +119,7 @@ def main():
 
     #~ if user wants the following list, make it
     if args.get_following:
-        twitter_ops.following_list_harvest(mongodb_config.following_collection)
+        twitter_ops.following_list_harvest(mongodb_config.db, mongodb_config.following_collection)
 
             # env.run_folder, credentials, auth,
             #                     api, mongodb_config.friends_collection)

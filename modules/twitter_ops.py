@@ -254,6 +254,12 @@ def timeline_harvest_v2(db, collection, timeline_url):
     print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
 
 
+#! HERE 26aug. need to decide if there is a separate collection for each user
+#! need to consider how that would be expanded - potentially, a harvest for each of the
+#! users in the following list. that would presumably require a whole collection
+#! dedicated to each harvest.
+#! or should we be stepping back and even have a collection for each user prior to get_following?
+#! TODO: get nlp working
 def following_list_harvest(db, collection):
 
     """
@@ -270,9 +276,7 @@ def following_list_harvest(db, collection):
         total_users = (len(user_details))
         print(f"Harvesting following lists from {total_users} users...")
 
-        db.collection.create_index([(
-            "id", pymongo.ASCENDING)],
-            unique=False, dropDups=False)
+        collection.create_index([("id", pymongo.ASCENDING)], unique=True, dropDups=True)
 
         #~ loop over each user ID
         for user in user_details:
@@ -283,7 +287,8 @@ def following_list_harvest(db, collection):
             print(f"Requesting {twitter_id} following list...")
             api_response = request_api_response(twitter_id, url, params)
             if api_response == 1:
-                print(twitter_id, "followings count in DB:", collection.count_documents())
+                total_followings = collection.count()
+                print(twitter_id, "followings count in DB:", total_followings)
                 continue
             else:
                 print(api_response)

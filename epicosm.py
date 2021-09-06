@@ -120,14 +120,7 @@ def main():
     #~ if user wants the following list, make it
     if args.get_following:
         twitter_ops.following_list_harvest(mongodb_config.db, mongodb_config.following_collection)
-
-            # env.run_folder, credentials, auth,
-            #                     api, mongodb_config.friends_collection)
         sys.argv.remove("--get_following") #~ we only want to do this once
-        #~ create CSV file of users' friends list.
-        # mongo_ops.export_csv_friends(mongoexport_executable_path,
-        #                              env.csv_friends_filename,
-        #                              env.epicosm_log_filename)
 
     #~ backup database into BSON
     mongo_ops.backup_db(mongodump_executable_path,

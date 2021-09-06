@@ -18,15 +18,14 @@ collection = db.tweets
 #~ Catch ctrl-c signals (and kill -15 signals)
 def signal_handler(sig, frame):
 
-    """Handle interrupt signals, eg ctrl-c (and other kill signals).
-
-    Exiting more abruptly can leave MongoDB running, which can cause issues,
-    so Mongo is asked to stop
     """
+    Handle interrupt signals, eg ctrl-c (and other kill signals).
+    """
+
     status_file = env.status_file
-    print(f"Just a second while I try to exit gracefully...")
-    mongo_ops.stop_mongo(env.db_path)
-    sys.exit()
+    print(f"OK, stopping.")
+    print(f"If you would like to shutdown the DB too, add the flag --shutdown")
+    sys.exit(1)
 
 
 #~ Check if this is being run as native or compiled python
@@ -35,7 +34,7 @@ def native_or_compiled():
     run_method = "native python"
 
     if getattr(sys, "frozen", False):
-        # we are running in a bundle
+        #~ we are running in a bundle
         run_method = "compiled python"
         bundle_dir = sys._MEIPASS
 

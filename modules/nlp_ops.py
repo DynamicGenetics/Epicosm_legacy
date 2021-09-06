@@ -17,6 +17,7 @@ from modules import (mongo_ops,
                     vader_sentiment,
                     labmt)
 
+
 def tweet_or_retweet(db_document_dict):
 
     """
@@ -55,18 +56,18 @@ def mongo_insert_groundtruth(db, total_records):
 
     print(f"Inserting groundtruth values...")
 
-    # Turn csv into named tuple, for dot notation in pymongo ops
+    #~ Turn csv into named tuple, for dot notation in pymongo ops
     with open("groundtruth.csv") as incoming_csv:
 
         reader = csv.reader(incoming_csv)
         Data = namedtuple("Data", next(reader))
         groundtruth_in = [Data(*r) for r in reader]
 
-    # Count users in db and groundtruth for crosschecking
+    #~ Count users in db and groundtruth for crosschecking
     total_users_in_db = mongodb_config.collection.distinct("user.id_str")
     users_with_groundtruth_provided = []
 
-    # Create or update field (epicosm.groundtruth.gt_stat_1) with values
+    #~ Create or update field (epicosm.groundtruth.gt_stat_1) with values
     for index, user in enumerate(groundtruth_in):
 
         mongodb_config.collection.update_many({"user.id_str": user.user},
@@ -77,11 +78,11 @@ def mongo_insert_groundtruth(db, total_records):
 
     print(f"OK - Groundtruth appended to {index + 1} users' records.")
 
-    # Cross-checking of groundtruth against users in DB.
+    #~ Cross-checking of groundtruth against users in DB.
     existing_users_but_no_groundtruth = list(set(total_users_in_db) - set(users_with_groundtruth_provided))
     existing_groundtruths_but_no_user = list(set(users_with_groundtruth_provided) - set(total_users_in_db))
 
-    # make some log files if there are discrepancies
+    #~ make some log files if there are discrepancies
     if len(existing_groundtruths_but_no_user) > 0:
 
         print("Groundtruth was provided for", len(existing_groundtruths_but_no_user), "users not appearing in the DB.",
@@ -111,14 +112,14 @@ def mongo_vader(db, total_records):
 
     print(f"Vader sentiment, analysing...")
 
-    # initialise analyser
+    #~ initialise analyser
     analyser = vader_sentiment.SentimentIntensityAnalyzer()
 
-    # analyse and insert each vader score for each tweet text
+    #~ analyse and insert each vader score for each tweet text
     with alive_bar(total_records, spinner="dots_recur") as bar:
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            # decide if it is a tweet or retweet and assign relevant field
+            #~ decide if it is a tweet or retweet and assign relevant field
             full_text_field = eval(tweet_or_retweet(db_document_dict))
 
             vader_negative = analyser.polarity_scores(full_text_field)["neg"]
@@ -152,19 +153,19 @@ def mongo_labMT(db, total_records):
 
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            # decide if it is a tweet or retweet and assign relevant field
+            #~ decide if it is a tweet or retweet and assign relevant field
             full_text_field = eval(tweet_or_retweet(db_document_dict))
 
-            # compute valence score and return frequency vector for generating wordshift
+            #~ compute valence score and return frequency vector for generating wordshift
             valence, frequency_vector = labmt.emotion(full_text_field, labMT, shift=True, happsList=labMTvector)
 
-            # assign a stop vector
+            #~ assign a stop vector
             stop_vector = labmt.stopper(frequency_vector, labMTvector, labMTwordList, stopVal=1.0)
 
-            # get the emotional valence
+            #~ get the emotional valence
             output_valence = labmt.emotionV(stop_vector, labMTvector)
 
-            # insert score into DB
+            #~ insert score into DB
             mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]}, {"$set": {
                                   "epicosm.labMT.emotion_valence": float(format(output_valence, '.4f'))}})
 
@@ -179,10 +180,10 @@ def mongo_textblob(db, total_records):
 
     with alive_bar(total_records, spinner="dots_recur") as bar:
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
-            # decide if it is a tweet or retweet and assign relevant field
+            #~ decide if it is a tweet or retweet and assign relevant field
             full_text_field = eval(tweet_or_retweet(db_document_dict))
 
-            # we want textblob to ignore sentences and take tweets as a whole
+            #~ we want textblob to ignore sentences and take tweets as a whole
             text_clean = full_text_field.replace(".", " ")
 
             blob = TextBlob(text_clean)
@@ -208,12 +209,12 @@ def mongo_liwc(db, total_records):
 
     Appends fields epicosm.liwc.[category]
     """
-    # Look for an LIWC dictionary
+    #~ Look for an LIWC dictionary
     if os.path.isfile('./LIWC.dic'):
         dictionary = "LIWC.dic"
     else:
         print(f"Please have your dictionary here, named LIWC.dic")
-        return  # abort LIWC if not dictionary
+        return #~ abort LIWC if not dictionary
 
     def tokenize(text):
 
@@ -231,14 +232,14 @@ def mongo_liwc(db, total_records):
 
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            # decide if it is a tweet or retweet and assign relevant field
+            #~ decide if it is a tweet or retweet and assign relevant field
             full_text_field = eval(tweet_or_retweet(db_document_dict))
 
             word_count = len(re.findall(r'\w+', full_text_field))
             text_tokens = tokenize(full_text_field)
             text_counts = Counter(category for token in text_tokens for category in parse(token))
 
-            for count_category in text_counts:  # insert the LIWC values as proportion of word_count
+            for count_category in text_counts:  #~ insert the LIWC values as proportion of word_count
 
                 mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]},
                                                {"$set":
@@ -279,7 +280,7 @@ def mongo_nlp_example(db, total_records):
 
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            # decide if it is a tweet or retweet and use correct field
+            #~ decide if it is a tweet or retweet and use correct field
             full_text_field = eval(tweet_or_retweet(db_document_dict))
 
             count = Counter(full_text_field)

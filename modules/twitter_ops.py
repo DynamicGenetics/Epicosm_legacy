@@ -258,14 +258,14 @@ def timeline_harvest_v2(db, collection, timeline_url):
     print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
 
 
-#! TODO: get nlp working
 def following_list_harvest(db, collection):
 
     """
     Builds the URL for requesting the user's following list,
     and sends it to the Twitter API v2.
 
-    ARGS: the name of the following collection, taken from env
+    ARGS: the name of the following collection, taken from env,
+          DB name
     """
 
     with open("user_details.json", "r") as infile:
@@ -293,14 +293,12 @@ def following_list_harvest(db, collection):
 
             #~ request first 1000 followings
             if api_response == 1: #~ finished user, moving to next one
-                # total_followings = following.count()
                 print(twitter_id, "followings count in DB:", following.count())
                 continue
             else:
                 #~ assign new field with who we are harvesting to each following
                 for following_item in api_response["data"]:
                     following_item["follower_id"] = twitter_id
-                print(api_response)
                 insert_to_mongodb(api_response, collection)
 
             #~ we get a "next_token" if there are > 1000 followings.

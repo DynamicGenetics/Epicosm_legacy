@@ -1,17 +1,20 @@
-import requests
-from requests.exceptions import *
+
+#~ Standard library imports
 import os
 import sys
-import pymongo
-import subprocess
 import time
 import re
-from retry import retry
 import json
+import subprocess
+
+#~ 3rd party imports
+import pymongo
+import requests
+from requests.exceptions import *
+from retry import retry
 from alive_progress import alive_bar
 
-#~ your bearer token will need to be in the local file
-#~ "bearer_token.py", see readme for details.
+#~ Local application imports
 try:
     import bearer_token
 except ModuleNotFoundError as e:
@@ -99,9 +102,10 @@ def user_lookup_v2():
     """
 
     with open("user_list", "r") as infile: #~ clean up user_list
-        users = [x.strip() for x in infile.readlines()]
-        user_errors = [x for x in users if len(x) < 3]
+        users = [x.strip() for x in infile.readlines()]  #~ whitespace strip
+        users = [(re.sub(r"^@", r"", x)) for x in users] #~ clean "@s" on twitter handles
         #~ names < 3 chars are an error
+        user_errors = [x for x in users if len(x) < 3]
         users = [x for x in users if len(x) > 2]
         #~ names > 15 chars are an error
         user_errors = user_errors + [x for x in users if len(x) > 15]
@@ -159,7 +163,7 @@ def request_api_response(twitter_id, timeline_url, timeline_params):
             print(f"Problem on {twitter_id} :", api_response["title"])
             return 1
 
-        #~ each subfield in "data" is a tweet.
+        #~ each subfield in "data" is a tweet / following.
         if "data" not in api_response:
             print(f"No data in response: {api_response}")
             return 1
@@ -231,7 +235,7 @@ def timeline_harvest_v2(db, collection, timeline_url):
 
             #~ send the request for the first 500 tweets and insert to mongodb
             api_response = request_api_response(twitter_id, timeline_url, timeline_params)
-            if api_response == 1:
+            if api_response == 1: #~ this "1" is an end-trigger from request_api_response
                 print(twitter_id, "tweet count in DB:", collection.count_documents({"author_id": twitter_id}))
                 continue
             else:
@@ -254,11 +258,6 @@ def timeline_harvest_v2(db, collection, timeline_url):
     print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
 
 
-#! HERE 26aug. need to decide if there is a separate collection for each user
-#! need to consider how that would be expanded - potentially, a harvest for each of the
-#! users in the following list. that would presumably require a whole collection
-#! dedicated to each harvest.
-#! or should we be stepping back and even have a collection for each user prior to get_following?
 #! TODO: get nlp working
 def following_list_harvest(db, collection):
 
@@ -276,23 +275,34 @@ def following_list_harvest(db, collection):
         total_users = (len(user_details))
         print(f"Harvesting following lists from {total_users} users...")
 
-        collection.create_index([("id", pymongo.ASCENDING)], unique=True, dropDups=True)
+        #~ we need a compound index here, since two people can follow the same user
+        #~ so, records where BOTH follower_id and id are the same are considered duplicates
+        collection.create_index([
+            ("follower_id", pymongo.ASCENDING),
+            ("id", pymongo.ASCENDING)], unique=True, dropDups=True)
 
         #~ loop over each user ID
         for user in user_details:
 
-            params = {"max_results": 160}
+            params = {"max_results": 1000}
             twitter_id = user["id"]
             url = f"https://api.twitter.com/2/users/{twitter_id}/following?"
+
             print(f"Requesting {twitter_id} following list...")
             api_response = request_api_response(twitter_id, url, params)
-            if api_response == 1:
-                total_followings = collection.count()
-                print(twitter_id, "followings count in DB:", total_followings)
+
+            #~ request first 1000 followings
+            if api_response == 1: #~ finished user, moving to next one
+                # total_followings = following.count()
+                print(twitter_id, "followings count in DB:", following.count())
                 continue
             else:
+                #~ assign new field with who we are harvesting to each following
+                for following_item in api_response["data"]:
+                    following_item["follower_id"] = twitter_id
                 print(api_response)
                 insert_to_mongodb(api_response, collection)
+
             #~ we get a "next_token" if there are > 1000 followings.
             try:
                 while "next_token" in api_response["meta"]:
@@ -301,12 +311,15 @@ def following_list_harvest(db, collection):
                     if api_response == 1: #~ "1" means "next"
                         continue
                     else:
+                        #~ assign new field with who we are harvesting to each following
+                        for following_item in api_response["data"]:
+                            following_item["follower_id"] = twitter_id
                         insert_to_mongodb(api_response, collection)
-                        # print(api_response)
+
             except TypeError:
                 pass #~ api_response returned "1", so all done.
 
-            print(twitter_id, "followings count in DB:", collection.count_documents({"author_id": twitter_id}))
+            print(twitter_id, "followings count in DB:", collection.count_documents({"follower_id": twitter_id}))
 
     print(f"The DB contains a total of {collection.count()} followings from {total_users} users.")
 

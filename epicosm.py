@@ -1,22 +1,24 @@
-import requests
-from requests.exceptions import *
+
+#~ Standard library imports
 import os
 import sys
 import subprocess
-import time
-from retry import retry
-import json
-from alive_progress import alive_bar
 import glob
-import argparse
+import json
 import time
 import datetime
-import subprocess
+import argparse
 import signal
+
+#~ 3rd party imports
 import schedule
 import pymongo
+from retry import retry
+import requests
+from requests.exceptions import *
+from alive_progress import alive_bar
 
-#~ from ./modules
+#~ Local application imports
 from modules import (
     mongo_ops,
     epicosm_meta,
@@ -59,7 +61,7 @@ def args_setup():
 client = pymongo.MongoClient("localhost", 27017)
 db = client.twitter_db
 collection = db.tweets
-timeline_url = "https://api.twitter.com/2/tweets/search/all"
+
 
 def main():
 
@@ -115,7 +117,7 @@ def main():
 
     #~ get tweets for each user and archive in mongodb
     if args.harvest:
-        twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection, timeline_url)
+        twitter_ops.timeline_harvest_v2(mongodb_config.db, mongodb_config.collection)
 
     #~ if user wants the following list, make it
     if args.get_following:

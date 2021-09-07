@@ -139,7 +139,7 @@ def backup_db(mongodump_executable_path, database_dump_path, epicosm_log_filenam
 
     """ Do a full backup of the database into BSON format """
 
-    print(f"Backing up the database...")
+    print(f"\nBacking up the database...")
     subprocess.call([mongodump_executable_path, "-o",
                      database_dump_path, "--host=127.0.0.1"],
                      stdout = open(epicosm_log_filename, "a+"),

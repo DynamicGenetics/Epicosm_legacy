@@ -103,6 +103,7 @@ def user_lookup_v2():
 
     with open("user_list", "r") as infile: #~ clean up user_list
         users = [x.strip() for x in infile.readlines()]  #~ whitespace strip
+        users = [x for x in users if x != ""]            #~ empty line removal
         users = [(re.sub(r"^@", r"", x)) for x in users] #~ clean "@s" on twitter handles
         #~ names < 3 chars are an error
         user_errors = [x for x in users if len(x) < 3]
@@ -111,8 +112,8 @@ def user_lookup_v2():
         user_errors = user_errors + [x for x in users if len(x) > 15]
         users = [x for x in users if len(x) <= 15]
         #~ names with non-standard chars are an error
-        user_errors = user_errors + [x for x in users if not re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
-        users = [x for x in users if re.match("^[a-zA-Z0-9]*_?[a-zA-Z0-9]*$", x)]
+        user_errors = user_errors + [x for x in users if not re.match("^[a-zA-Z0-9_]*$", x)]
+        users = [x for x in users if re.match("^[a-zA-Z0-9_]*$", x)]
         if len(user_errors) > 0:
             print(f"Some usernames in user_list were invalid: {user_errors}.")
 
@@ -133,7 +134,7 @@ def user_lookup_v2():
         errorfile.write(json.dumps(json_errors, indent=4, sort_keys=True))
 
 
-def request_api_response(twitter_id, timeline_url, timeline_params):
+def request_timeline_response(twitter_id, timeline_params):
 
     """
     OK so this function tries to catch lots of things so looks a bit crazy.
@@ -151,24 +152,26 @@ def request_api_response(twitter_id, timeline_url, timeline_params):
             used as a trigger for the continue in the loop.
     """
 
+    timeline_url = "https://api.twitter.com/2/tweets/search/all"
+
     try:
 
-        api_response = connect_to_endpoint(timeline_url, timeline_params)
+        timeline_response = connect_to_endpoint(timeline_url, timeline_params)
 
-        if api_response["meta"]["result_count"] == 0:
+        if timeline_response["meta"]["result_count"] == 0:
             print(f"No new tweets for {twitter_id}.")
             return 1 #~ all "return 1"s are triggers to continue the harvest loop
 
-        if "errors" in api_response:
-            print(f"Problem on {twitter_id} :", api_response["title"])
+        if "errors" in timeline_response:
+            print(f"Problem on {twitter_id} :", timeline_response["title"])
             return 1
 
         #~ each subfield in "data" is a tweet / following.
-        if "data" not in api_response:
+        if "data" not in timeline_response:
             print(f"No data in response: {api_response}")
             return 1
 
-        return api_response
+        return timeline_response
 
     except RequestException:
         print(f"Rate limited even after cooldown on {twitter_id}. Moving on...")
@@ -179,8 +182,7 @@ def request_api_response(twitter_id, timeline_url, timeline_params):
         return 1
 
 
-
-def timeline_harvest_v2(db, collection, timeline_url):
+def timeline_harvest_v2(db, collection):
 
     """
     This is the main running function for the harvester,
@@ -195,7 +197,7 @@ def timeline_harvest_v2(db, collection, timeline_url):
     3.  Harvests from the newest tweet, or as old as possible if new.
     4.  Inserts the response from the API to the DB, in batches of 500.
 
-    CALLS:  request_api_response()
+    CALLS:  request_timeline_response()
             insert_to_mongodb()
             json.load()
             collection.count_documents()
@@ -203,7 +205,6 @@ def timeline_harvest_v2(db, collection, timeline_url):
 
     ARGS:   db name (set in epicosm.py, just as local defaults)
             collection name (set in epicosm.py)
-            timeline_url (this is the base URL that gets appended to)
     """
 
     with open("user_details.json", "r") as infile:
@@ -211,7 +212,7 @@ def timeline_harvest_v2(db, collection, timeline_url):
         user_details = json.load(infile)
 
         total_users = (len(user_details))
-        print(f"Harvesting timelines from {total_users} users...")
+        print(f"\nHarvesting timelines from {total_users} users...")
 
         #~ loop over each user ID
         for user in user_details:
@@ -222,11 +223,13 @@ def timeline_harvest_v2(db, collection, timeline_url):
             if collection.count_documents({"author_id": twitter_id}) == 0:
                 latest_tweet = 1 #~ go as far back in time as possible.
             else: #~ find latest tweet existing in collection
-                latest_tweet = collection.find_one(
-                    {"author_id": twitter_id},
-                    sort=[("id", pymongo.DESCENDING)])["id"]
+                #~ I know this looks bonkers, but pymongo cannot alphanumeric sort (afaik)
+                tweet_ids = list(collection.find({"author_id": twitter_id}, {"id": 1}))
+                tweet_id_extract = []
+                for i in tweet_ids:
+                    tweet_id_extract.append(int(i["id"]))
+                latest_tweet = max(tweet_id_extract)
 
-            print(f"Requesting {twitter_id} timeline...")
             timeline_params = {
                 "query": f"(from:{twitter_id})",
                 "tweet.fields": "id,author_id,created_at,text,public_metrics,attachments,geo",
@@ -234,9 +237,11 @@ def timeline_harvest_v2(db, collection, timeline_url):
                 "since_id": latest_tweet}
 
             #~ send the request for the first 500 tweets and insert to mongodb
-            api_response = request_api_response(twitter_id, timeline_url, timeline_params)
-            if api_response == 1: #~ this "1" is an end-trigger from request_api_response
-                print(twitter_id, "tweet count in DB:", collection.count_documents({"author_id": twitter_id}))
+            print(f"Requesting timeline for user {twitter_id}...")
+            api_response = request_timeline_response(twitter_id, timeline_params)
+            if api_response == 1: #~ this "1" is an end-trigger from request_timeline_response
+                user_tweet_count = collection.count_documents({"author_id": twitter_id})
+                print(f"Tweet count for user {twitter_id} in DB: {user_tweet_count}")
                 continue
             else:
                 insert_to_mongodb(api_response, collection)
@@ -245,17 +250,20 @@ def timeline_harvest_v2(db, collection, timeline_url):
             try:
                 while "next_token" in api_response["meta"]:
                     timeline_params["next_token"] = api_response["meta"]["next_token"]
-                    api_response = request_api_response(twitter_id, timeline_url, timeline_params)
+                    api_response = request_timeline_response(twitter_id, timeline_params)
                     if api_response == 1: #~ "1" means "next"
                         continue
                     else:
                         insert_to_mongodb(api_response, collection)
             except TypeError:
+                print("typeerror - please investage") #! strange?
                 pass #~ api_response returned "1", so all done.
 
-            print(twitter_id, "tweet count in DB:", collection.count_documents({"author_id": twitter_id}))
+            user_tweet_count = collection.count_documents({"author_id": twitter_id})
+            print(f"Tweet count for user {twitter_id} in DB: {user_tweet_count}")
 
-    print(f"The DB contains a total of {collection.count()} tweets from {total_users} users.")
+    users_in_collection = len(collection.distinct("author_id"))
+    print(f"\nThe DB contains a total of {collection.count()} tweets from {users_in_collection} users.")
 
 
 def following_list_harvest(db, collection):
@@ -273,7 +281,7 @@ def following_list_harvest(db, collection):
         user_details = json.load(infile)
 
         total_users = (len(user_details))
-        print(f"Harvesting following lists from {total_users} users...")
+        print(f"\nHarvesting following lists from {total_users} users...")
 
         #~ we need a compound index here, since two people can follow the same user
         #~ so, records where BOTH follower_id and id are the same are considered duplicates
@@ -319,7 +327,8 @@ def following_list_harvest(db, collection):
 
             print(twitter_id, "followings count in DB:", collection.count_documents({"follower_id": twitter_id}))
 
-    print(f"The DB contains a total of {collection.count()} followings from {total_users} users.")
+    users_in_collection = len(collection.distinct("follower_id"))
+    print(f"\nThe DB contains a total of {collection.count()} followings from {users_in_collection} users.")
 
 
 def insert_to_mongodb(api_response, collection):

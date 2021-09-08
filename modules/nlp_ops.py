@@ -1,21 +1,27 @@
-import pymongo
+
+#~ Standard library imports
 import csv
 import sys
 import os
 import re
 from collections import namedtuple, Counter
+
+#~ 3rd party imports
+import pymongo
 from alive_progress import alive_bar
 import liwc
 from textblob import TextBlob
 
-from modules import (mongo_ops,
-                    epicosm_meta,
-                    twitter_ops,
-                    nlp_ops,
-                    env_config,
-                    mongodb_config,
-                    vader_sentiment,
-                    labmt)
+#~ Local application imports
+from modules import (
+    mongo_ops,
+    epicosm_meta,
+    twitter_ops,
+    nlp_ops,
+    env_config,
+    mongodb_config,
+    vader_sentiment,
+    labmt)
 
 
 def tweet_or_retweet(db_document_dict):
@@ -119,19 +125,22 @@ def mongo_vader(db, total_records):
     with alive_bar(total_records, spinner="dots_recur") as bar:
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            #~ decide if it is a tweet or retweet and assign relevant field
-            full_text_field = eval(tweet_or_retweet(db_document_dict))
+            #~ get the text field for this record
+            full_text_field = db_document_dict["text"]
 
+            #~ vader process
             vader_negative = analyser.polarity_scores(full_text_field)["neg"]
             vader_neutral = analyser.polarity_scores(full_text_field)["neu"]
             vader_positive = analyser.polarity_scores(full_text_field)["pos"]
             vader_compound = analyser.polarity_scores(full_text_field)["compound"]
 
-            mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]}, {"$set": {
-                                  "epicosm.vader.negative": vader_negative,
-                                  "epicosm.vader.neutral": vader_neutral,
-                                  "epicosm.vader.positive": vader_positive,
-                                  "epicosm.vader.compound": vader_compound}})
+            mongodb_config.collection.update_one(
+                {"id": db_document_dict["id"]},
+                {"$set": {
+                    "epicosm.vader.negative": vader_negative,
+                    "epicosm.vader.neutral": vader_neutral,
+                    "epicosm.vader.positive": vader_positive,
+                    "epicosm.vader.compound": vader_compound}})
             bar()
 
     print(f"OK - Vader sentiment analysis applied to {index + 1} records.")
@@ -146,15 +155,15 @@ def mongo_labMT(db, total_records):
 
     print(f"labMT sentiment, analysing...")
 
-    lang = 'english'
+    lang = "english"
     labMT, labMTvector, labMTwordList = labmt.emotionFileReader(stopval=0.0, lang=lang, returnVector=True)
 
     with alive_bar(total_records, spinner="dots_recur") as bar:
 
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            #~ decide if it is a tweet or retweet and assign relevant field
-            full_text_field = eval(tweet_or_retweet(db_document_dict))
+            #~ get the text field for this record
+            full_text_field = db_document_dict["text"]
 
             #~ compute valence score and return frequency vector for generating wordshift
             valence, frequency_vector = labmt.emotion(full_text_field, labMT, shift=True, happsList=labMTvector)
@@ -166,8 +175,10 @@ def mongo_labMT(db, total_records):
             output_valence = labmt.emotionV(stop_vector, labMTvector)
 
             #~ insert score into DB
-            mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]}, {"$set": {
-                                  "epicosm.labMT.emotion_valence": float(format(output_valence, '.4f'))}})
+            mongodb_config.collection.update_one(
+                {"id": db_document_dict["id"]},
+                {"$set": {
+                    "epicosm.labMT.emotion_valence": float(format(output_valence, '.4f'))}})
 
             bar()
 
@@ -180,8 +191,9 @@ def mongo_textblob(db, total_records):
 
     with alive_bar(total_records, spinner="dots_recur") as bar:
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
-            #~ decide if it is a tweet or retweet and assign relevant field
-            full_text_field = eval(tweet_or_retweet(db_document_dict))
+
+            #~ get the text field for this record
+            full_text_field = db_document_dict["text"]
 
             #~ we want textblob to ignore sentences and take tweets as a whole
             text_clean = full_text_field.replace(".", " ")
@@ -191,9 +203,10 @@ def mongo_textblob(db, total_records):
             blob.noun_phrases
 
             for sentence in blob.sentences:
-                mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]},
-                                                        {"$set": {"epicosm.textblob":
-                                                        float(format(sentence.sentiment.polarity, '.4f'))}})
+                mongodb_config.collection.update_one(
+                    {"id": db_document_dict["id"]},
+                    {"$set": {"epicosm.textblob":
+                    float(format(sentence.sentiment.polarity, '.4f'))}})
             bar()
 
     print(f"OK - TextBlob sentiment analysis applied to {index + 1} records.")
@@ -220,9 +233,8 @@ def mongo_liwc(db, total_records):
 
         """Split each text entry into words (tokens)"""
 
-        for match in re.finditer(r'\w+', text, re.UNICODE):
+        for match in re.finditer(r"\w+", text, re.UNICODE):
             yield match.group(0)
-
 
     print(f"LIWC sentiment, analysing...")
 
@@ -232,8 +244,8 @@ def mongo_liwc(db, total_records):
 
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            #~ decide if it is a tweet or retweet and assign relevant field
-            full_text_field = eval(tweet_or_retweet(db_document_dict))
+            #~ get the text field for this record
+            full_text_field = db_document_dict["text"]
 
             word_count = len(re.findall(r'\w+', full_text_field))
             text_tokens = tokenize(full_text_field)
@@ -241,11 +253,11 @@ def mongo_liwc(db, total_records):
 
             for count_category in text_counts:  #~ insert the LIWC values as proportion of word_count
 
-                mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]},
-                                               {"$set":
-                                               {"epicosm.liwc." + count_category:
-                                               float(format((text_counts[count_category] / word_count),
-                                               '.4f'))}})
+                mongodb_config.collection.update_one(
+                    {"id": db_document_dict["id"]},
+                    {"$set":
+                    {"epicosm.liwc." + count_category:
+                    float(format((text_counts[count_category] / word_count), '.4f'))}})
 
             bar()
 

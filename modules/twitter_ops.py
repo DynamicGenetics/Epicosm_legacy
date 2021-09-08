@@ -58,6 +58,9 @@ def connect_to_endpoint(url, params):
     if response.status_code == 401:
         print("Bearer token was not verified. Please check and retry.")
         sys.exit(129)
+    if response.status_code == 503:
+        print("Twitter's servers seem unavailable, giving them a moment...")
+        raise RequestException
     elif response.status_code != 200:
         print("Didn't get a 200 response:", response.status_code)
     return response.json()
@@ -255,9 +258,9 @@ def timeline_harvest_v2(db, collection):
                         continue
                     else:
                         insert_to_mongodb(api_response, collection)
-            except TypeError:
-                print("typeerror - please investage") #! strange?
-                pass #~ api_response returned "1", so all done.
+            except TypeError as e:
+                print(e)
+                pass #~ move on for this harvest iteration.
 
             user_tweet_count = collection.count_documents({"author_id": twitter_id})
             print(f"Tweet count for user {twitter_id} in DB: {user_tweet_count}")

@@ -44,7 +44,7 @@ def main():
 
     try:
         subprocess.check_output(["pgrep", "mongod"])
-        print(f"MongoDB looks up.")
+        print(f"MongoDB identified as running.")
     except subprocess.CalledProcessError:
         print(f"MongoDB does not appear to be running here. You can start MongoDB with")
         print(f"python3 epicosm.py --start_db")
@@ -54,17 +54,16 @@ def main():
             parser.print_help()
             sys.exit(0)
 
-    # check running method
+    #~ check running method
     epicosm_meta.native_or_compiled()
 
-    # check environment
-    # mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, screen_names = epicosm_meta.check_env()
+    #~ check environment
     mongod_executable_path, mongoexport_executable_path, mongodump_executable_path = epicosm_meta.check_env()
 
-    # setup signal handler
+    #~ setup signal handler
     signal.signal(signal.SIGINT, epicosm_meta.signal_handler)
 
-    # check size of collection
+    #~ check size of collection
     total_records = mongodb_config.collection.estimated_document_count()
     if total_records == 0:
         print(f"The database seems empty. Nothing to do.")

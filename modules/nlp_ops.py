@@ -88,7 +88,7 @@ def mongo_insert_groundtruth(db, total_records):
 def mongo_vader(db, total_records):
 
     """
-    Do Vader (Hutto & Gilbert 2014) analysis on the contents of the DB,
+    Apply VADER (Hutto & Gilbert 2014) analysis on the contents of the DB,
     appending four fields: epicosm.vader.negative epicosm.vader.neutral
     epicosm.vader.positive epicosm.vader.compound
     """
@@ -118,6 +118,7 @@ def mongo_vader(db, total_records):
                     "epicosm.vader.neutral": vader_neutral,
                     "epicosm.vader.positive": vader_positive,
                     "epicosm.vader.compound": vader_compound}})
+
             bar()
 
     print(f"OK - Vader sentiment analysis applied to {index + 1} records.")
@@ -126,8 +127,8 @@ def mongo_vader(db, total_records):
 def mongo_labMT(db, total_records):
 
     """
-    Do labMT (Dodds & Danforth 2011) to contents of DB,
-    appending one field called epicosm.labMT.emotion_valence
+    Apply labMT (Dodds & Danforth 2011) to contents of DB,
+    appending one field to each record, called epicosm.labMT.emotion_valence
     """
 
     print(f"labMT sentiment, analysing...")
@@ -143,10 +144,18 @@ def mongo_labMT(db, total_records):
             full_text_field = db_document_dict["text"]
 
             #~ compute valence score and return frequency vector for generating wordshift
-            valence, frequency_vector = labmt.emotion(full_text_field, labMT, shift=True, happsList=labMTvector)
+            valence, frequency_vector = labmt.emotion(
+                full_text_field,
+                labMT,
+                shift=True,
+                happsList=labMTvector)
 
             #~ assign a stop vector
-            stop_vector = labmt.stopper(frequency_vector, labMTvector, labMTwordList, stopVal=1.0)
+            stop_vector = labmt.stopper(
+                frequency_vector,
+                labMTvector,
+                labMTwordList,
+                stopVal=1.0)
 
             #~ get the emotional valence
             output_valence = labmt.emotionV(stop_vector, labMTvector)
@@ -154,8 +163,8 @@ def mongo_labMT(db, total_records):
             #~ insert score into DB
             mongodb_config.collection.update_one(
                 {"id": db_document_dict["id"]},
-                {"$set": {
-                    "epicosm.labMT.emotion_valence": float(format(output_valence, '.4f'))}})
+                {"$set": {"epicosm.labMT.emotion_valence":
+                float(format(output_valence, '.4f'))}})
 
             bar()
 
@@ -163,6 +172,11 @@ def mongo_labMT(db, total_records):
 
 
 def mongo_textblob(db, total_records):
+
+    """
+    Apply TextBlob to contents of DB,
+    appending one field to each record, called epicosm.textblob
+    """
 
     print(f"TextBlob sentiment, analysing...")
 
@@ -182,8 +196,10 @@ def mongo_textblob(db, total_records):
             for sentence in blob.sentences:
                 mongodb_config.collection.update_one(
                     {"id": db_document_dict["id"]},
-                    {"$set": {"epicosm.textblob":
-                    float(format(sentence.sentiment.polarity, '.4f'))}})
+                    {"$set": {
+                        "epicosm.textblob":
+                        float(format(sentence.sentiment.polarity, '.4f'))}})
+
             bar()
 
     print(f"OK - TextBlob sentiment analysis applied to {index + 1} records.")
@@ -199,6 +215,7 @@ def mongo_liwc(db, total_records):
 
     Appends fields epicosm.liwc.[category]
     """
+
     #~ Look for an LIWC dictionary
     if os.path.isfile('./LIWC.dic'):
         dictionary = "LIWC.dic"
@@ -232,9 +249,9 @@ def mongo_liwc(db, total_records):
 
                 mongodb_config.collection.update_one(
                     {"id": db_document_dict["id"]},
-                    {"$set":
-                    {"epicosm.liwc." + count_category:
-                    float(format((text_counts[count_category] / word_count), '.4f'))}})
+                    {"$set": {
+                        "epicosm.liwc." + count_category:
+                        float(format((text_counts[count_category] / word_count), '.4f'))}})
 
             bar()
 
@@ -269,14 +286,15 @@ def mongo_nlp_example(db, total_records):
 
         for index, db_document_dict in enumerate(mongodb_config.collection.find({})):
 
-            #~ decide if it is a tweet or retweet and use correct field
-            full_text_field = eval(tweet_or_retweet(db_document_dict))
+            #~ get the text field for this record
+            full_text_field = db_document_dict["text"]
 
             count = Counter(full_text_field)
-            mongodb_config.collection.update_one({"id_str": db_document_dict["id_str"]},
-                                           {"$set":
-                                           { "epicosm.trivial_nlp.e_ratio":
-                                           float(format(int(count['e']) / int(len(full_text_field)), '.4f'))}})
+            mongodb_config.collection.update_one({
+                "id": db_document_dict["id"]},
+                {"$set": {
+                    "epicosm.trivial_nlp.e_ratio":
+                    float(format(int(count['e']) / int(len(full_text_field)), '.4f'))}})
             bar()
 
     print(f"OK - e_ratio analysis applied to {index + 1} records.")
@@ -291,12 +309,15 @@ def mongo_groundtruth_delta(db, candidate_inference):
 
     with alive_bar(total_records, spinner="dots_recur") as bar:
 
-        for index, tweet_text in enumerate(mongodb_config.collection.find({}, {"id_str": 1, interest_field: 1})):
+        for index, tweet_text in enumerate(mongodb_config.collection.find({}, {"id": 1, interest_field: 1})):
 
             groundtruth_delta = groundtruthfield - candidate_inference_output_field
 
-            mongodb_config.collection.update_one({"id_str": tweet_text["id_str"]}, {"$set": {
-                "epicosm." + candidate_inference + ".groundtruth_delta": format(groundtruth_delta, '.4f')}})
+            mongodb_config.collection.update_one({
+                "id": tweet_text["id"]},
+                {"$set": {
+                    "epicosm." + candidate_inference + ".groundtruth_delta":
+                    format(groundtruth_delta, '.4f')}})
 
         bar()
 

@@ -24,29 +24,6 @@ from modules import (
     labmt)
 
 
-def tweet_or_retweet(db_document_dict):
-
-    """
-    tweet jsons are kind of moronic - if the tweet is a retweet, the full_text field is
-    truncated (ending with single character ellipsis (...)),
-    and the field underneath called 'truncated' says 'false'.
-    I do not know when the 'truncated' field does not say false.
-
-    Anyway, we have to get the *true* full text from the field retweeted_status.full_text
-    in the case that a tweet is a retweet -.-
-
-    tweet_text is a dict created by the pymongo query like
-    db[collection_name].find({}, {"id_str": 1, "full_text": 1, "retweeted_status.full_text": 1})
-    """
-
-    full_text_field = "db_document_dict[\"full_text\"]"
-
-    if "retweeted_status" in db_document_dict:  # if this key exists, it is a retweet
-        full_text_field = "db_document_dict[\"retweeted_status\"][\"full_text\"]"
-
-    return full_text_field
-
-
 def mongo_insert_groundtruth(db, total_records):
 
     """
@@ -70,13 +47,13 @@ def mongo_insert_groundtruth(db, total_records):
         groundtruth_in = [Data(*r) for r in reader]
 
     #~ Count users in db and groundtruth for crosschecking
-    total_users_in_db = mongodb_config.collection.distinct("user.id_str")
+    total_users_in_db = mongodb_config.collection.distinct("user.id")
     users_with_groundtruth_provided = []
 
     #~ Create or update field (epicosm.groundtruth.gt_stat_1) with values
     for index, user in enumerate(groundtruth_in):
 
-        mongodb_config.collection.update_many({"user.id_str": user.user},
+        mongodb_config.collection.update_many({"user.id": user.user},
                               {"$set":
                               {"epicosm.groundtruth.gt_stat_1": float(user.gt_stat_1)}})
 

@@ -23,6 +23,7 @@ from modules import (
     mongo_ops,
     epicosm_meta,
     twitter_ops,
+    following_ops,
     env_config,
     mongodb_config)
 
@@ -40,6 +41,8 @@ def args_setup():
       help="Harvest tweets from all users from a file called user_list (provided by you) with a single user per line.")
     parser.add_argument("--get_following", action="store_true",
       help="Create a database of the users that are being followed by the accounts in your user_list. (This process can be very slow, especially if your users are prolific followers.)")
+    parser.add_argument("--following_harvest", action="store_true",
+      help="Harvest recent tweets from the users being followed by a user. (This process can be very slow and take up a lot of storage, especially if your users are prolific followers.)")
     parser.add_argument("--repeat", action="store_true",
       help="Repeat the harvest every 72 hours. This process will need to be put to the background to free your terminal prompt.")
     parser.add_argument("--refresh", action="store_true",
@@ -121,7 +124,7 @@ def main():
 
     #~ if user wants the following list, make it
     if args.get_following:
-        twitter_ops.following_list_harvest(mongodb_config.db, mongodb_config.following_collection)
+        following_ops.following_list_harvest(mongodb_config.db, mongodb_config.following_collection)
         sys.argv.remove("--get_following") #~ we only want to do this once
 
     #~ backup database into BSON
